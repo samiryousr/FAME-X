@@ -12,6 +12,38 @@ export default function HomePage() {
       <Navbar />
       <main>
         <Hero />
+        <div
+          className="arcade-ticker"
+          role="region"
+          aria-label="خدماتنا: استراتيجية، تصميم، تطوير، ونمو"
+        >
+          <div className="arcade-ticker__track" dir="ltr">
+            {[0, 1].map((copy) => (
+              <div
+                className="arcade-ticker__set"
+                key={copy}
+                aria-hidden={copy === 1}
+              >
+                <span>
+                  STRATEGY <b>استراتيجية</b>
+                </span>
+                <i />
+                <span>
+                  DESIGN <b>تصميم</b>
+                </span>
+                <i />
+                <span>
+                  DEVELOPMENT <b>تطوير</b>
+                </span>
+                <i />
+                <span>
+                  GROWTH <b>نمو</b>
+                </span>
+                <i />
+              </div>
+            ))}
+          </div>
+        </div>
         <About />
         <Services />
         <Projects />

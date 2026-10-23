@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="220" viewBox="0 0 800 220">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&amp;display=swap');
+    text {
+      font-family: 'Press Start 2P', monospace;
+    }
+  </style>
+  <text
+    x="400"
+    y="145"
+    fill="#fff"
+    font-size="90"
+    font-weight="bold"
+    letter-spacing="6"
+    text-anchor="middle"
+  >FAME X</text>
+</svg>
