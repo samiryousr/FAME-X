@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 
 const links = [
+  { href: "#home", label: "الرئيسية" },
   { href: "#about", label: "من نحن" },
   { href: "#services", label: "خدماتنا" },
   { href: "#projects", label: "أعمالنا" },
@@ -10,6 +11,7 @@ const links = [
 
 export default function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   useEffect(() => {
     const updateScrollState = () => setIsScrolled(window.scrollY > 32);
@@ -24,7 +26,7 @@ export default function Navbar() {
     }
 
     const revealTargets = document.querySelectorAll<HTMLElement>(
-      ".section__heading, .about__layout, .card, .project-card, .contact__panel",
+      ".section__heading, .card:not(.services__card), .project-card, .contact__panel",
     );
     if (revealTargets.length === 0) {
       return () => window.removeEventListener("scroll", updateScrollState);
@@ -58,9 +60,7 @@ export default function Navbar() {
     <header className={`navbar${isScrolled ? " navbar--scrolled" : ""}`}>
       <nav className="container navbar__inner" aria-label="التنقل الرئيسي">
         <a className="navbar__brand" href="#home" aria-label="Famex - الرئيسية">
-          <span className="navbar__mark" aria-hidden="true">
-            FX
-          </span>
+          <span className="navbar__mark" aria-hidden="true">FX</span>
           <span className="navbar__brand-copy">
             <span className="brand-wordmark" dir="ltr">
               FAME<span className="brand-wordmark__accent">X</span>
@@ -70,17 +70,35 @@ export default function Navbar() {
             </span>
           </span>
         </a>
-        <div className="navbar__links">
+        <div
+          className={`navbar__links${isMenuOpen ? " navbar__links--open" : ""}`}
+          id="primary-navigation"
+        >
           {links.map((link) => (
-            <a key={link.href} href={link.href}>
+            <a key={link.href} href={link.href} onClick={() => setIsMenuOpen(false)}>
               {link.label}
             </a>
           ))}
         </div>
-        <a className="navbar__cta" href="#contact">
+        <span className="navbar__availability">
           <span className="navbar__cta-dot" aria-hidden="true" />
-          لنتحدث
+          متاحون لمشاريع جديدة
+        </span>
+        <a className="navbar__cta" href="#contact">
+          ابدأ مشروعك
         </a>
+        <button
+          className="navbar__menu-toggle"
+          type="button"
+          aria-label={isMenuOpen ? "إغلاق القائمة" : "فتح القائمة"}
+          aria-expanded={isMenuOpen}
+          aria-controls="primary-navigation"
+          onClick={() => setIsMenuOpen((open) => !open)}
+        >
+          <span />
+          <span />
+          <span />
+        </button>
       </nav>
     </header>
   );
