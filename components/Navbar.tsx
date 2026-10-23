@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useEffect, useState } from "react";
 
 const links = [
@@ -60,7 +61,14 @@ export default function Navbar() {
     <header className={`navbar${isScrolled ? " navbar--scrolled" : ""}`}>
       <nav className="container navbar__inner" aria-label="التنقل الرئيسي">
         <a className="navbar__brand" href="#home" aria-label="Famex - الرئيسية">
-          <span className="navbar__mark" aria-hidden="true">FX</span>
+          <Image
+            className="navbar__mark"
+            src="/famex-symbol.svg"
+            alt=""
+            width={44}
+            height={38}
+            priority
+          />
           <span className="navbar__brand-copy">
             <span className="brand-wordmark" dir="ltr">
               FAME<span className="brand-wordmark__accent">X</span>
