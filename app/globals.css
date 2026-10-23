@@ -1289,49 +1289,410 @@ button:focus-visible {
   perspective: 1100px;
 }
 
+/* ==========================================================================
+   AUTHENTIC RETRO ARCADE CABINET (جهاز الآركيد الكلاسيكي الكامل)
+   ========================================================================== */
+.arcade-cabinet,
 .arcade-machine {
   position: relative;
   z-index: 1;
   display: flex;
-  width: min(350px, 82vw);
-  min-height: 365px;
+  width: min(370px, 86vw);
   flex-direction: column;
-  padding: 15px 16px 11px;
-  border: 1px solid rgb(166 244 93 / 52%);
-  border-radius: 18px 18px 8px 8px;
+  padding: 0 0 14px;
+  border-radius: 26px 26px 14px 14px;
   background:
-    linear-gradient(110deg, rgb(255 255 255 / 3%), transparent 18% 82%, rgb(0 0 0 / 28%)),
-    linear-gradient(145deg, #1a201c, #121614 48%, #0e120f);
+    linear-gradient(180deg, #18221b 0%, #111713 35%, #0b0f0c 100%);
+  border: 1px solid rgb(166 244 93 / 45%);
   box-shadow:
-    0 30px 80px rgb(0 0 0 / 52%),
-    0 0 32px rgb(115 205 67 / 8%),
-    inset 0 1px 0 rgb(255 255 255 / 8%);
-  transform: rotateY(-7deg) rotateX(2deg);
+    0 35px 90px rgb(0 0 0 / 68%),
+    0 0 40px rgb(166 244 93 / 12%),
+    inset 0 2px 0 rgb(255 255 255 / 15%),
+    inset 0 -2px 0 rgb(0 0 0 / 80%);
+  transform: perspective(1200px) rotateY(-6deg) rotateX(2deg);
+  transform-style: preserve-3d;
   animation: machine-float 6s ease-in-out infinite;
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.4s ease;
 }
 
+.arcade-cabinet:hover,
+.arcade-machine:hover {
+  transform: perspective(1200px) rotateY(-2deg) rotateX(1deg) translateY(-4px);
+  box-shadow:
+    0 45px 105px rgb(0 0 0 / 75%),
+    0 0 55px rgb(166 244 93 / 20%),
+    inset 0 2px 0 rgb(255 255 255 / 20%);
+}
+
+.arcade-cabinet::before,
 .arcade-machine::before {
   position: absolute;
   z-index: -1;
-  right: 10%;
-  bottom: -20px;
-  left: 10%;
-  height: 24px;
+  right: 6%;
+  bottom: -24px;
+  left: 6%;
+  height: 28px;
   border-radius: 50%;
-  background: rgb(0 0 0 / 58%);
+  background: rgb(0 0 0 / 72%);
   content: "";
-  filter: blur(13px);
+  filter: blur(16px);
 }
+
+/* T-Molding Glowing Edge Trims (حواف الكابينة الجانبية المضيئة) */
+.arcade-cabinet__trim {
+  position: absolute;
+  top: 10px;
+  bottom: 12px;
+  width: 5px;
+  border-radius: 999px;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.arcade-cabinet__trim--left {
+  left: -4px;
+  background: linear-gradient(180deg, #a6f45d, #00c988 50%, #1f5f38);
+  box-shadow: -2px 0 10px rgb(166 244 93 / 50%), inset 0 0 2px #fff;
+}
+
+.arcade-cabinet__trim--right {
+  right: -4px;
+  background: linear-gradient(180deg, #a6f45d, #00c988 50%, #1f5f38);
+  box-shadow: 2px 0 10px rgb(166 244 93 / 50%), inset 0 0 2px #fff;
+}
+
+/* 1. CANOPY & MARQUEE HOOD */
+.arcade-cabinet__canopy {
+  padding: 14px 18px 8px;
+  border-bottom: 3px solid #080d09;
+  background: linear-gradient(180deg, #1e2a22 0%, #131a15 100%);
+  border-radius: 26px 26px 0 0;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 15%), 0 6px 14px rgb(0 0 0 / 40%);
+}
+
+.arcade-cabinet__speakers {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.arcade-cabinet__speakers span {
+  width: 24px;
+  height: 3px;
+  border-radius: 2px;
+  background: #080e0a;
+  box-shadow: inset 0 1px 2px #000, 0 1px 0 rgb(255 255 255 / 8%);
+}
+
+/* 2. CRT SCREEN BEZEL */
+.arcade-cabinet__bezel {
+  padding: 10px 16px 12px;
+  background: radial-gradient(circle at 50% 30%, #151d17, #0b100d 90%);
+}
+
+.arcade-cabinet__crt-glare {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(125deg, rgb(255 255 255 / 6%) 0%, transparent 40%, rgb(0 0 0 / 25%) 100%);
+  border-radius: inherit;
+  z-index: 4;
+}
+
+/* 3. CONTROL PANEL DECK (لوحة التحكم البارزة) */
+.arcade-cabinet__deck {
+  position: relative;
+  z-index: 5;
+  margin: 0 -3px;
+  padding: 12px 16px;
+  background:
+    linear-gradient(180deg, #243027 0%, #17201a 25%, #0f1511 100%);
+  border-top: 2px solid #2e3e32;
+  border-bottom: 4px solid #080d09;
+  box-shadow:
+    0 8px 20px rgb(0 0 0 / 60%),
+    inset 0 1px 0 rgb(255 255 255 / 20%);
+}
+
+.arcade-cabinet__deck-surface {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 8px 14px;
+  background:
+    radial-gradient(circle at 50% 50%, #19241d, #0d140f),
+    repeating-linear-gradient(45deg, transparent, transparent 10px, rgb(0 0 0 / 15%) 10px, rgb(0 0 0 / 15%) 20px);
+  border: 1px solid rgb(166 244 93 / 22%);
+  border-radius: 10px;
+  box-shadow: inset 0 2px 6px rgb(0 0 0 / 70%), 0 1px 0 rgb(255 255 255 / 10%);
+}
+
+/* Authentic Arcade Joystick */
+.arcade-cabinet__joystick {
+  position: relative;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: grab;
+  transition: transform 0.15s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+}
+
+.arcade-cabinet__joystick:hover {
+  transform: rotate(-14deg) scale(1.06);
+}
+
+.arcade-cabinet__joystick:active {
+  transform: rotate(18deg) scale(0.96);
+  cursor: grabbing;
+}
+
+.arcade-cabinet__joystick-washer {
+  position: absolute;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 40% 40%, #2a352e, #0c120e);
+  box-shadow: 0 4px 8px rgb(0 0 0 / 80%), inset 0 1px 2px rgb(255 255 255 / 20%);
+  border: 1px solid #050806;
+}
+
+.arcade-cabinet__joystick-shaft {
+  position: absolute;
+  width: 8px;
+  height: 24px;
+  top: 4px;
+  border-radius: 4px;
+  background: linear-gradient(90deg, #7c887f 0%, #ffffff 45%, #adb8b0 70%, #515c54 100%);
+  box-shadow: 2px 3px 5px rgb(0 0 0 / 60%);
+  z-index: 2;
+}
+
+.arcade-cabinet__joystick-ball {
+  position: absolute;
+  top: -12px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #ff6b6b 0%, #e61919 45%, #8a0505 85%, #4a0000 100%);
+  box-shadow:
+    0 4px 10px rgb(0 0 0 / 75%),
+    0 0 12px rgb(230 25 25 / 55%),
+    inset 0 2px 4px rgb(255 255 255 / 45%);
+}
+
+/* Arcade Push Buttons (أزرار الآركيد الملونة البارزة) */
+.arcade-cabinet__buttons {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.arcade-button {
+  position: relative;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 2px solid #080d0a;
+  background: #111713;
+  box-shadow:
+    0 4px 8px rgb(0 0 0 / 70%),
+    inset 0 1px 1px rgb(255 255 255 / 25%);
+  cursor: pointer;
+  padding: 0;
+  display: grid;
+  place-items: center;
+  transition: transform 0.08s ease, box-shadow 0.08s ease, filter 0.15s ease;
+}
+
+.arcade-button__cap {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-family: var(--font-pixel);
+  font-size: 0.52rem;
+  font-weight: 900;
+  color: #fff;
+  text-shadow: 0 1px 2px rgb(0 0 0 / 80%);
+  border: 1px solid rgb(255 255 255 / 35%);
+  box-shadow: inset 0 2px 3px rgb(255 255 255 / 50%), 0 2px 4px rgb(0 0 0 / 50%);
+  pointer-events: none;
+}
+
+.arcade-button--cyan .arcade-button__cap {
+  background: radial-gradient(circle at 35% 30%, #48cae4, #0096c7 60%, #023e8a);
+  box-shadow: 0 0 10px rgb(0 180 216 / 50%), inset 0 2px 3px rgb(255 255 255 / 60%);
+}
+
+.arcade-button--green .arcade-button__cap {
+  background: radial-gradient(circle at 35% 30%, #a6f45d, #39a653 60%, #1b5327);
+  box-shadow: 0 0 10px rgb(166 244 93 / 50%), inset 0 2px 3px rgb(255 255 255 / 60%);
+}
+
+.arcade-button--red .arcade-button__cap {
+  background: radial-gradient(circle at 35% 30%, #ff758f, #e63946 60%, #85121b);
+  box-shadow: 0 0 10px rgb(230 57 70 / 50%), inset 0 2px 3px rgb(255 255 255 / 60%);
+}
+
+.arcade-button:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.2);
+}
+
+.arcade-button:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 3px rgb(0 0 0 / 80%);
+}
+
+/* 4. LOWER CABINET & COIN DOOR (باب العملات المعدنية) */
+.arcade-cabinet__base {
+  padding: 12px 18px 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.arcade-cabinet__coin-door {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 14px;
+  border-radius: 8px;
+  background: linear-gradient(180deg, #141b16 0%, #0c110e 100%);
+  border: 1px solid #202b23;
+  box-shadow:
+    inset 0 1px 4px rgb(0 0 0 / 80%),
+    0 1px 0 rgb(255 255 255 / 8%);
+}
+
+.arcade-cabinet__coin-slots {
+  display: flex;
+  gap: 12px;
+}
+
+.arcade-cabinet__coin-slot {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 6px;
+  background: #090e0b;
+  border: 1px solid #28372c;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: transform 0.1s ease, border-color 0.1s ease;
+}
+
+.arcade-cabinet__coin-slot:hover {
+  border-color: #f77f00;
+  transform: translateY(-1px);
+}
+
+.arcade-cabinet__coin-slot:active {
+  transform: translateY(1px);
+}
+
+.arcade-cabinet__coin-slit {
+  width: 14px;
+  height: 2px;
+  background: #000;
+  border-radius: 1px;
+  box-shadow: 0 1px 0 rgb(255 255 255 / 15%);
+}
+
+.arcade-cabinet__coin-reject {
+  display: block;
+  font-family: var(--font-pixel);
+  font-size: 0.44rem;
+  font-weight: 900;
+  color: #ff9e00;
+  background: #541700;
+  border: 1px solid #e85d04;
+  border-radius: 2px;
+  padding: 2px 4px;
+  line-height: 1;
+  text-shadow: 0 0 4px #ff9e00;
+  box-shadow: 0 0 8px rgb(247 127 0 / 40%), inset 0 1px 2px rgb(255 255 255 / 30%);
+}
+
+.arcade-cabinet__keyhole {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 40% 40%, #445448, #0f1611);
+  box-shadow: 0 1px 2px rgb(0 0 0 / 80%), inset 0 1px 1px rgb(255 255 255 / 30%);
+  position: relative;
+}
+
+.arcade-cabinet__keyhole::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 2px;
+  height: 4px;
+  background: #000;
+  border-radius: 1px;
+}
+
+.arcade-cabinet__insert-label {
+  font-family: var(--font-pixel);
+  font-size: 0.42rem;
+  letter-spacing: 0.08em;
+  color: #ff9e00;
+  text-shadow: 0 0 6px rgb(255 158 0 / 60%);
+  animation: prompt-blink 1.4s steps(2, jump-none) infinite;
+}
+
+
 
 .arcade-machine__topline {
   display: flex;
   justify-content: space-between;
+  align-items: center;
   gap: 10px;
   color: #88a17d;
   font-family: var(--font-pixel);
   font-size: 0.53rem;
   font-weight: 700;
   letter-spacing: 0.08em;
+}
+
+.arcade-cabinet__top-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.arcade-cabinet__audio-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: #111a14;
+  border: 1px solid rgb(166 244 93 / 35%);
+  border-radius: 4px;
+  padding: 2px 6px;
+  color: #a6f45d;
+  font-family: var(--font-pixel);
+  font-size: 0.44rem;
+  cursor: pointer;
+  line-height: 1;
+  transition: background 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.arcade-cabinet__audio-btn:hover {
+  background: #1c2a20;
+  border-color: #a6f45d;
+  box-shadow: 0 0 8px rgb(166 244 93 / 40%);
 }
 
 .arcade-machine__live {
@@ -1345,6 +1706,7 @@ button:focus-visible {
   width: 5px;
   height: 5px;
 }
+
 
 .arcade-machine__marquee {
   display: flex;
@@ -2035,8 +2397,9 @@ button:focus-visible {
     min-height: 460px;
   }
 
+  .arcade-cabinet,
   .arcade-machine {
-    width: min(320px, 76vw);
+    width: min(340px, 80vw);
   }
 
 }
@@ -2077,8 +2440,9 @@ button:focus-visible {
     margin-top: 8px;
   }
 
+  .arcade-cabinet,
   .arcade-machine {
-    width: min(320px, 78vw);
+    width: min(330px, 86vw);
     min-height: 405px;
     transform: none;
   }
@@ -2119,8 +2483,9 @@ button:focus-visible {
     font-size: 0.56rem;
   }
 
+  .arcade-cabinet,
   .arcade-machine {
-    width: min(300px, 82vw);
+    width: min(300px, 88vw);
   }
 
   .hero__float-card {

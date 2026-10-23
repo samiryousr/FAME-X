@@ -1,7 +1,14 @@
 "use client";
 
-import { useEffect, useRef } from "react";
-import { ArrowLeft } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { ArrowLeft, Volume2, VolumeX } from "lucide-react";
+import {
+  playCoinSound,
+  playSelectSound,
+  playJoystickSound,
+  playStartSound,
+  toggleArcadeMute,
+} from "@/lib/arcadeSound";
 
 const PLAYERS = [
   { id: "gamer-boy", label: "PLAYER 01" },
@@ -18,6 +25,7 @@ export default function Hero() {
   const pupilTargetsRef = useRef(new Map<string, PupilPosition>());
   const pupilPositionsRef = useRef(new Map<string, PupilPosition>());
   const gazeFrameRef = useRef(0);
+  const [isMuted, setIsMuted] = useState(false);
 
   useEffect(() => {
     const animateGaze = () => {
@@ -170,6 +178,33 @@ export default function Hero() {
     }
   };
 
+  const handleCoinInsert = () => {
+    playCoinSound();
+    selectNextPlayer();
+  };
+
+  const handleJoystickClick = () => {
+    playJoystickSound();
+    selectNextPlayer();
+  };
+
+  const handleButtonClick = () => {
+    playSelectSound();
+    selectNextPlayer();
+  };
+
+  const handleStartClick = () => {
+    playStartSound();
+  };
+
+  const handleToggleSound = () => {
+    const muted = toggleArcadeMute();
+    setIsMuted(muted);
+    if (!muted) {
+      playSelectSound();
+    }
+  };
+
   return (
     <section className="hero" id="home">
       <div className="container hero__layout">
@@ -212,22 +247,48 @@ export default function Hero() {
         </div>
 
         <div className="hero__visual">
-          <div className="arcade-machine">
-            <div className="arcade-machine__topline">
-              <span>FAME-X // ARCADE STUDIO</span>
-              <span className="arcade-machine__live">
-                <i /> READY
-              </span>
+          <div className="arcade-cabinet" role="region" aria-label="جهاز آركيد FameX">
+            {/* T-Molding Glowing Edge Trims */}
+            <div className="arcade-cabinet__trim arcade-cabinet__trim--left" aria-hidden="true" />
+            <div className="arcade-cabinet__trim arcade-cabinet__trim--right" aria-hidden="true" />
+
+            {/* Marquee Canopy & Top Speakers */}
+            <div className="arcade-cabinet__canopy">
+              <div className="arcade-cabinet__speakers" aria-hidden="true">
+                <span /><span /><span /><span />
+              </div>
+              <div className="arcade-machine__topline">
+                <span>FAME-X // ARCADE STUDIO</span>
+                <div className="arcade-cabinet__top-actions">
+                  <button
+                    type="button"
+                    className="arcade-cabinet__audio-btn"
+                    onClick={handleToggleSound}
+                    title={isMuted ? "تشغيل صوت الآركيد" : "كتم صوت الآركيد"}
+                    aria-label={isMuted ? "تشغيل صوت الآركيد" : "كتم صوت الآركيد"}
+                  >
+                    {isMuted ? <VolumeX size={12} /> : <Volume2 size={12} />}
+                    <span>{isMuted ? "MUTED" : "SFX"}</span>
+                  </button>
+                  <span className="arcade-machine__live">
+                    <i /> READY
+                  </span>
+                </div>
+              </div>
+              <div className="arcade-machine__marquee">
+                <span className="arcade-machine__spark">✦</span>
+                <span className="brand-wordmark" dir="ltr">
+                  FAME<span className="brand-wordmark__accent">X</span>
+                </span>
+                <span className="arcade-machine__spark">✦</span>
+              </div>
             </div>
-            <div className="arcade-machine__marquee">
-              <span className="arcade-machine__spark">✦</span>
-              <span className="brand-wordmark" dir="ltr">
-                FAME<span className="brand-wordmark__accent">X</span>
-              </span>
-              <span className="arcade-machine__spark">✦</span>
-            </div>
-            <div className="arcade-machine__screen">
-              <div className="arcade-machine__screen-grid" aria-hidden="true" />
+
+            {/* CRT Screen Bezel Housing */}
+            <div className="arcade-cabinet__bezel">
+              <div className="arcade-machine__screen">
+                <div className="arcade-machine__screen-grid" aria-hidden="true" />
+                <div className="arcade-cabinet__crt-glare" aria-hidden="true" />
               <span
                 className="arcade-machine__screen-label"
                 dir="ltr"
@@ -374,18 +435,98 @@ export default function Hero() {
                 href="#contact"
                 aria-label="ابدأ مشروعك"
                 dir="ltr"
+                onClick={handleStartClick}
               >
                 PRESS START <i />
               </a>
+              </div>
             </div>
-            <button
-              className="arcade-machine__selector"
-              type="button"
-              onClick={selectNextPlayer}
-              dir="ltr"
-            >
-              SELECT PLAYER <span aria-hidden="true">🔄</span>
-            </button>
+
+            {/* Control Panel Deck */}
+            <div className="arcade-cabinet__deck">
+              <div className="arcade-cabinet__deck-surface" dir="ltr">
+                {/* Joystick */}
+                <div
+                  className="arcade-cabinet__joystick"
+                  aria-hidden="true"
+                  title="عصا التحكم - اضغط لتغيير اللاعب"
+                  onClick={handleJoystickClick}
+                >
+                  <div className="arcade-cabinet__joystick-washer" />
+                  <div className="arcade-cabinet__joystick-shaft">
+                    <div className="arcade-cabinet__joystick-ball" />
+                  </div>
+                </div>
+
+                {/* Arcade Push Buttons */}
+                <div className="arcade-cabinet__buttons">
+                  <button
+                    type="button"
+                    className="arcade-button arcade-button--cyan"
+                    onClick={handleButtonClick}
+                    title="تغيير اللاعب"
+                    aria-label="الزر P1 - تغيير اللاعب"
+                  >
+                    <span className="arcade-button__cap">P1</span>
+                  </button>
+                  <button
+                    type="button"
+                    className="arcade-button arcade-button--green"
+                    onClick={handleButtonClick}
+                    title="تغيير اللاعب"
+                    aria-label="الزر A - تغيير اللاعب"
+                  >
+                    <span className="arcade-button__cap">A</span>
+                  </button>
+                  <button
+                    type="button"
+                    className="arcade-button arcade-button--red"
+                    onClick={handleButtonClick}
+                    title="تغيير اللاعب"
+                    aria-label="الزر B - تغيير اللاعب"
+                  >
+                    <span className="arcade-button__cap">B</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Lower Cabinet Base & Coin Door */}
+            <div className="arcade-cabinet__base">
+              <div className="arcade-cabinet__coin-door" dir="ltr">
+                <div className="arcade-cabinet__coin-slots">
+                  <button
+                    type="button"
+                    className="arcade-cabinet__coin-slot"
+                    onClick={handleCoinInsert}
+                    title="أدخل عملة لتغيير اللاعب"
+                  >
+                    <span className="arcade-cabinet__coin-slit" />
+                    <span className="arcade-cabinet__coin-reject">25¢</span>
+                  </button>
+                  <button
+                    type="button"
+                    className="arcade-cabinet__coin-slot"
+                    onClick={handleCoinInsert}
+                    title="أدخل عملة لتغيير اللاعب"
+                  >
+                    <span className="arcade-cabinet__coin-slit" />
+                    <span className="arcade-cabinet__coin-reject">25¢</span>
+                  </button>
+                </div>
+                <div className="arcade-cabinet__insert-label" dir="ltr" onClick={handleCoinInsert}>INSERT COIN</div>
+                <div className="arcade-cabinet__keyhole" aria-hidden="true" />
+              </div>
+
+              <button
+                className="arcade-machine__selector"
+                type="button"
+                onClick={handleButtonClick}
+                dir="ltr"
+              >
+                SELECT PLAYER <span aria-hidden="true">🔄</span>
+              </button>
+            </div>
           </div>
         </div>
       </div>
