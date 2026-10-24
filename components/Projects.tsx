@@ -1,28 +1,36 @@
 "use client";
 
 import { useState } from "react";
-import { Aperture, ArrowUpLeft, Blocks, Orbit, Sparkles } from "lucide-react";
+import {
+  Aperture,
+  ArrowLeft,
+  ArrowUpLeft,
+  Blocks,
+  Flame,
+  Orbit,
+  Sparkles,
+} from "lucide-react";
 
 const projects = [
   {
     id: "commerce",
-    title: "تجربة التجارة الإلكترونية",
-    label: "تطبيق متجر",
-    description: "تجربة تسوق سلسة تعرض المنتجات وتسهّل الوصول إليها.",
+    title: "متجر إلكتروني طلقة وبيبيع",
+    label: "أبلكيشن متجر",
+    description: "تجربة تسوق سالكة وسريعة تخلي الزبون يملى السلة ويدفع في ثواني.",
     Icon: Blocks,
   },
   {
     id: "identity",
-    title: "هوية تنبض بالحياة",
-    label: "هوية بصرية",
-    description: "واجهة تعكس شخصية العلامة وتجمع ألوانها وتفاصيلها.",
+    title: "هوية بصرية تعلّم وتعيش",
+    label: "براندينج وهوية",
+    description: "ديزاين كامل مليان روح وشخصية بتعكس هيبة البراند وتفاصيله.",
     Icon: Aperture,
   },
   {
     id: "platform",
-    title: "منصة أعمال متكاملة",
-    label: "منصة رقمية",
-    description: "مساحة منظمة للخدمات والمعلومات في تجربة واحدة.",
+    title: "داشبورد ومنصة إدارة ذكية",
+    label: "منصة ويب وسحابية",
+    description: "كل أرقام وبيانات بيزنسك في مكان واحد منظم وسهل من غير وجع دماغ.",
     Icon: Orbit,
   },
 ];
@@ -35,13 +43,13 @@ function ProjectScreen({ projectId }: { projectId: string }) {
           <span className="projects__brand-mark"><Aperture size={24} /></span>
           <span>FORMA</span>
         </div>
-        <p className="projects__screen-kicker">هويتك، بطريقتك</p>
-        <h3>بصمة<br />تُشبهك.</h3>
-        <p className="projects__screen-copy">تفاصيل صغيرة تصنع فرقًا كبيرًا.</p>
+        <p className="projects__screen-kicker">براندك، على طريقتك</p>
+        <h3>بصمة<br />ملهاش بديل.</h3>
+        <p className="projects__screen-copy">كل بكسل محسوب عشان يعلّم في دماغ عميلك.</p>
         <div className="projects__palette" aria-label="لوحة ألوان الهوية">
           <span /><span /><span /><span />
         </div>
-        <div className="projects__screen-link">اكتشف الهوية <ArrowUpLeft size={13} /></div>
+        <div className="projects__screen-link">شوف الهوية كاملة <ArrowUpLeft size={13} /></div>
       </div>
     );
   }
@@ -51,19 +59,22 @@ function ProjectScreen({ projectId }: { projectId: string }) {
       <div className="projects__screen-content projects__screen-content--platform">
         <div className="projects__screen-topline">
           <span className="projects__mini-mark"><Orbit size={15} /></span>
-          <span>مساحة أعمالك</span>
+          <span>إدارة بيزنسك</span>
           <span className="projects__avatar">م</span>
         </div>
-        <p className="projects__screen-kicker">لوحة التحكم</p>
-        <h3>أهلاً، محمد</h3>
+        <p className="projects__screen-kicker">الداشبورد</p>
+        <h3>
+          منوّر يا بطل
+          <Sparkles size={15} className="projects__sparkle-icon" aria-hidden="true" />
+        </h3>
         <div className="projects__metric">
-          <span>ملخص الأداء</span>
+          <span>أرباح الشهر ده</span>
           <strong>+٢٤٪</strong>
           <div className="projects__chart"><i /><i /><i /><i /><i /><i /><i /></div>
         </div>
-        <p className="projects__screen-subtitle">خدماتك</p>
-        <div className="projects__service-row"><span><Blocks size={15} /></span><b>إدارة المشاريع</b><ArrowUpLeft size={13} /></div>
-        <div className="projects__service-row"><span><Sparkles size={15} /></span><b>التقارير والتحليلات</b><ArrowUpLeft size={13} /></div>
+        <p className="projects__screen-subtitle">خدماتك السريعة</p>
+        <div className="projects__service-row"><span><Blocks size={15} /></span><b>المشاريع الشغالة</b><ArrowUpLeft size={13} /></div>
+        <div className="projects__service-row"><span><Sparkles size={15} /></span><b>تقارير الأرباح والمبيعات</b><ArrowUpLeft size={13} /></div>
       </div>
     );
   }
@@ -72,19 +83,25 @@ function ProjectScreen({ projectId }: { projectId: string }) {
     <div className="projects__screen-content projects__screen-content--commerce">
       <div className="projects__screen-topline">
         <span className="projects__mini-mark"><Blocks size={15} /></span>
-        <span>نُقطة</span>
+        <span>متجري</span>
         <span className="projects__bag">٢</span>
       </div>
       <div className="projects__shop-banner">
-        <p className="projects__screen-kicker">مجموعة جديدة</p>
-        <h3>اختار<br />اللي يناسبك.</h3>
-        <span>اكتشف المجموعة <ArrowUpLeft size={13} /></span>
+        <p className="projects__screen-kicker">كوليكشن جديد</p>
+        <h3>اطلب دلوقتي<br />واستلم في يومين.</h3>
+        <span>تسوّق الكوليكشن <ArrowUpLeft size={13} /></span>
         <div className="projects__product-art"><Blocks size={39} strokeWidth={1.2} /></div>
       </div>
-      <div className="projects__shop-heading"><b>الأكثر طلبًا</b><span>عرض الكل</span></div>
+      <div className="projects__shop-heading">
+        <b>
+          <Flame size={14} className="projects__flame-icon" aria-hidden="true" />
+          <span>الأكتر مبيعاً</span>
+        </b>
+        <span>عرض الكل</span>
+      </div>
       <div className="projects__products">
-        <div><span className="projects__product-thumb"><Blocks size={21} /></span><b>اختيار اليوم</b><small>٢٤٩ ج.م</small></div>
-        <div><span className="projects__product-thumb projects__product-thumb--second"><Sparkles size={21} /></span><b>قطعة مميزة</b><small>٣٨٠ ج.م</small></div>
+        <div><span className="projects__product-thumb"><Blocks size={21} /></span><b>العرض الأقوى</b><small>٢٤٩ ج.م</small></div>
+        <div><span className="projects__product-thumb projects__product-thumb--second"><Sparkles size={21} /></span><b>الأكتر طلباً</b><small>٣٨٠ ج.م</small></div>
       </div>
     </div>
   );
@@ -97,9 +114,9 @@ export default function Projects() {
     <section className="section section--muted projects" id="projects">
       <div className="container">
         <header className="projects__heading">
-          <p className="eyebrow">نماذج من أفكارنا</p>
-          <h2 className="section__title">المشاريع</h2>
-          <p className="section__intro">اختار مشروع وشوف تفاصيله على الموبايل.</p>
+          <p className="eyebrow">شغلنا بيتكلم عننا</p>
+          <h2 className="section__title">أعمال كسّرت الدنيا</h2>
+          <p className="section__intro">جرّب وعاين الشغل بنفسك على الموبايل ده وحس بالفرق في التجربة.</p>
         </header>
 
         <div className="projects__showcase">
@@ -118,7 +135,7 @@ export default function Projects() {
           </div>
 
           <div className="projects__selector">
-            <p className="projects__selector-label">استكشف أعمالنا <span>({String(projects.length).padStart(2, "0")})</span></p>
+            <p className="projects__selector-label">استكشف شغلنا <span>({String(projects.length).padStart(2, "0")})</span></p>
             <ul className="projects__list">
               {projects.map(({ id, title, label, description, Icon }, index) => {
                 const isActive = activeProject.id === id;
@@ -142,7 +159,10 @@ export default function Projects() {
                 );
               })}
             </ul>
-            <p className="projects__selector-hint">اضغط على أي مشروع لمعاينته <span>←</span></p>
+            <p className="projects__selector-hint">
+              <span>دوس على أي مشروع عشان تعاينه فوري</span>
+              <ArrowLeft size={14} aria-hidden="true" />
+            </p>
           </div>
         </div>
       </div>

@@ -1,12 +1,24 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { ArrowLeft, Volume2, VolumeX } from "lucide-react";
+import {
+  ArrowLeft,
+  ChevronDown,
+  Gamepad2,
+  RotateCcw,
+  Volume2,
+  VolumeX,
+  Zap,
+} from "lucide-react";
 import {
   playCoinSound,
   playSelectSound,
   playJoystickSound,
+  playLaserSound,
+  playJumpSound,
   playStartSound,
+  playWarpSound,
+  playTvWarpSound,
   toggleArcadeMute,
 } from "@/lib/arcadeSound";
 
@@ -21,11 +33,14 @@ type PupilPosition = { x: number; y: number };
 export default function Hero() {
   const characterRef = useRef<SVGSVGElement>(null);
   const playerLabelRef = useRef<HTMLSpanElement>(null);
+  const screenRef = useRef<HTMLDivElement>(null);
   const activePlayerRef = useRef(0);
   const pupilTargetsRef = useRef(new Map<string, PupilPosition>());
   const pupilPositionsRef = useRef(new Map<string, PupilPosition>());
   const gazeFrameRef = useRef(0);
   const [isMuted, setIsMuted] = useState(false);
+  const [tvWarpState, setTvWarpState] = useState<"idle" | "turn-on" | "dive-in" | "tune-in">("idle");
+  const [screenCoords, setScreenCoords] = useState<{ x: number; y: number; w: number; h: number } | null>(null);
 
   useEffect(() => {
     const animateGaze = () => {
@@ -188,13 +203,70 @@ export default function Hero() {
     selectNextPlayer();
   };
 
-  const handleButtonClick = () => {
-    playSelectSound();
+  const handleButtonClick = (soundType?: "laser" | "jump" | "blip") => {
+    if (soundType === "laser") {
+      playLaserSound();
+    } else if (soundType === "jump") {
+      playJumpSound();
+    } else if (soundType === "blip") {
+      playSelectSound(1.4);
+    } else {
+      playSelectSound();
+    }
     selectNextPlayer();
   };
 
-  const handleStartClick = () => {
-    playStartSound();
+  const handleStartClick = (event: React.MouseEvent<HTMLAnchorElement>) => {
+    event.preventDefault();
+    if (tvWarpState !== "idle") return;
+
+    const contactSection = document.getElementById("contact");
+    if (!contactSection) {
+      window.location.hash = "#contact";
+      return;
+    }
+
+    // قياس إحداثيات شاشة الأركيد بالمللي في شاشة العميل
+    if (screenRef.current) {
+      const r = screenRef.current.getBoundingClientRect();
+      setScreenCoords({
+        x: r.left + r.width / 2,
+        y: r.top + r.height / 2,
+        w: r.width,
+        h: r.height,
+      });
+    }
+
+    playTvWarpSound();
+
+    // 1. تشغيل التلفزيون: وميض خط الـ CRT في مكان شاشة الأركيد
+    setTvWarpState("turn-on");
+
+    // 2. الدخول جوه الشاشة: الشاشة بتندفع وتكبر لتبتلع الرؤية بالكامل (الدخول جوه القناة)
+    setTimeout(() => {
+      setTvWarpState("dive-in");
+    }, 140);
+
+    // 3. أول ما تكون الرؤية بالكامل جوه القناة، النقل الفوري لسكشن تواصل معنا وضبط القناة
+    setTimeout(() => {
+      const html = document.documentElement;
+      const prevBehavior = html.style.scrollBehavior;
+      html.style.scrollBehavior = "auto";
+      try {
+        contactSection.scrollIntoView({ behavior: "instant" });
+      } catch {
+        contactSection.scrollIntoView();
+      }
+      html.style.scrollBehavior = prevBehavior;
+
+      // ضبط وفتح القناة في سكشن التواصل
+      setTvWarpState("tune-in");
+
+      // إنهاء الحركة والرجوع للوضع الطبيعي
+      setTimeout(() => {
+        setTvWarpState("idle");
+      }, 400);
+    }, 520);
   };
 
   const handleToggleSound = () => {
@@ -207,47 +279,68 @@ export default function Hero() {
 
   return (
     <section className="hero" id="home">
+      {tvWarpState !== "idle" && screenCoords && (
+        <div
+          className={`tv-channel-warp tv-channel-warp--${tvWarpState}`}
+          style={
+            {
+              "--tv-x": `${screenCoords.x}px`,
+              "--tv-y": `${screenCoords.y}px`,
+              "--tv-w": `${screenCoords.w}px`,
+              "--tv-h": `${screenCoords.h}px`,
+            } as React.CSSProperties
+          }
+          aria-hidden="true"
+        >
+          <div className="tv-channel-warp__portal" />
+        </div>
+      )}
       <div className="container hero__layout">
         <div className="hero__copy">
           <p className="hero__eyebrow">
             <span className="hero__eyebrow-dot" aria-hidden="true" />
-            <span>شريكك في النمو الرقمي</span>
+            <span>هنوصّل فكرتك لأعلى ليفل</span>
             <span className="hero__eyebrow-tag" dir="ltr">
               LEVEL UP
             </span>
           </p>
           <h1 className="hero__title">
-            أفكارك تستحق
-            <span className="hero__title-accent">حضورًا مختلفًا.</span>
+            فكرتك تستاهل تظهر صح
+            <span className="hero__title-accent">وتسيب بصمة ما تتنسيش.</span>
           </h1>
           <p className="hero__tagline">
-            نصنع تجارب رقمية مدروسة تجمع بين الإبداع والتقنية، وتساعد علامتك
-            التجارية على الوصول بثقة إلى الخطوة التالية.
+            بنحوّل أفكارك لمنتجات رقمية شغالة وسريعة ع الفرازة، بتخطف عين عميلك
+            من أول ثانية وتكبّر بيزنسك بجد.. من غير لف ولا دوران.
           </p>
           <div className="hero__actions">
             <a className="button" href="#contact">
-              ابدأ مشروعك
+              يلا نبدأ مشروعك دلوقتي
               <ArrowLeft size={18} aria-hidden="true" />
             </a>
             <a className="button button--secondary" href="#services">
-              اكتشف خدماتنا
+              <span>شوف بنعمل إيه</span>
+              <Zap size={16} aria-hidden="true" />
             </a>
           </div>
           <div className="hero__meta" aria-label="مراحل العمل">
             <span>
-              <i aria-hidden="true" /> تخطيط
+              <i aria-hidden="true" /> تخطيط ع الصح
             </span>
             <span>
-              <i aria-hidden="true" /> تصميم
+              <i aria-hidden="true" /> ديزاين من الآخر
             </span>
             <span>
-              <i aria-hidden="true" /> إطلاق
+              <i aria-hidden="true" /> انطلاق يفرّق
             </span>
           </div>
         </div>
 
         <div className="hero__visual">
-          <div className="arcade-cabinet" role="region" aria-label="جهاز آركيد FameX">
+          <div
+            className="arcade-cabinet"
+            role="region"
+            aria-label="جهاز آركيد FameX"
+          >
             {/* T-Molding Glowing Edge Trims */}
             <div className="arcade-cabinet__trim arcade-cabinet__trim--left" aria-hidden="true" />
             <div className="arcade-cabinet__trim arcade-cabinet__trim--right" aria-hidden="true" />
@@ -286,7 +379,7 @@ export default function Hero() {
 
             {/* CRT Screen Bezel Housing */}
             <div className="arcade-cabinet__bezel">
-              <div className="arcade-machine__screen">
+              <div ref={screenRef} className="arcade-machine__screen">
                 <div className="arcade-machine__screen-grid" aria-hidden="true" />
                 <div className="arcade-cabinet__crt-glare" aria-hidden="true" />
               <span
@@ -428,16 +521,18 @@ export default function Hero() {
                 </svg>
               </div>
               <span className="arcade-machine__screen-message">
-                فكرتك، المرحلة القادمة
+                <Gamepad2 size={15} aria-hidden="true" />
+                <span>جاهز للّيفل الجاي؟</span>
               </span>
               <a
-                className="arcade-machine__prompt"
+                className={`arcade-machine__prompt${tvWarpState !== "idle" ? " arcade-machine__prompt--zooming" : ""}`}
                 href="#contact"
                 aria-label="ابدأ مشروعك"
                 dir="ltr"
+                data-arcade-custom="true"
                 onClick={handleStartClick}
               >
-                PRESS START <i />
+                {tvWarpState !== "idle" ? "ENTERING..." : "PRESS START"} <i />
               </a>
               </div>
             </div>
@@ -449,7 +544,8 @@ export default function Hero() {
                 <div
                   className="arcade-cabinet__joystick"
                   aria-hidden="true"
-                  title="عصا التحكم - اضغط لتغيير اللاعب"
+                  data-arcade-custom="true"
+                  title="عصا التحكم - دوس عشان تغيّر اللّعيب"
                   onClick={handleJoystickClick}
                 >
                   <div className="arcade-cabinet__joystick-washer" />
@@ -463,8 +559,9 @@ export default function Hero() {
                   <button
                     type="button"
                     className="arcade-button arcade-button--cyan"
-                    onClick={handleButtonClick}
-                    title="تغيير اللاعب"
+                    onClick={() => handleButtonClick("laser")}
+                    data-arcade-custom="true"
+                    title="غيّر اللّعيب"
                     aria-label="الزر P1 - تغيير اللاعب"
                   >
                     <span className="arcade-button__cap">P1</span>
@@ -472,8 +569,9 @@ export default function Hero() {
                   <button
                     type="button"
                     className="arcade-button arcade-button--green"
-                    onClick={handleButtonClick}
-                    title="تغيير اللاعب"
+                    onClick={() => handleButtonClick("jump")}
+                    data-arcade-custom="true"
+                    title="غيّر اللّعيب"
                     aria-label="الزر A - تغيير اللاعب"
                   >
                     <span className="arcade-button__cap">A</span>
@@ -481,8 +579,9 @@ export default function Hero() {
                   <button
                     type="button"
                     className="arcade-button arcade-button--red"
-                    onClick={handleButtonClick}
-                    title="تغيير اللاعب"
+                    onClick={() => handleButtonClick("blip")}
+                    data-arcade-custom="true"
+                    title="غيّر اللّعيب"
                     aria-label="الزر B - تغيير اللاعب"
                   >
                     <span className="arcade-button__cap">B</span>
@@ -499,7 +598,8 @@ export default function Hero() {
                     type="button"
                     className="arcade-cabinet__coin-slot"
                     onClick={handleCoinInsert}
-                    title="أدخل عملة لتغيير اللاعب"
+                    data-arcade-custom="true"
+                    title="حط عملة عشان تلعب"
                   >
                     <span className="arcade-cabinet__coin-slit" />
                     <span className="arcade-cabinet__coin-reject">25¢</span>
@@ -508,23 +608,33 @@ export default function Hero() {
                     type="button"
                     className="arcade-cabinet__coin-slot"
                     onClick={handleCoinInsert}
-                    title="أدخل عملة لتغيير اللاعب"
+                    data-arcade-custom="true"
+                    title="حط عملة عشان تلعب"
                   >
                     <span className="arcade-cabinet__coin-slit" />
                     <span className="arcade-cabinet__coin-reject">25¢</span>
                   </button>
                 </div>
-                <div className="arcade-cabinet__insert-label" dir="ltr" onClick={handleCoinInsert}>INSERT COIN</div>
+                <div
+                  className="arcade-cabinet__insert-label"
+                  dir="ltr"
+                  data-arcade-custom="true"
+                  onClick={handleCoinInsert}
+                >
+                  INSERT COIN
+                </div>
                 <div className="arcade-cabinet__keyhole" aria-hidden="true" />
               </div>
 
               <button
                 className="arcade-machine__selector"
                 type="button"
-                onClick={handleButtonClick}
+                onClick={() => handleButtonClick("jump")}
+                data-arcade-custom="true"
                 dir="ltr"
               >
-                SELECT PLAYER <span aria-hidden="true">🔄</span>
+                <span>SELECT PLAYER</span>
+                <RotateCcw size={13} aria-hidden="true" />
               </button>
             </div>
           </div>
@@ -532,9 +642,9 @@ export default function Hero() {
       </div>
       <a className="hero__scroll" href="#about">
         <span className="hero__scroll-line" />
-        <span>اكتشف المزيد</span>
+        <span>شوف باقي الحكاية</span>
         <span className="hero__scroll-key" dir="ltr">
-          ↓
+          <ChevronDown size={14} aria-hidden="true" />
         </span>
       </a>
     </section>

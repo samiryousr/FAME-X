@@ -2,12 +2,14 @@
 
 import Image from "next/image";
 import { useEffect, useState } from "react";
+import { Rocket } from "lucide-react";
+import { initGlobalArcadeSounds } from "@/lib/arcadeSound";
 
 const links = [
   { href: "#home", label: "الرئيسية" },
-  { href: "#about", label: "من نحن" },
-  { href: "#services", label: "خدماتنا" },
-  { href: "#projects", label: "أعمالنا" },
+  { href: "#about", label: "مين إحنا" },
+  { href: "#services", label: "بنقدملك إيه" },
+  { href: "#projects", label: "شغلنا" },
 ];
 
 export default function Navbar() {
@@ -15,6 +17,7 @@ export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   useEffect(() => {
+    initGlobalArcadeSounds();
     const updateScrollState = () => setIsScrolled(window.scrollY > 32);
     updateScrollState();
     window.addEventListener("scroll", updateScrollState, { passive: true });
@@ -90,11 +93,13 @@ export default function Navbar() {
         </div>
         <span className="navbar__availability">
           <span className="navbar__cta-dot" aria-hidden="true" />
-          متاحون لمشاريع جديدة
+          جاهزين لمشاريع تكسّر الدنيا
         </span>
         <a className="navbar__cta" href="#contact">
-          ابدأ مشروعك
+          <span>يلا نعلّي الليفل</span>
+          <Rocket size={16} aria-hidden="true" />
         </a>
+
         <button
           className="navbar__menu-toggle"
           type="button"

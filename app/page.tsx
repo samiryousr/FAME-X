@@ -25,19 +25,19 @@ export default function HomePage() {
                 aria-hidden={copy === 1}
               >
                 <span>
-                  STRATEGY <b>استراتيجية</b>
+                  STRATEGY <b>تخطيط ع الصح</b>
                 </span>
                 <i />
                 <span>
-                  DESIGN <b>تصميم</b>
+                  DESIGN <b>ديزاين من الآخر</b>
                 </span>
                 <i />
                 <span>
-                  DEVELOPMENT <b>تطوير</b>
+                  DEVELOPMENT <b>كود طلقة</b>
                 </span>
                 <i />
                 <span>
-                  GROWTH <b>نمو</b>
+                  GROWTH <b>مبيعات تفرّق</b>
                 </span>
                 <i />
               </div>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { initGlobalArcadeSounds } from "@/lib/arcadeSound";
 
 type Pixel = {
   x: number;
@@ -17,6 +18,7 @@ export default function InteractiveBackground() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
+    initGlobalArcadeSounds();
     const canvas = canvasRef.current;
     const context = canvas?.getContext("2d");
     if (!canvas || !context) {

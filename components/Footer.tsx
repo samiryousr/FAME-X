@@ -20,20 +20,20 @@ export default function Footer() {
               </span>
             </a>
             <p className="footer__tagline">
-              نحوّل أفكارك إلى تجارب رقمية تساعد أعمالك على النمو.
+              بنحوّل أفكارك لمنتجات ديجيتال حقيقية تخلّي بيزنسك دايماً في الصدارة.
             </p>
           </div>
           <nav className="footer__links" aria-label="روابط الفوتر">
-            <a href="#about">من نحن</a>
-            <a href="#services">خدماتنا</a>
-            <a href="#projects">أعمالنا</a>
-            <a href="#contact">تواصل معنا</a>
+            <a href="#about">مين إحنا</a>
+            <a href="#services">بنقدملك إيه</a>
+            <a href="#projects">شغلنا</a>
+            <a href="#contact">يلا نتواصل</a>
           </nav>
         </div>
         <div className="footer__bottom">
           <p>© {new Date().getFullYear()} Famex. جميع الحقوق محفوظة.</p>
           <a className="footer__top-link" href="#home">
-            العودة للأعلى
+            اطلع فوق تاني
             <ArrowUp size={15} aria-hidden="true" />
           </a>
         </div>

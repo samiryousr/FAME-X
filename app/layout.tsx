@@ -1,13 +1,25 @@
 import type { Metadata } from "next";
-import { Press_Start_2P, Tajawal, VT323 } from "next/font/google";
+import { Changa, Press_Start_2P, Silkscreen, VT323 } from "next/font/google";
 import "./globals.css";
 import "../components/PixelBlast.css";
 import InteractiveBackground from "@/components/InteractiveBackground";
+
+const changaFont = Changa({
+  weight: ["400", "500", "600", "700", "800"],
+  subsets: ["arabic", "latin"],
+  variable: "--font-changa",
+});
 
 const pressStartFont = Press_Start_2P({
   weight: "400",
   subsets: ["latin"],
   variable: "--font-press-start",
+});
+
+const silkscreenFont = Silkscreen({
+  weight: ["400", "700"],
+  subsets: ["latin"],
+  variable: "--font-silkscreen",
 });
 
 const terminalFont = VT323({
@@ -16,16 +28,10 @@ const terminalFont = VT323({
   variable: "--font-vt323",
 });
 
-const arabicFont = Tajawal({
-  weight: ["400", "500", "700", "800"],
-  subsets: ["arabic", "latin"],
-  variable: "--font-tajawal",
-});
-
 export const metadata: Metadata = {
-  title: "Famex | حلول رقمية تنمّي أعمالك",
+  title: "FameX | حريفة الديجيتال وحلول الألعاب",
   description:
-    "نحوّل أفكارك إلى تجارب رقمية واضحة وعصرية تساعد مشروعك على النمو.",
+    "بنحوّل أفكارك لمنتجات وتجارب ديجيتال طلقة تخلّي بيزنسك يسبق الكل ويبيع صح.. من غير لف ولا دوران.",
 };
 
 export default function RootLayout({
@@ -37,7 +43,7 @@ export default function RootLayout({
     <html
       lang="ar"
       dir="rtl"
-      className={`${pressStartFont.variable} ${terminalFont.variable} ${arabicFont.variable}`}
+      className={`${changaFont.variable} ${pressStartFont.variable} ${silkscreenFont.variable} ${terminalFont.variable}`}
     >
       <body className="relative min-h-screen">
         <InteractiveBackground />
@@ -46,3 +52,4 @@ export default function RootLayout({
     </html>
   );
 }
+

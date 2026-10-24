@@ -4,14 +4,14 @@ import { useEffect, useRef } from "react";
 import type { CSSProperties } from "react";
 
 const aboutCopy =
-  "نحن فريق شغوف بالتقنية والتصميم، نعمل مع أصحاب المشاريع لتحويل طموحاتهم إلى تجارب رقمية واضحة وسهلة الاستخدام. نبدأ بالاستماع، ونكمل معك خطوة بخطوة حتى يصبح لكل فكرة مكانها الصحيح.";
+  "إحنا مش مجرد ناس بتكتب كود وتعمل ديزاين وخلاص.. إحنا حريفة ديجيتال وشغفنا نخلّي بيزنسك يسبق الكل. بنسمع منك فكرتك للآخر، ونبني معاك خطوة بخطوة حلول ذكية وسهلة تخلّي عميلك يقع في حب منتجك من أول لمسة.";
 
 const aboutWords = aboutCopy.split(/(\s+)/);
 
 const aboutStats = [
-  { value: "03", label: "خدمات رقمية" },
-  { value: "03", label: "نماذج أعمال" },
-  { value: "01", label: "رحلة متكاملة" },
+  { value: "03", label: "حلول ديجيتال طلقة" },
+  { value: "03", label: "نماذج سريعة جاهزة" },
+  { value: "01", label: "خطة نجاح مضمونة" },
 ];
 
 export default function About() {
@@ -78,8 +78,8 @@ export default function About() {
       ref={sectionRef}
     >
       <div className="container about__layout">
-        <p className="eyebrow">من نحن</p>
-        <h2 className="section__title">نؤمن أن التفاصيل تصنع فرقًا.</h2>
+        <p className="eyebrow">حكايتنا ومين إحنا</p>
+        <h2 className="section__title">التفاصيل الصغيرة هي اللي بتصنع البيزنس الكبير.</h2>
         <p className="about__text">
           {aboutWords.map((word, index) =>
             /\s+/.test(word) ? (
@@ -91,7 +91,7 @@ export default function About() {
             ),
           )}
         </p>
-        <p className="about__note">تفكير استراتيجي، تنفيذ متقن، وشراكة حقيقية.</p>
+        <p className="about__note">تفكير استراتيجي، تنفيذ ع الفرازة، وشراكة حقيقية مكملة معاك.</p>
         <div className="about__stats" aria-label="أرقامنا">
           {aboutStats.map(({ value, label }) => (
             <div

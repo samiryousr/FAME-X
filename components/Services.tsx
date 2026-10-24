@@ -7,23 +7,23 @@ type WirePoint = { x: number; y: number };
 
 const services = [
   {
-    title: "تطبيقات الموبايل",
-    description: "تطبيقات سهلة وسريعة تعمل على iOS وAndroid وتخدم احتياجات مشروعك.",
+    title: "أبلكيشن موبايل طلقة",
+    description: "تطبيق سريع وخفيف على iOS وAndroid، عميلك هيفتحه كل يوم ويفضل معاه.. مريح ومفهوش تعقيد.",
     Icon: Smartphone,
   },
   {
-    title: "تصميم وتطوير المواقع",
-    description: "مواقع عصرية متجاوبة، تجمع بين الشكل المميز والأداء السريع.",
+    title: "مواقع تفتح النفس وتبيع",
+    description: "موقعك هو واجهتك الأولى.. بنبنيه سريع زي الصاروخ، يشرفك قدام زباينك ويحوّل الزائر لمشتري فوري.",
     Icon: Code2,
   },
   {
-    title: "التصميم والهوية",
-    description: "تصميمات وهوية بصرية متناسقة تخلي علامتك واضحة وسهل تمييزها.",
+    title: "هوية كاملة تثبت في الدماغ",
+    description: "لوجو وديزاين كامل بيخلّي براندك ليه هيبة وشخصية تفرّقك عن أي منافس.. العميل يشوفه يعلّم معاه على طول.",
     Icon: Sparkles,
   },
   {
-    title: "التصوير وصناعة المحتوى",
-    description: "صور ومحتوى بصري احترافي يبرز منتجاتك ويحكي قصة مشروعك.",
+    title: "محتوى يخطف العين والقلب",
+    description: "تصوير وموشن جرافيك يبرز جمال منتجك ويحكي قصتك بأسلوب يخلي العميل يوقف سكرول ويطلب فوراً.",
     Icon: Camera,
   },
 ];
@@ -145,11 +145,10 @@ export default function Services() {
     <section className="section services" id="services" ref={sectionRef}>
       <div className="container services__sticky">
         <div className="section__heading">
-          <p className="eyebrow">كيف نساعدك</p>
-          <h2 className="section__title">كل ما تحتاجه لتنمو فكرتك.</h2>
+          <p className="eyebrow">بنقدملك إيه؟</p>
+          <h2 className="section__title">كل اللي محتاجه عشان فكرتك تطير في السما.</h2>
           <p className="section__intro">
-            خدمات مترابطة تجمع بين الرؤية الإبداعية والخبرة التقنية، لتقدم
-            لمشروعك أساسًا رقميًا أقوى.
+            خدمات متفصلة على مقاس بيزنسك بالملّي.. بنجمع بين الشياكة في الديزاين وسرعة الصاروخ في البرمجة عشان تبيع وتنتشر صح.
           </p>
         </div>
         <div className="services__path">
