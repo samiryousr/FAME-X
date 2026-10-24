@@ -3,7 +3,6 @@
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import { Rocket } from "lucide-react";
-import { initGlobalArcadeSounds } from "@/lib/arcadeSound";
 
 const links = [
   { href: "#home", label: "الرئيسية" },
@@ -17,7 +16,6 @@ export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   useEffect(() => {
-    initGlobalArcadeSounds();
     const updateScrollState = () => setIsScrolled(window.scrollY > 32);
     updateScrollState();
     window.addEventListener("scroll", updateScrollState, { passive: true });

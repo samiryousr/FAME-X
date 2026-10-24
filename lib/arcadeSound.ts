@@ -365,73 +365,8 @@ export function playRandomArcadeSound() {
 }
 
 /**
- * 🌐 تفعيل أصوات الآركيد تلقائياً لأي زر أو رابط تفاعلي في الموقع بالكامل
+ * تم حصر الأصوات في جهاز الأركيد فقط بناءً على طلب العميل
  */
 export function initGlobalArcadeSounds() {
-  if (typeof window === "undefined") return;
-
-  const win = window as unknown as { __arcadeSoundsInitialized?: boolean };
-  if (win.__arcadeSoundsInitialized) return;
-  win.__arcadeSoundsInitialized = true;
-
-  document.addEventListener(
-    "click",
-    (event) => {
-      if (isMuted) return;
-
-      const target = (event.target as HTMLElement)?.closest<HTMLElement>(
-        "button, a, [role='button'], input[type='button'], input[type='submit'], .arcade-button, .arcade-cabinet__joystick, .arcade-cabinet__coin-slot"
-      );
-
-      if (!target) return;
-
-      // إذا كان العنصر يحتوي على صوت خاص به مسبقاً (تم تعريفه يدوياً)، نمنع تكرار الصوت
-      if (target.dataset.arcadeCustom === "true") return;
-
-      // تصنيف الصوت حسب نوع وأهمية الزر لإعطاء تنويع احترافي ممتع:
-      if (
-        target.classList.contains("navbar__cta") ||
-        target.classList.contains("contact__action") ||
-        target.classList.contains("arcade-machine__prompt") ||
-        (target.classList.contains("button") && !target.classList.contains("button--secondary"))
-      ) {
-        // أزرار الحجز والـ CTA الرئيسية: صوت باور أب / ليفل أب مميز
-        playPowerUpSound();
-      } else if (
-        target.classList.contains("button--secondary") ||
-        target.classList.contains("arcade-button--cyan")
-      ) {
-        // الأزرار الثانوية أو الليزر
-        playLaserSound();
-      } else if (target.classList.contains("arcade-button--green")) {
-        // زر القفز الأخضر
-        playJumpSound();
-      } else if (target.classList.contains("arcade-button--red")) {
-        // زر الآركيد الأحمر
-        playSelectSound(1.4);
-      } else if (
-        target.classList.contains("footer__top-link") ||
-        target.classList.contains("hero__scroll")
-      ) {
-        // أزرار الصعود والانتقال
-        playWarpSound();
-      } else if (
-        target.classList.contains("arcade-cabinet__coin-slot") ||
-        target.classList.contains("arcade-cabinet__insert-label")
-      ) {
-        // عملة
-        playCoinSound();
-      } else if (target.classList.contains("arcade-cabinet__joystick")) {
-        // عصا التحكم
-        playJoystickSound();
-      } else if (target.classList.contains("projects__option")) {
-        // تبديل المشاريع
-        playChimeSound();
-      } else {
-        // باقي أزرار الموقع: صوت آركيد متنوع يتغير مع كل نقرة
-        playRandomArcadeSound();
-      }
-    },
-    { capture: true, passive: true }
-  );
+  // الأصوات محصورة فقط في جهاز الأركيد (Hero Arcade Cabinet)
 }
