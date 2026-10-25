@@ -684,7 +684,11 @@ export default function Hero() {
                 <span>جاهز للّيفل الجاي؟</span>
               </span>
                     <a
-                      className={`arcade-machine__prompt${tvWarpState !== "idle" ? " arcade-machine__prompt--zooming" : ""}`}
+                      className={
+                        tvWarpState !== "idle"
+                          ? "arcade-machine__prompt arcade-machine__prompt--zooming"
+                          : "arcade-machine__prompt"
+                      }
                       href="#contact"
                       aria-label="ابدأ مشروعك"
                       dir="ltr"
@@ -754,7 +758,13 @@ export default function Hero() {
             {/* Lower Cabinet Base & Coin Door */}
             <div className="arcade-cabinet__base">
               <div
-                className={`arcade-cabinet__coin-door ${arcadePowerState === "off" ? "is-waiting-coin" : ""} ${coinAlert ? "is-alerting" : ""}`}
+                className={[
+                  "arcade-cabinet__coin-door",
+                  arcadePowerState === "off" && "is-waiting-coin",
+                  coinAlert && "is-alerting",
+                ]
+                  .filter(Boolean)
+                  .join(" ")}
                 dir="ltr"
               >
                 {/* Vintage Corner Rivets */}
@@ -767,7 +777,11 @@ export default function Hero() {
                 <div className="arcade-coin-acceptor">
                   <button
                     type="button"
-                    className={`arcade-coin-mech ${arcadePowerState === "off" ? "arcade-coin-mech--pulse" : ""}`}
+                    className={
+                      arcadePowerState === "off"
+                        ? "arcade-coin-mech arcade-coin-mech--pulse"
+                        : "arcade-coin-mech"
+                    }
                     onClick={handleCoinInsert}
                     data-arcade-custom="true"
                     title="اضغط هنا لإدخال العملة وتشغيل الجهاز"
@@ -789,7 +803,11 @@ export default function Hero() {
                 {/* Status & Credits Info Plate */}
                 <div className="arcade-coin-door__info">
                   <div
-                    className={`arcade-cabinet__insert-label ${coinAlert ? "arcade-cabinet__insert-label--alert" : ""}`}
+                    className={
+                      coinAlert
+                        ? "arcade-cabinet__insert-label arcade-cabinet__insert-label--alert"
+                        : "arcade-cabinet__insert-label"
+                    }
                     dir="ltr"
                     data-arcade-custom="true"
                     onClick={handleCoinInsert}

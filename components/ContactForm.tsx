@@ -69,7 +69,7 @@ export default function ContactForm() {
             name="name"
             type="text"
             required
-            className={`contact__input ${hasAttempted && !name.trim() ? "is-invalid" : ""}`}
+            className={hasAttempted && !name.trim() ? "contact__input is-invalid" : "contact__input"}
             placeholder="نحب نناديك بإيه؟"
             value={name}
             onChange={(e) => setName(e.target.value)}
@@ -112,7 +112,7 @@ export default function ContactForm() {
             id="contact-idea"
             name="idea"
             required
-            className={`contact__textarea ${hasAttempted && !idea.trim() ? "is-invalid" : ""}`}
+            className={hasAttempted && !idea.trim() ? "contact__textarea is-invalid" : "contact__textarea"}
             rows={4}
             placeholder="تطبيق موبايل، موقع، أو فكرة لسه بتكبر..."
             value={idea}

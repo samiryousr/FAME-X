@@ -5371,6 +5371,188 @@ body.scroll-reveal-ready .services__card.scroll-revealed {
 }
 
 @media (max-width: 640px) {
+  .contact {
+    padding-block: clamp(2.25rem, 6vw, 3.5rem);
+  }
+
+  .contact__container {
+    width: calc(100% - 24px);
+  }
+
+  .contact__panel {
+    gap: 1.6rem;
+    padding: 22px 16px;
+    border-radius: 14px;
+  }
+
+  .contact__panel::before {
+    inset: 8px;
+    border-radius: 8px;
+  }
+
+  .contact__hero {
+    gap: 0.95rem;
+  }
+
+  .contact__hero-title {
+    font-size: clamp(1.75rem, 7vw, 2.25rem);
+    line-height: 1.2;
+  }
+
+  .contact__hero-desc {
+    font-size: 0.88rem;
+    line-height: 1.65;
+    max-width: 100%;
+  }
+
+  .contact__level-badge {
+    font-size: 0.52rem;
+    padding: 0.42rem 0.75rem;
+    gap: 0.5rem;
+    width: fit-content;
+    max-width: 100%;
+    white-space: nowrap;
+    overflow: hidden;
+  }
+
+  .contact__level-divider {
+    width: 14px;
+  }
+
+  .contact__quick-channels {
+    width: 100%;
+    gap: 0.45rem;
+    margin-top: 0.25rem;
+  }
+
+  .contact__quick-label {
+    font-size: 0.75rem;
+  }
+
+  .contact__quick-pills {
+    display: flex;
+    gap: 0.5rem;
+    width: 100%;
+  }
+
+  .contact__quick-pill {
+    flex: 1;
+    min-height: 40px;
+    justify-content: center;
+    padding: 0.45rem 0.75rem;
+    font-size: 0.82rem;
+    border-radius: 8px;
+  }
+
+  .contact__card {
+    border-radius: 12px;
+  }
+
+  .contact__card-header {
+    padding: 0.65rem 0.95rem;
+  }
+
+  .contact__card-badge {
+    font-size: 0.48rem;
+    letter-spacing: 0.03em;
+  }
+
+  .contact__card-body {
+    padding: 1.05rem 0.95rem;
+    gap: 1rem;
+  }
+
+  .contact__field {
+    gap: 0.35rem;
+  }
+
+  .contact__field-header {
+    flex-wrap: wrap;
+    gap: 0.35rem;
+  }
+
+  .contact__label {
+    font-size: 0.8rem;
+  }
+
+  .contact__field-hint {
+    font-size: 0.7rem;
+  }
+
+  .contact__tags {
+    gap: 0.35rem;
+  }
+
+  .contact__tag-btn {
+    padding: 0.3rem 0.6rem;
+    font-size: 0.72rem;
+    min-height: 30px;
+  }
+
+  .contact__input {
+    padding: 0.72rem 0.85rem;
+    font-size: 0.88rem;
+  }
+
+  .contact__textarea {
+    min-height: 80px;
+    padding: 0.72rem 0.85rem;
+    font-size: 0.88rem;
+  }
+
+  .contact__card-footer {
+    padding-top: 0.45rem;
+    gap: 0.75rem;
+  }
+
+  .contact__reassurance {
+    font-size: 0.72rem;
+    justify-content: center;
+  }
+
+  .contact__btn-wa {
+    padding: 0.85rem 1.15rem;
+    font-size: 0.9rem;
+    min-height: 46px;
+    border-radius: 8px;
+  }
+}
+
+@media (max-width: 400px) {
+  .contact__container {
+    width: calc(100% - 16px);
+  }
+
+  .contact__panel {
+    padding: 18px 12px;
+    gap: 1.35rem;
+  }
+
+  .contact__hero-title {
+    font-size: 1.6rem;
+  }
+
+  .contact__card-body {
+    padding: 0.95rem 0.8rem;
+  }
+
+  .contact__level-badge {
+    font-size: 0.44rem;
+    padding: 0.35rem 0.55rem;
+    gap: 0.35rem;
+  }
+
+  .contact__card-badge {
+    font-size: 0.42rem;
+  }
+
+  .contact__quick-pill {
+    font-size: 0.76rem;
+    padding: 0.4rem 0.5rem;
+  }
+}
+
+@media (max-width: 640px) {
   .navbar {
     width: calc(100% - 24px);
   }
