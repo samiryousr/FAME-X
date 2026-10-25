@@ -2,6 +2,7 @@
 
 let audioCtx: AudioContext | null = null;
 let isMuted = false;
+let currentMusicGain: GainNode | null = null;
 
 function getAudioContext(): AudioContext | null {
   if (typeof window === "undefined") return null;
@@ -19,13 +20,170 @@ function getAudioContext(): AudioContext | null {
   return audioCtx;
 }
 
+export function stopArcadeMusic() {
+  if (currentMusicGain) {
+    try {
+      const now = audioCtx?.currentTime || 0;
+      currentMusicGain.gain.setValueAtTime(currentMusicGain.gain.value, now);
+      currentMusicGain.gain.linearRampToValueAtTime(0.0001, now + 0.05);
+      setTimeout(() => {
+        try {
+          currentMusicGain?.disconnect();
+        } catch {
+          // ignore
+        }
+        currentMusicGain = null;
+      }, 60);
+    } catch {
+      currentMusicGain = null;
+    }
+  }
+}
+
 export function toggleArcadeMute(): boolean {
   isMuted = !isMuted;
+  if (isMuted) {
+    stopArcadeMusic();
+  }
   return isMuted;
 }
 
 export function getArcadeMuteState(): boolean {
   return isMuted;
+}
+
+/**
+ * ⚡ صوت تشغيل شاشة CRT (CRT Screen Power On Buzz)
+ */
+export function playCrtPowerOnSound() {
+  if (isMuted) return;
+  const ctx = getAudioContext();
+  if (!ctx) return;
+
+  const now = ctx.currentTime;
+  const osc = ctx.createOscillator();
+  const gain = ctx.createGain();
+
+  osc.type = "sawtooth";
+  osc.frequency.setValueAtTime(90, now);
+  osc.frequency.exponentialRampToValueAtTime(1200, now + 0.32);
+
+  gain.gain.setValueAtTime(0.2, now);
+  gain.gain.exponentialRampToValueAtTime(0.001, now + 0.38);
+
+  osc.connect(gain);
+  gain.connect(ctx.destination);
+
+  osc.start(now);
+  osc.stop(now + 0.4);
+}
+
+/**
+ * 🎵 موسيقى الآركيد الكلاسيكية 8-bit الحماسية عند بدء تشغيل الجهاز
+ * (Arcade Boot Chiptune Theme - Web Audio API Native Synth)
+ */
+export function playArcadeStartupMusic() {
+  if (isMuted) return;
+  const ctx = getAudioContext();
+  if (!ctx) return;
+
+  stopArcadeMusic();
+
+  const now = ctx.currentTime + 0.02;
+
+  // Master Gain for Theme Music
+  const musicMaster = ctx.createGain();
+  musicMaster.gain.setValueAtTime(0.18, now);
+  musicMaster.connect(ctx.destination);
+  currentMusicGain = musicMaster;
+
+  // Standard Chiptune Frequencies
+  const C4 = 261.63, D4 = 293.66, E4 = 329.63, F4 = 349.23, G4 = 392.00, A4 = 440.00, B4 = 493.88;
+  const C5 = 523.25, D5 = 587.33, E5 = 659.25, F5 = 698.46, G5 = 783.99, A5 = 880.00, B5 = 987.77;
+  const C6 = 1046.50, D6 = 1174.66, E6 = 1318.51, G6 = 1567.98;
+  const C3 = 130.81, E3 = 164.81, G3 = 196.00, A3 = 220.00, F3 = 174.61;
+
+  // 1. Lead Melody (Square Wave Chiptune Lead)
+  const leadNotes: [number, number, number][] = [
+    // Phase A: Rapid Arpeggio Spark (0.0s - 0.6s)
+    [C5, 0.00, 0.07],
+    [E5, 0.08, 0.07],
+    [G5, 0.16, 0.07],
+    [C6, 0.24, 0.12],
+    [B5, 0.38, 0.07],
+    [G5, 0.46, 0.07],
+    [C6, 0.54, 0.16],
+
+    // Phase B: Catchy Upbeat 8-Bit Groove (0.75s - 1.8s)
+    [G5, 0.75, 0.08],
+    [G5, 0.85, 0.08],
+    [A5, 0.95, 0.10],
+    [G5, 1.07, 0.10],
+    [C6, 1.20, 0.14],
+    [D6, 1.36, 0.12],
+    [E6, 1.50, 0.22],
+    [D6, 1.74, 0.14],
+
+    // Phase C: Triumphant Fanfare Outro (1.95s - 2.8s)
+    [E5, 1.95, 0.08],
+    [G5, 2.05, 0.08],
+    [C6, 2.15, 0.12],
+    [E6, 2.30, 0.16],
+    [G6, 2.48, 0.45],
+  ];
+
+  // 2. Bass Line (Triangle Wave Retro Bass)
+  const bassNotes: [number, number, number][] = [
+    [C3, 0.00, 0.20],
+    [C3, 0.24, 0.20],
+    [E3, 0.48, 0.20],
+    [G3, 0.75, 0.20],
+    [A3, 0.95, 0.20],
+    [F3, 1.20, 0.20],
+    [G3, 1.45, 0.22],
+    [C3, 1.95, 0.25],
+    [G3, 2.22, 0.22],
+    [C4, 2.48, 0.50],
+  ];
+
+  // Schedule Lead
+  leadNotes.forEach(([freq, offset, dur]) => {
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    const t = now + offset;
+
+    osc.type = "square";
+    osc.frequency.setValueAtTime(freq, t);
+
+    gain.gain.setValueAtTime(0.13, t);
+    gain.gain.setValueAtTime(0.13, t + dur * 0.75);
+    gain.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+
+    osc.connect(gain);
+    gain.connect(musicMaster);
+
+    osc.start(t);
+    osc.stop(t + dur + 0.04);
+  });
+
+  // Schedule Bass
+  bassNotes.forEach(([freq, offset, dur]) => {
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    const t = now + offset;
+
+    osc.type = "triangle";
+    osc.frequency.setValueAtTime(freq, t);
+
+    gain.gain.setValueAtTime(0.18, t);
+    gain.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+
+    osc.connect(gain);
+    gain.connect(musicMaster);
+
+    osc.start(t);
+    osc.stop(t + dur + 0.04);
+  });
 }
 
 /**

@@ -2,6 +2,8 @@
 
 import { useEffect, useRef } from "react";
 
+type PixelTone = "green" | "orange" | "white";
+
 type Pixel = {
   x: number;
   y: number;
@@ -9,9 +11,14 @@ type Pixel = {
   alpha: number;
   phase: number;
   speed: number;
+  tone: PixelTone;
 };
 
-const BRAND_GREEN = "#a6f45d";
+const COLORS: Record<PixelTone, string> = {
+  green: "#a6f45d",
+  orange: "#e85a02", // warm amber/orange matching footer
+  white: "#ffffff",  // crisp white star pixel matching footer
+};
 
 export default function InteractiveBackground() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -46,17 +53,29 @@ export default function InteractiveBackground() {
 
       const mobile = width < 700;
       const count = Math.min(
-        mobile ? 100 : 240,
-        Math.max(mobile ? 46 : 100, Math.floor((width * height) / 10500)),
+        mobile ? 160 : 400,
+        Math.max(mobile ? 80 : 180, Math.floor((width * height) / 5800)),
       );
-      pixels = Array.from({ length: count }, () => ({
-        x: Math.random() * width,
-        y: Math.random() * height,
-        size: Math.random() < 0.2 ? 4 : 2 + Math.random() * 2,
-        alpha: 0.14 + Math.random() * 0.24,
-        phase: Math.random() * Math.PI * 2,
-        speed: 0.25 + Math.random() * 0.65,
-      }));
+      pixels = Array.from({ length: count }, () => {
+        const rand = Math.random();
+        const tone: PixelTone =
+          rand < 0.45 ? "green" : rand < 0.72 ? "orange" : "white";
+
+        return {
+          x: Math.random() * width,
+          y: Math.random() * height,
+          size: Math.random() < 0.2 ? 4 : 2 + Math.random() * 2,
+          alpha:
+            tone === "white"
+              ? 0.18 + Math.random() * 0.32
+              : tone === "orange"
+              ? 0.22 + Math.random() * 0.32
+              : 0.14 + Math.random() * 0.24,
+          phase: Math.random() * Math.PI * 2,
+          speed: 0.25 + Math.random() * 0.65,
+          tone,
+        };
+      });
       draw(0, true);
     };
 
@@ -90,10 +109,11 @@ export default function InteractiveBackground() {
 
         const pulse = 0.78 + Math.sin(time * pixel.speed + pixel.phase) * 0.22;
         const alpha = Math.min(0.92, (pixel.alpha + proximity * 0.68) * pulse);
+        const color = COLORS[pixel.tone];
         context.globalAlpha = alpha;
-        context.fillStyle = BRAND_GREEN;
+        context.fillStyle = color;
         if (proximity > 0.08) {
-          context.shadowColor = BRAND_GREEN;
+          context.shadowColor = color;
           context.shadowBlur = proximity * 16;
         } else {
           context.shadowBlur = 0;

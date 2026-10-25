@@ -20,6 +20,10 @@ import {
   playWarpSound,
   playTvWarpSound,
   toggleArcadeMute,
+  playCrtPowerOnSound,
+  playArcadeStartupMusic,
+  stopArcadeMusic,
+  playPowerUpSound,
 } from "@/lib/arcadeSound";
 
 const PLAYERS = [
@@ -38,9 +42,17 @@ export default function Hero() {
   const pupilTargetsRef = useRef(new Map<string, PupilPosition>());
   const pupilPositionsRef = useRef(new Map<string, PupilPosition>());
   const gazeFrameRef = useRef(0);
+  const bootTimerRef = useRef<NodeJS.Timeout[]>([]);
   const [isMuted, setIsMuted] = useState(false);
   const [tvWarpState, setTvWarpState] = useState<"idle" | "turn-on" | "dive-in" | "tune-in">("idle");
   const [screenCoords, setScreenCoords] = useState<{ x: number; y: number; w: number; h: number } | null>(null);
+
+  // حالة تشغيل الآركيد: مقفول (off) -> بيحمل (booting) -> شغال وجاهز (ready)
+  const [arcadePowerState, setArcadePowerState] = useState<"off" | "booting" | "ready">("off");
+  const [bootProgress, setBootProgress] = useState(0);
+  const [bootLog, setBootLog] = useState<string[]>([]);
+  const [coinsInserted, setCoinsInserted] = useState(0);
+  const [coinAlert, setCoinAlert] = useState(false);
 
   useEffect(() => {
     const animateGaze = () => {
@@ -193,17 +205,86 @@ export default function Hero() {
     }
   };
 
+  useEffect(() => {
+    return () => {
+      bootTimerRef.current.forEach((t) => clearTimeout(t));
+      stopArcadeMusic();
+    };
+  }, []);
+
+  const handleLockedInteraction = () => {
+    if (arcadePowerState !== "ready") {
+      playJoystickSound();
+      setCoinAlert(true);
+      setTimeout(() => setCoinAlert(false), 2200);
+      return true;
+    }
+    return false;
+  };
+
   const handleCoinInsert = () => {
     playCoinSound();
-    selectNextPlayer();
+    const nextCoins = coinsInserted + 1;
+    setCoinsInserted(nextCoins);
+    setCoinAlert(false);
+
+    if (arcadePowerState === "off") {
+      setArcadePowerState("booting");
+      setBootProgress(12);
+      setBootLog(["[ FAMEX BIOS V2.0 ]", "COIN DETECTED > ACCEPTED!"]);
+
+      // تشغيل وميض شاشة CRT وموسيقى الآركيد الكلاسيكية 8-bit فوراً
+      playCrtPowerOnSound();
+      playArcadeStartupMusic();
+
+      // تفريغ أي مؤقتات سابقة
+      bootTimerRef.current.forEach((t) => clearTimeout(t));
+      bootTimerRef.current = [];
+
+      const t1 = setTimeout(() => {
+        setBootProgress(38);
+        setBootLog((prev) => [...prev, "ROM CHECK: OK (64KB)"]);
+        playSelectSound(1.2);
+      }, 420);
+
+      const t2 = setTimeout(() => {
+        setBootProgress(68);
+        setBootLog((prev) => [...prev, "AUDIO DSP 8-BIT... ONLINE"]);
+        playSelectSound(1.5);
+      }, 900);
+
+      const t3 = setTimeout(() => {
+        setBootProgress(92);
+        setBootLog((prev) => [...prev, "LOADING PIXEL GRAPHICS..."]);
+        playSelectSound(1.8);
+      }, 1380);
+
+      const t4 = setTimeout(() => {
+        setBootProgress(100);
+        setBootLog((prev) => [...prev, "SYSTEM READY! WELCOME P1"]);
+        playPowerUpSound();
+      }, 1850);
+
+      const t5 = setTimeout(() => {
+        setArcadePowerState("ready");
+      }, 2300);
+
+      bootTimerRef.current = [t1, t2, t3, t4, t5];
+    } else if (arcadePowerState === "ready") {
+      // الجهاز شغال بالفعل: إدخال عملة إضافية يغير اللاعب ويشغل نغمة ترقية
+      playPowerUpSound();
+      selectNextPlayer();
+    }
   };
 
   const handleJoystickClick = () => {
+    if (handleLockedInteraction()) return;
     playJoystickSound();
     selectNextPlayer();
   };
 
   const handleButtonClick = (soundType?: "laser" | "jump" | "blip") => {
+    if (handleLockedInteraction()) return;
     if (soundType === "laser") {
       playLaserSound();
     } else if (soundType === "jump") {
@@ -363,8 +444,8 @@ export default function Hero() {
                     {isMuted ? <VolumeX size={12} /> : <Volume2 size={12} />}
                     <span>{isMuted ? "MUTED" : "SFX"}</span>
                   </button>
-                  <span className="arcade-machine__live">
-                    <i /> READY
+                  <span className={`arcade-machine__live arcade-machine__live--${arcadePowerState}`}>
+                    <i /> {arcadePowerState === "off" ? "STANDBY" : arcadePowerState === "booting" ? "BOOTING" : "READY"}
                   </span>
                 </div>
               </div>
@@ -379,17 +460,95 @@ export default function Hero() {
 
             {/* CRT Screen Bezel Housing */}
             <div className="arcade-cabinet__bezel">
-              <div ref={screenRef} className="arcade-machine__screen">
+              <div
+                ref={screenRef}
+                className={`arcade-machine__screen arcade-machine__screen--${arcadePowerState}`}
+              >
                 <div className="arcade-machine__screen-grid" aria-hidden="true" />
                 <div className="arcade-cabinet__crt-glare" aria-hidden="true" />
-              <span
-                className="arcade-machine__screen-label"
-                dir="ltr"
-                ref={playerLabelRef}
-              >
-                PLAYER 01
-              </span>
-              <div className="arcade-machine__character-stage" aria-hidden="true">
+
+                {/* 1. STATE: OFF / STANDBY SCREEN */}
+                {arcadePowerState === "off" && (
+                  <div
+                    className="arcade-screen-standby"
+                    onClick={handleLockedInteraction}
+                    title="أدخل العملة بالأسفل لتشغيل الجهاز"
+                  >
+                    <div className="arcade-standby__scanlines" />
+                    <div className="arcade-standby__header">
+                      <span className="arcade-standby__tag">
+                        <span className="arcade-standby__dot" /> STANDBY
+                      </span>
+                      <span className="arcade-standby__credit">CREDIT 00</span>
+                    </div>
+
+                    <div className="arcade-standby__center">
+                      <div className="arcade-standby__coin-icon">
+                        <span className="arcade-standby__glow" />
+                        🪙
+                      </div>
+                      <div className="arcade-standby__title">
+                        INSERT COIN
+                      </div>
+                      <p className="arcade-standby__desc">
+                        أدخل العملة بالأسفل لتشغيل الجهاز
+                      </p>
+                      <div className="arcade-standby__arrow-hint" aria-hidden="true">
+                        <span>▼</span>
+                        <span>▼</span>
+                        <span>▼</span>
+                      </div>
+                    </div>
+
+                    <div className="arcade-standby__footer">
+                      <span className="arcade-blink">PRESS [25¢] BELOW</span>
+                      <span>FAME-X V2.0</span>
+                    </div>
+                  </div>
+                )}
+
+                {/* 2. STATE: BOOTING / LOADING SCREEN */}
+                {arcadePowerState === "booting" && (
+                  <div className="arcade-screen-booting" aria-live="polite">
+                    <div className="arcade-boot__scan-beam" />
+                    <div className="arcade-boot__header">
+                      <span className="arcade-boot__title">✦ FAMEX-BIOS // 1988 ✦</span>
+                      <span className="arcade-boot__pct">{bootProgress}%</span>
+                    </div>
+
+                    <div className="arcade-boot__terminal" dir="ltr">
+                      {bootLog.map((line, idx) => (
+                        <div key={idx} className="arcade-boot__line">
+                          <span className="arcade-boot__prompt-char">&gt;</span> {line}
+                        </div>
+                      ))}
+                      <span className="arcade-boot__cursor">█</span>
+                    </div>
+
+                    <div className="arcade-boot__progress-wrap">
+                      <div
+                        className="arcade-boot__progress-fill"
+                        style={{ width: `${bootProgress}%` }}
+                      />
+                    </div>
+
+                    <div className="arcade-boot__status">
+                      <span>POWERING UP CRT DISPLAY...</span>
+                    </div>
+                  </div>
+                )}
+
+                {/* 3. STATE: READY SCREEN (GAME SCREEN) */}
+                {arcadePowerState === "ready" && (
+                  <>
+                    <span
+                      className="arcade-machine__screen-label"
+                      dir="ltr"
+                      ref={playerLabelRef}
+                    >
+                      PLAYER 01
+                    </span>
+                    <div className="arcade-machine__character-stage" aria-hidden="true">
                 <svg
                   ref={characterRef}
                   className="arcade-machine__mascot"
@@ -524,16 +683,18 @@ export default function Hero() {
                 <Gamepad2 size={15} aria-hidden="true" />
                 <span>جاهز للّيفل الجاي؟</span>
               </span>
-              <a
-                className={`arcade-machine__prompt${tvWarpState !== "idle" ? " arcade-machine__prompt--zooming" : ""}`}
-                href="#contact"
-                aria-label="ابدأ مشروعك"
-                dir="ltr"
-                data-arcade-custom="true"
-                onClick={handleStartClick}
-              >
-                {tvWarpState !== "idle" ? "ENTERING..." : "PRESS START"} <i />
-              </a>
+                    <a
+                      className={`arcade-machine__prompt${tvWarpState !== "idle" ? " arcade-machine__prompt--zooming" : ""}`}
+                      href="#contact"
+                      aria-label="ابدأ مشروعك"
+                      dir="ltr"
+                      data-arcade-custom="true"
+                      onClick={handleStartClick}
+                    >
+                      {tvWarpState !== "idle" ? "ENTERING..." : "PRESS START"} <i />
+                    </a>
+                  </>
+                )}
               </div>
             </div>
 
@@ -592,38 +753,59 @@ export default function Hero() {
 
             {/* Lower Cabinet Base & Coin Door */}
             <div className="arcade-cabinet__base">
-              <div className="arcade-cabinet__coin-door" dir="ltr">
-                <div className="arcade-cabinet__coin-slots">
+              <div
+                className={`arcade-cabinet__coin-door ${arcadePowerState === "off" ? "is-waiting-coin" : ""} ${coinAlert ? "is-alerting" : ""}`}
+                dir="ltr"
+              >
+                {/* Vintage Corner Rivets */}
+                <span className="arcade-coin-rivet arcade-coin-rivet--tl" aria-hidden="true" />
+                <span className="arcade-coin-rivet arcade-coin-rivet--tr" aria-hidden="true" />
+                <span className="arcade-coin-rivet arcade-coin-rivet--bl" aria-hidden="true" />
+                <span className="arcade-coin-rivet arcade-coin-rivet--br" aria-hidden="true" />
+
+                {/* Single Authentic Arcade Coin Entry Mechanism */}
+                <div className="arcade-coin-acceptor">
                   <button
                     type="button"
-                    className="arcade-cabinet__coin-slot"
+                    className={`arcade-coin-mech ${arcadePowerState === "off" ? "arcade-coin-mech--pulse" : ""}`}
                     onClick={handleCoinInsert}
                     data-arcade-custom="true"
-                    title="حط عملة عشان تلعب"
+                    title="اضغط هنا لإدخال العملة وتشغيل الجهاز"
+                    aria-label="إدخال عملة 25 سنت لتشغيل الآركيد"
                   >
-                    <span className="arcade-cabinet__coin-slit" />
-                    <span className="arcade-cabinet__coin-reject">25¢</span>
+                    <div className="arcade-coin-mech__bezel">
+                      <div className="arcade-coin-mech__slit" aria-hidden="true">
+                        <span className="arcade-coin-mech__slit-line" />
+                      </div>
+                      <div className="arcade-coin-mech__reject-btn">
+                        <span className="arcade-coin-mech__lamp-glow" aria-hidden="true" />
+                        <span className="arcade-coin-mech__label">25¢</span>
+                        <span className="arcade-coin-mech__sub">INSERT</span>
+                      </div>
+                    </div>
                   </button>
-                  <button
-                    type="button"
-                    className="arcade-cabinet__coin-slot"
-                    onClick={handleCoinInsert}
+                </div>
+
+                {/* Status & Credits Info Plate */}
+                <div className="arcade-coin-door__info">
+                  <div
+                    className={`arcade-cabinet__insert-label ${coinAlert ? "arcade-cabinet__insert-label--alert" : ""}`}
+                    dir="ltr"
                     data-arcade-custom="true"
-                    title="حط عملة عشان تلعب"
+                    onClick={handleCoinInsert}
                   >
-                    <span className="arcade-cabinet__coin-slit" />
-                    <span className="arcade-cabinet__coin-reject">25¢</span>
-                  </button>
+                    {coinAlert
+                      ? "⚠ INSERT COIN HERE ⬇"
+                      : arcadePowerState === "off"
+                      ? "INSERT COIN [25¢]"
+                      : `CREDIT ${coinsInserted < 10 ? `0${coinsInserted}` : coinsInserted}`}
+                  </div>
+                  <span className="arcade-coin-door__subtext">
+                    {arcadePowerState === "off" ? "1 COIN = 1 CREDIT" : "ARCADE ONLINE"}
+                  </span>
                 </div>
-                <div
-                  className="arcade-cabinet__insert-label"
-                  dir="ltr"
-                  data-arcade-custom="true"
-                  onClick={handleCoinInsert}
-                >
-                  INSERT COIN
-                </div>
-                <div className="arcade-cabinet__keyhole" aria-hidden="true" />
+
+                <div className="arcade-cabinet__keyhole" aria-hidden="true" title="قفل الآركيد" />
               </div>
 
               <button
@@ -632,6 +814,7 @@ export default function Hero() {
                 onClick={() => handleButtonClick("jump")}
                 data-arcade-custom="true"
                 dir="ltr"
+                title={arcadePowerState !== "ready" ? "أدخل عملة أولاً لتفعيل اللاعب" : "تبديل اللاعب"}
               >
                 <span>SELECT PLAYER</span>
                 <RotateCcw size={13} aria-hidden="true" />
