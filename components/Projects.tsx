@@ -1,23 +1,41 @@
 "use client";
 
+import Image from "next/image";
+import Link from "next/link";
 import { useState } from "react";
 import {
   Aperture,
   ArrowLeft,
   ArrowUpLeft,
+  BatteryFull,
   Blocks,
   Flame,
   Orbit,
+  Signal,
   Sparkles,
+  Wifi,
+  type LucideIcon,
 } from "lucide-react";
 
-const projects = [
+export type Project = {
+  id: string;
+  title: string;
+  label: string;
+  description: string;
+  Icon: LucideIcon;
+  demoScreen?: "commerce" | "identity" | "platform";
+  previewImage?: string;
+  url?: string;
+};
+
+export const projects: Project[] = [
   {
     id: "commerce",
     title: "متجر إلكتروني طلقة وبيبيع",
     label: "أبلكيشن متجر",
     description: "تجربة تسوق سالكة وسريعة تخلي الزبون يملى السلة ويدفع في ثواني.",
     Icon: Blocks,
+    demoScreen: "commerce",
   },
   {
     id: "identity",
@@ -25,6 +43,7 @@ const projects = [
     label: "براندينج وهوية",
     description: "ديزاين كامل مليان روح وشخصية بتعكس هيبة البراند وتفاصيله.",
     Icon: Aperture,
+    demoScreen: "identity",
   },
   {
     id: "platform",
@@ -32,11 +51,40 @@ const projects = [
     label: "منصة ويب وسحابية",
     description: "كل أرقام وبيانات بيزنسك في مكان واحد منظم وسهل من غير وجع دماغ.",
     Icon: Orbit,
+    demoScreen: "platform",
   },
 ];
 
-function ProjectScreen({ projectId }: { projectId: string }) {
-  if (projectId === "identity") {
+export function ProjectScreen({ project }: { project: Project }) {
+  const PreviewIcon = project.Icon;
+
+  if (project.previewImage) {
+    const preview = (
+      <Image
+        className="projects__real-preview-image"
+        src={project.previewImage}
+        alt={`معاينة مشروع ${project.title}`}
+        fill
+        sizes="(max-width: 640px) 286px, 300px"
+      />
+    );
+
+    return project.url ? (
+      <a
+        className="projects__real-preview"
+        href={project.url}
+        target="_blank"
+        rel="noreferrer"
+        aria-label={`افتح مشروع ${project.title} في نافذة جديدة`}
+      >
+        {preview}
+      </a>
+    ) : (
+      <div className="projects__real-preview">{preview}</div>
+    );
+  }
+
+  if (project.demoScreen === "identity") {
     return (
       <div className="projects__screen-content projects__screen-content--identity">
         <div className="projects__screen-brand">
@@ -54,7 +102,7 @@ function ProjectScreen({ projectId }: { projectId: string }) {
     );
   }
 
-  if (projectId === "platform") {
+  if (project.demoScreen === "platform") {
     return (
       <div className="projects__screen-content projects__screen-content--platform">
         <div className="projects__screen-topline">
@@ -79,30 +127,40 @@ function ProjectScreen({ projectId }: { projectId: string }) {
     );
   }
 
+  if (project.demoScreen === "commerce") {
+    return (
+      <div className="projects__screen-content projects__screen-content--commerce">
+        <div className="projects__screen-topline">
+          <span className="projects__mini-mark"><Blocks size={15} /></span>
+          <span>متجري</span>
+          <span className="projects__bag">٢</span>
+        </div>
+        <div className="projects__shop-banner">
+          <p className="projects__screen-kicker">كوليكشن جديد</p>
+          <h3>اطلب دلوقتي<br />واستلم في يومين.</h3>
+          <span>تسوّق الكوليكشن <ArrowUpLeft size={13} /></span>
+          <div className="projects__product-art"><Blocks size={39} strokeWidth={1.2} /></div>
+        </div>
+        <div className="projects__shop-heading">
+          <b>
+            <Flame size={14} className="projects__flame-icon" aria-hidden="true" />
+            <span>الأكتر مبيعاً</span>
+          </b>
+          <span>عرض الكل</span>
+        </div>
+        <div className="projects__products">
+          <div><span className="projects__product-thumb"><Blocks size={21} /></span><b>العرض الأقوى</b><small>٢٤٩ ج.م</small></div>
+          <div><span className="projects__product-thumb projects__product-thumb--second"><Sparkles size={21} /></span><b>الأكتر طلباً</b><small>٣٨٠ ج.م</small></div>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="projects__screen-content projects__screen-content--commerce">
-      <div className="projects__screen-topline">
-        <span className="projects__mini-mark"><Blocks size={15} /></span>
-        <span>متجري</span>
-        <span className="projects__bag">٢</span>
-      </div>
-      <div className="projects__shop-banner">
-        <p className="projects__screen-kicker">كوليكشن جديد</p>
-        <h3>اطلب دلوقتي<br />واستلم في يومين.</h3>
-        <span>تسوّق الكوليكشن <ArrowUpLeft size={13} /></span>
-        <div className="projects__product-art"><Blocks size={39} strokeWidth={1.2} /></div>
-      </div>
-      <div className="projects__shop-heading">
-        <b>
-          <Flame size={14} className="projects__flame-icon" aria-hidden="true" />
-          <span>الأكتر مبيعاً</span>
-        </b>
-        <span>عرض الكل</span>
-      </div>
-      <div className="projects__products">
-        <div><span className="projects__product-thumb"><Blocks size={21} /></span><b>العرض الأقوى</b><small>٢٤٩ ج.م</small></div>
-        <div><span className="projects__product-thumb projects__product-thumb--second"><Sparkles size={21} /></span><b>الأكتر طلباً</b><small>٣٨٠ ج.م</small></div>
-      </div>
+    <div className="projects__empty-preview">
+      <PreviewIcon size={30} strokeWidth={1.5} aria-hidden="true" />
+      <strong>{project.title}</strong>
+      <span>أضف صورة معاينة المشروع لعرضه هنا</span>
     </div>
   );
 }
@@ -125,19 +183,36 @@ export default function Projects() {
               <div className="projects__phone-bezel">
                 <div className="projects__phone-camera" />
                 <div className="projects__phone-screen">
-                  <div className="projects__status-bar"><span>٩:٤١</span><span>● ● ▰</span></div>
-                  <ProjectScreen projectId={activeProject.id} />
+                  <div className="projects__status-bar">
+                    <span>9:41</span>
+                    <span className="projects__status-icons" aria-label="إشارة وواي فاي وبطارية ممتلئة">
+                      <Signal size={13} strokeWidth={2.4} />
+                      <Wifi size={14} strokeWidth={2.4} />
+                      <BatteryFull size={16} strokeWidth={2.2} />
+                    </span>
+                  </div>
+                  <ProjectScreen project={activeProject} />
                   <div className="projects__phone-nav"><span /><span /><span /><span /></div>
                 </div>
               </div>
             </div>
-            <p className="projects__device-caption">معاينة تفاعلية <span /></p>
+            <div className="projects__device-caption">
+              {activeProject.url ? (
+                <a href={activeProject.url} target="_blank" rel="noreferrer">
+                  زيارة المشروع <ArrowUpLeft size={14} aria-hidden="true" />
+                </a>
+              ) : (
+                <span>{activeProject.previewImage ? "معاينة المشروع" : "نموذج تجريبي"}</span>
+              )}
+              <i aria-hidden="true" />
+            </div>
           </div>
 
           <div className="projects__selector">
             <p className="projects__selector-label">استكشف شغلنا <span>({String(projects.length).padStart(2, "0")})</span></p>
             <ul className="projects__list">
-              {projects.map(({ id, title, label, description, Icon }, index) => {
+              {projects.map((project) => {
+                const { id, title, label, description, Icon } = project;
                 const isActive = activeProject.id === id;
                 return (
                   <li key={id}>
@@ -145,7 +220,7 @@ export default function Projects() {
                       className={`projects__option${isActive ? " is-active" : ""}`}
                       type="button"
                       aria-pressed={isActive}
-                      onClick={() => setActiveProject(projects[index])}
+                      onClick={() => setActiveProject(project)}
                     >
                       <span className="projects__option-icon"><Icon size={19} strokeWidth={1.6} /></span>
                       <span className="projects__option-copy">
@@ -164,6 +239,11 @@ export default function Projects() {
               <ArrowLeft size={14} aria-hidden="true" />
             </p>
           </div>
+        </div>
+        <div className="projects__all-projects-wrap">
+          <Link className="projects__all-projects" href="/projects">
+            عرض كل المشاريع <ArrowUpLeft size={17} aria-hidden="true" />
+          </Link>
         </div>
       </div>
     </section>

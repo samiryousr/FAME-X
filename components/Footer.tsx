@@ -5,17 +5,45 @@ import {
   MailIcon,
 } from "@/components/SocialIcons";
 
-export default function Footer() {
+type FooterProps = {
+  showMascot?: boolean;
+  homeHref?: string;
+};
+
+export default function Footer({
+  showMascot = true,
+  homeHref = "",
+}: FooterProps) {
   const currentYear = new Date().getFullYear();
+  const sectionHref = (section: string) =>
+    homeHref ? `${homeHref}#${section}` : `#${section}`;
 
   return (
     <footer className="footer i9k-footer i9k-footer--structured" id="footer">
-      <NinoSky>
+      {showMascot ? (
+        <NinoSky>
+          <FooterContent currentYear={currentYear} sectionHref={sectionHref} />
+        </NinoSky>
+      ) : (
+        <FooterContent currentYear={currentYear} sectionHref={sectionHref} />
+      )}
+    </footer>
+  );
+}
+
+function FooterContent({
+  currentYear,
+  sectionHref,
+}: {
+  currentYear: number;
+  sectionHref: (section: string) => string;
+}) {
+  return (
         <div className="container i9k-footer__inner">
           <div className="i9k-footer__top">
             {/* Brand & Identity Column */}
             <div className="i9k-footer__brand">
-              <a href="#home" className="i9k-footer__brand-link" aria-label="FameX - الرئيسية">
+              <a href={sectionHref("home")} className="i9k-footer__brand-link" aria-label="FameX - الرئيسية">
                 <span className="brand-visual" aria-hidden="true">
                   <span className="brand-current" dir="ltr">
                     <span className="brand-letter">
@@ -66,22 +94,22 @@ export default function Footer() {
               <h2 className="i9k-footer__heading">استكشف</h2>
               <ul className="i9k-footer__links">
                 <li>
-                  <a href="#home" className="i9k-footer__link">
+                  <a href={sectionHref("home")} className="i9k-footer__link">
                     الرئيسية
                   </a>
                 </li>
                 <li>
-                  <a href="#about" className="i9k-footer__link">
+                  <a href={sectionHref("about")} className="i9k-footer__link">
                     مين إحنا
                   </a>
                 </li>
                 <li>
-                  <a href="#services" className="i9k-footer__link">
+                  <a href={sectionHref("services")} className="i9k-footer__link">
                     بنقدملك إيه
                   </a>
                 </li>
                 <li>
-                  <a href="#projects" className="i9k-footer__link">
+                  <a href={sectionHref("projects")} className="i9k-footer__link">
                     شغلنا السابق
                   </a>
                 </li>
@@ -94,7 +122,7 @@ export default function Footer() {
             <p className="i9k-footer__copyright">
               © {currentYear} FameX. جميع الحقوق محفوظة.
             </p>
-            <a href="#home" className="i9k-footer__top-link" aria-label="العودة لأعلى الصفحة">
+            <a href={sectionHref("home")} className="i9k-footer__top-link" aria-label="العودة لأعلى الصفحة">
               <span>العودة للأعلى</span>
               <svg
                 width="14"
@@ -112,7 +140,5 @@ export default function Footer() {
             </a>
           </div>
         </div>
-      </NinoSky>
-    </footer>
   );
 }
