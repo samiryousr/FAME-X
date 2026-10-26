@@ -4,7 +4,7 @@ FAME X
 ## إضافة مشروع حقيقي لقسم المشاريع
 
 1. أضف صورة شاشة للمشروع بالمقاس الطولي المناسب للموبايل داخل `public/projects/`، مثل `public/projects/my-store.webp`.
-2. أضف المشروع إلى مصفوفة `projects` في `components/Projects.tsx`:
+2. أضف المشروع إلى مصفوفة `projects` في `components/Projects.tsx`؛ سيظهر تلقائيًا في معاينة الصفحة الرئيسية وصفحة `/projects`:
 
 ```tsx
 {
