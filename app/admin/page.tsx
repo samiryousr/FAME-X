@@ -289,10 +289,18 @@ export default function AdminDashboardPage() {
             <Link
               href="/"
               target="_blank"
-              className="flex items-center gap-1.5 text-xs font-bold text-[#286b3c] bg-[#eef5e9] hover:bg-[#e4ede0] border border-[#cfe0c9] px-3.5 py-2 rounded-xl transition-all"
+              className="flex items-center gap-1.5 text-xs font-bold text-[#286b3c] bg-[#eef5e9] hover:bg-[#e4ede0] border border-[#cfe0c9] px-3 py-2 rounded-xl transition-all"
             >
               <Eye className="w-3.5 h-3.5" />
-              معاينة الموقع
+              الرئيسية
+            </Link>
+            <Link
+              href="/projects"
+              target="_blank"
+              className="flex items-center gap-1.5 text-xs font-bold text-[#286b3c] bg-[#eef5e9] hover:bg-[#e4ede0] border border-[#cfe0c9] px-3 py-2 rounded-xl transition-all"
+            >
+              <ExternalLink className="w-3.5 h-3.5" />
+              صفحة المشاريع
             </Link>
             <button
               onClick={handleLogout}

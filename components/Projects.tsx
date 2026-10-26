@@ -105,7 +105,7 @@ export function ProjectScreen({ project }: { project: Project }) {
 
   if (currentImage) {
     const preview = (
-      <div className="relative w-full h-full min-h-[480px] bg-[#0d140e]">
+      <div className="relative w-full h-full bg-[#0d140e]">
         <Image
           className="projects__real-preview-image"
           src={currentImage}
