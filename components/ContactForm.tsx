@@ -4,7 +4,7 @@ import { useState } from "react";
 import {
   ArrowLeft,
   ShieldCheck,
-  Sparkles,
+  Zap,
 } from "lucide-react";
 import { WhatsAppIcon } from "@/components/SocialIcons";
 
@@ -89,7 +89,7 @@ export default function ContactForm() {
               <span className="contact__required" title="مطلوب">*</span>
             </label>
             <span className="contact__field-hint">
-              <Sparkles size={12} className="inline ml-1" />
+              <Zap size={12} className="inline ml-1" />
               اختر للمساعدة:
             </span>
           </div>

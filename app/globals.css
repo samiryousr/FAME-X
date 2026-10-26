@@ -4246,8 +4246,8 @@ body.scroll-reveal-ready .services__card.scroll-revealed {
 
 .projects__phone {
   position: relative;
-  width: min(100%, 300px);
-  padding: 7px;
+  width: min(100%, 335px);
+  padding: 8px;
   border: 1px solid #626a63;
   border-radius: 46px;
   background:
@@ -4322,7 +4322,7 @@ body.scroll-reveal-ready .services__card.scroll-revealed {
 .projects__phone-screen {
   position: relative;
   display: flex;
-  min-height: 552px;
+  min-height: 575px;
   flex-direction: column;
   overflow: hidden;
   border: 1px solid rgb(255 255 255 / 7%);
@@ -4925,11 +4925,11 @@ body.scroll-reveal-ready .services__card.scroll-revealed {
   }
 
   .projects__phone {
-    width: min(100%, 286px);
+    width: min(100%, 318px);
   }
 
   .projects__phone-screen {
-    min-height: 510px;
+    min-height: 545px;
   }
 
   .projects__selector-label {
@@ -4958,11 +4958,11 @@ body.scroll-reveal-ready .services__card.scroll-revealed {
   }
 
   .projects__phone {
-    width: min(100%, 270px);
+    width: min(100%, 300px);
   }
 
   .projects__phone-screen {
-    min-height: 492px;
+    min-height: 520px;
   }
 
   .projects__option-description {

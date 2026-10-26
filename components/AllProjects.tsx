@@ -1,18 +1,43 @@
 "use client";
 
 import Link from "next/link";
+import { useState, useEffect, type CSSProperties } from "react";
 import {
   ArrowLeft,
   BatteryFull,
   ExternalLink,
   Signal,
   Wifi,
-  type LucideIcon,
+  Layers,
 } from "lucide-react";
-import type { CSSProperties } from "react";
-import { ProjectScreen, projects } from "@/components/Projects";
+import {
+  ProjectScreen,
+  defaultProjects,
+  mapProjectItemToProject,
+  Project,
+} from "@/components/Projects";
+import { getAllProjects } from "@/lib/projectsService";
 
 export default function AllProjects() {
+  const [projectList, setProjectList] = useState<Project[]>(defaultProjects);
+
+  useEffect(() => {
+    let isMounted = true;
+    getAllProjects()
+      .then((items) => {
+        if (isMounted && items && items.length > 0) {
+          setProjectList(items.map(mapProjectItemToProject));
+        }
+      })
+      .catch((err) => {
+        console.warn("Could not load dynamic projects for all-projects page:", err);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
   return (
     <main className="all-projects" id="home">
       <div className="all-projects__inner">
@@ -37,13 +62,13 @@ export default function AllProjects() {
           </p>
           <div className="all-projects__status">
             <span aria-hidden="true" />
-            <span>{String(projects.length).padStart(2, "0")} مشاريع في المعرض</span>
+            <span>{String(projectList.length).padStart(2, "0")} مشاريع في المعرض</span>
           </div>
         </section>
 
         <section className="all-projects__grid" aria-label="معرض المشاريع">
-          {projects.map((project, index) => {
-            const ProjectIcon = project.Icon;
+          {projectList.map((project, index) => {
+            const ProjectIcon = project.Icon || Layers;
 
             return (
               <article

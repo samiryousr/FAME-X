@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Aperture,
   ArrowLeft,
@@ -12,10 +12,13 @@ import {
   Flame,
   Orbit,
   Signal,
-  Sparkles,
   Wifi,
+  Layers,
+  Zap,
+  TrendingUp,
   type LucideIcon,
 } from "lucide-react";
+import { getHomeProjects, ProjectItem } from "@/lib/projectsService";
 
 export type Project = {
   id: string;
@@ -25,10 +28,11 @@ export type Project = {
   Icon: LucideIcon;
   demoScreen?: "commerce" | "identity" | "platform";
   previewImage?: string;
+  images?: string[];
   url?: string;
 };
 
-export const projects: Project[] = [
+export const defaultProjects: Project[] = [
   {
     id: "commerce",
     title: "متجر إلكتروني طلقة وبيبيع",
@@ -55,18 +59,83 @@ export const projects: Project[] = [
   },
 ];
 
-export function ProjectScreen({ project }: { project: Project }) {
-  const PreviewIcon = project.Icon;
+export const projects = defaultProjects;
 
-  if (project.previewImage) {
+export function mapProjectItemToProject(item: ProjectItem): Project {
+  let icon = Layers;
+  if (item.demoScreen === "commerce" || item.label.includes("متجر")) {
+    icon = Blocks;
+  } else if (item.demoScreen === "identity" || item.label.includes("هوية")) {
+    icon = Aperture;
+  } else if (item.demoScreen === "platform" || item.label.includes("داشبورد")) {
+    icon = Orbit;
+  }
+
+  const allImages = item.images && item.images.length > 0 ? item.images : [];
+  const primary = item.previewImage || allImages[0] || "";
+
+  return {
+    id: item.id,
+    title: item.title,
+    label: item.label,
+    description: item.description,
+    Icon: icon,
+    demoScreen: item.demoScreen,
+    previewImage: primary,
+    images: allImages.length > 0 ? allImages : primary ? [primary] : [],
+    url: item.url,
+  };
+}
+
+export function ProjectScreen({ project }: { project: Project }) {
+  const [activeImgIndex, setActiveImgIndex] = useState(0);
+
+  useEffect(() => {
+    setActiveImgIndex(0);
+  }, [project.id]);
+
+  const allImages =
+    project.images && project.images.length > 0
+      ? project.images
+      : project.previewImage
+      ? [project.previewImage]
+      : [];
+
+  const currentImage = allImages[activeImgIndex] || project.previewImage;
+
+  if (currentImage) {
     const preview = (
-      <Image
-        className="projects__real-preview-image"
-        src={project.previewImage}
-        alt={`معاينة مشروع ${project.title}`}
-        fill
-        sizes="(max-width: 640px) 286px, 300px"
-      />
+      <div className="relative w-full h-full min-h-[480px] bg-[#0d140e]">
+        <Image
+          className="projects__real-preview-image"
+          src={currentImage}
+          alt={`معاينة مشروع ${project.title}`}
+          fill
+          sizes="(max-width: 640px) 310px, 330px"
+          priority
+        />
+        {allImages.length > 1 && (
+          <div className="absolute bottom-3 left-0 right-0 flex items-center justify-center gap-2 z-20 pointer-events-auto">
+            {allImages.map((_, idx) => (
+              <button
+                key={idx}
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setActiveImgIndex(idx);
+                }}
+                className={`w-2.5 h-2.5 rounded-full transition-all ${
+                  idx === activeImgIndex
+                    ? "bg-[#39a653] scale-125 shadow-[0_0_8px_#39a653]"
+                    : "bg-white/60 hover:bg-white"
+                }`}
+                aria-label={`عرض الصورة رقم ${idx + 1}`}
+              />
+            ))}
+          </div>
+        )}
+      </div>
     );
 
     return project.url ? (
@@ -113,7 +182,7 @@ export function ProjectScreen({ project }: { project: Project }) {
         <p className="projects__screen-kicker">الداشبورد</p>
         <h3>
           منوّر يا بطل
-          <Sparkles size={15} className="projects__sparkle-icon" aria-hidden="true" />
+          <Zap size={15} className="projects__sparkle-icon" aria-hidden="true" />
         </h3>
         <div className="projects__metric">
           <span>أرباح الشهر ده</span>
@@ -122,7 +191,7 @@ export function ProjectScreen({ project }: { project: Project }) {
         </div>
         <p className="projects__screen-subtitle">خدماتك السريعة</p>
         <div className="projects__service-row"><span><Blocks size={15} /></span><b>المشاريع الشغالة</b><ArrowUpLeft size={13} /></div>
-        <div className="projects__service-row"><span><Sparkles size={15} /></span><b>تقارير الأرباح والمبيعات</b><ArrowUpLeft size={13} /></div>
+        <div className="projects__service-row"><span><TrendingUp size={15} /></span><b>تقارير الأرباح والمبيعات</b><ArrowUpLeft size={13} /></div>
       </div>
     );
   }
@@ -150,11 +219,13 @@ export function ProjectScreen({ project }: { project: Project }) {
         </div>
         <div className="projects__products">
           <div><span className="projects__product-thumb"><Blocks size={21} /></span><b>العرض الأقوى</b><small>٢٤٩ ج.م</small></div>
-          <div><span className="projects__product-thumb projects__product-thumb--second"><Sparkles size={21} /></span><b>الأكتر طلباً</b><small>٣٨٠ ج.م</small></div>
+          <div><span className="projects__product-thumb projects__product-thumb--second"><Flame size={21} /></span><b>الأكتر طلباً</b><small>٣٨٠ ج.م</small></div>
         </div>
       </div>
     );
   }
+
+  const PreviewIcon = project.Icon || Layers;
 
   return (
     <div className="projects__empty-preview">
@@ -166,7 +237,27 @@ export function ProjectScreen({ project }: { project: Project }) {
 }
 
 export default function Projects() {
-  const [activeProject, setActiveProject] = useState(projects[0]);
+  const [projectList, setProjectList] = useState<Project[]>(defaultProjects);
+  const [activeProject, setActiveProject] = useState<Project>(defaultProjects[0]);
+
+  useEffect(() => {
+    let isMounted = true;
+    getHomeProjects()
+      .then((items) => {
+        if (isMounted && items && items.length > 0) {
+          const mapped = items.map(mapProjectItemToProject);
+          setProjectList(mapped);
+          setActiveProject(mapped[0]);
+        }
+      })
+      .catch((err) => {
+        console.warn("Could not load dynamic projects from Firestore:", err);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   return (
     <section className="section section--muted projects" id="projects">
@@ -209,11 +300,12 @@ export default function Projects() {
           </div>
 
           <div className="projects__selector">
-            <p className="projects__selector-label">استكشف شغلنا <span>({String(projects.length).padStart(2, "0")})</span></p>
+            <p className="projects__selector-label">استكشف شغلنا <span>({String(projectList.length).padStart(2, "0")})</span></p>
             <ul className="projects__list">
-              {projects.map((project) => {
+              {projectList.map((project) => {
                 const { id, title, label, description, Icon } = project;
                 const isActive = activeProject.id === id;
+                const ProjectIcon = Icon || Layers;
                 return (
                   <li key={id}>
                     <button
@@ -222,7 +314,7 @@ export default function Projects() {
                       aria-pressed={isActive}
                       onClick={() => setActiveProject(project)}
                     >
-                      <span className="projects__option-icon"><Icon size={19} strokeWidth={1.6} /></span>
+                      <span className="projects__option-icon"><ProjectIcon size={19} strokeWidth={1.6} /></span>
                       <span className="projects__option-copy">
                         <span className="projects__option-label">{label}</span>
                         <span className="projects__option-title">{title}</span>
