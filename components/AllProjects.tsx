@@ -1,18 +1,158 @@
 "use client";
 
 import Link from "next/link";
-import {
-  ArrowLeft,
-  BatteryFull,
-  ExternalLink,
-  Signal,
-  Wifi,
-  type LucideIcon,
-} from "lucide-react";
-import type { CSSProperties } from "react";
+import { ArrowLeft, ExternalLink } from "lucide-react";
+import { useEffect, useRef } from "react";
 import { ProjectScreen, projects } from "@/components/Projects";
 
+type WirePoint = { x: number; y: number };
+type WireSegment = { start: WirePoint; end: WirePoint; length: number };
+
 export default function AllProjects() {
+  const gridRef = useRef<HTMLElement>(null);
+  const pathRef = useRef<SVGPathElement>(null);
+  const glowRef = useRef<SVGPathElement>(null);
+  const segmentsRef = useRef<WireSegment[]>([]);
+
+  useEffect(() => {
+    const grid = gridRef.current;
+    const path = pathRef.current;
+    const glow = glowRef.current;
+    if (!grid || !path || !glow) return;
+    let animationFrame = 0;
+
+    const updateProgress = () => {
+      cancelAnimationFrame(animationFrame);
+      animationFrame = requestAnimationFrame(() => {
+        const segments = segmentsRef.current;
+        if (!segments.length) return;
+        const bounds = grid.getBoundingClientRect();
+        const center = window.innerHeight * 0.58 - bounds.top;
+        if (center < 0 || center > bounds.height) {
+          glow.setAttribute("d", "");
+          return;
+        }
+
+        const progress = Math.min(1, Math.max(0, center / bounds.height));
+        let distance = progress * segments.reduce(
+          (total, segment) => total + segment.length,
+          0,
+        );
+        let activeSegment = segments[segments.length - 1];
+        let segmentDistance = activeSegment.length;
+        for (const segment of segments) {
+          if (distance <= segment.length) {
+            activeSegment = segment;
+            segmentDistance = distance;
+            break;
+          }
+          distance -= segment.length;
+        }
+
+        const glowLength = Math.min(
+          window.matchMedia("(max-width: 640px)").matches ? 88 : 34,
+          activeSegment.length,
+        );
+        const startDistance = Math.max(0, segmentDistance - glowLength / 2);
+        const endDistance = Math.min(
+          activeSegment.length,
+          segmentDistance + glowLength / 2,
+        );
+        const pointAt = (distance: number) => {
+          const progress = distance / activeSegment.length;
+          return {
+            x:
+              activeSegment.start.x +
+              (activeSegment.end.x - activeSegment.start.x) * progress,
+            y:
+              activeSegment.start.y +
+              (activeSegment.end.y - activeSegment.start.y) * progress,
+          };
+        };
+        const start = pointAt(startDistance);
+        const end = pointAt(endDistance);
+        glow.setAttribute("d", `M ${start.x} ${start.y} L ${end.x} ${end.y}`);
+      });
+    };
+
+    const updateWire = () => {
+      const svg = path.ownerSVGElement;
+      const cards = Array.from(
+        grid.querySelectorAll<HTMLElement>(".all-projects__card"),
+      );
+      if (!svg || cards.length !== projects.length) return;
+
+      const svgBounds = svg.getBoundingClientRect();
+      const cardBounds = cards.map((card) => {
+        const bounds = card.getBoundingClientRect();
+        return {
+          center: {
+            x: bounds.left + bounds.width / 2 - svgBounds.left,
+            y: bounds.top + bounds.height / 2 - svgBounds.top,
+          },
+          width: bounds.width,
+          height: bounds.height,
+        };
+      });
+      const getEdgePoint = (
+        bounds: (typeof cardBounds)[number],
+        center: WirePoint,
+        deltaX: number,
+        deltaY: number,
+      ) => {
+        const scale = Math.min(
+          deltaX === 0 ? Infinity : bounds.width / 2 / Math.abs(deltaX),
+          deltaY === 0 ? Infinity : bounds.height / 2 / Math.abs(deltaY),
+        );
+        return {
+          x: center.x + deltaX * scale,
+          y: center.y + deltaY * scale,
+        };
+      };
+      const segments = cardBounds.slice(0, -1).map((bounds, index) => {
+        const next = cardBounds[index + 1];
+        const deltaX = next.center.x - bounds.center.x;
+        const deltaY = next.center.y - bounds.center.y;
+        const start = getEdgePoint(bounds, bounds.center, deltaX, deltaY);
+        const end = getEdgePoint(next, next.center, -deltaX, -deltaY);
+        return {
+          start,
+          end,
+          length: Math.hypot(end.x - start.x, end.y - start.y),
+        };
+      });
+      segmentsRef.current = segments;
+
+      svg.setAttribute(
+        "viewBox",
+        `0 0 ${Math.max(1, svgBounds.width)} ${Math.max(1, svgBounds.height)}`,
+      );
+      path.setAttribute(
+        "d",
+        segments
+          .map(({ start, end }) => `M ${start.x} ${start.y} L ${end.x} ${end.y}`)
+          .join(" "),
+      );
+      updateProgress();
+    };
+
+    const resizeObserver = new ResizeObserver(updateWire);
+    resizeObserver.observe(grid);
+    grid.querySelectorAll(".all-projects__card").forEach((card) =>
+      resizeObserver.observe(card),
+    );
+    updateWire();
+    window.addEventListener("scroll", updateProgress, { passive: true });
+    window.addEventListener("resize", updateWire);
+
+    return () => {
+      cancelAnimationFrame(animationFrame);
+      resizeObserver.disconnect();
+      window.removeEventListener("scroll", updateProgress);
+      window.removeEventListener("resize", updateWire);
+    };
+  }, []);
+
   return (
     <main className="all-projects" id="home">
       <div className="all-projects__inner">
@@ -41,69 +181,62 @@ export default function AllProjects() {
           </div>
         </section>
 
-        <section className="all-projects__grid" aria-label="معرض المشاريع">
-          {projects.map((project, index) => {
-            const ProjectIcon = project.Icon;
+        <section
+          className="services__path all-projects__path"
+          aria-label="معرض المشاريع"
+          ref={gridRef}
+        >
+          <svg className="services__wire" aria-hidden="true" focusable="false">
+            <path className="services__wire-base" ref={pathRef} />
+            <path className="services__wire-glow" ref={glowRef} />
+          </svg>
+          <div className="services__cards">
+            {projects.map((project) => {
+              const ProjectIcon = project.Icon;
 
-            return (
-              <article
-                className="all-projects__card"
-                key={project.id}
-                style={{ "--project-index": index } as CSSProperties}
-              >
-                <div className="all-projects__preview">
-                  <div
-                    className="projects__phone all-projects__phone"
-                    data-project={project.id}
-                    aria-label={`معاينة ${project.title}`}
-                  >
-                    <div className="projects__phone-bezel">
-                      <div className="projects__phone-camera" />
-                      <div className="projects__phone-screen">
-                        <div className="projects__status-bar">
-                          <span>9:41</span>
-                          <span className="projects__status-icons" aria-label="إشارة وواي فاي وبطارية ممتلئة">
-                            <Signal size={11} strokeWidth={2.4} />
-                            <Wifi size={12} strokeWidth={2.4} />
-                            <BatteryFull size={14} strokeWidth={2.2} />
-                          </span>
-                        </div>
-                        <ProjectScreen project={project} />
-                        <div className="projects__phone-nav" />
-                      </div>
-                    </div>
-                  </div>
-                  <span className="all-projects__index" dir="ltr">
-                    PROJECT / {String(index + 1).padStart(2, "0")}
-                  </span>
-                </div>
-
-                <div className="all-projects__details">
-                  <div className="all-projects__category">
-                    <ProjectIcon size={15} strokeWidth={1.7} aria-hidden="true" />
-                    {project.label}
-                  </div>
-                  <h2>{project.title}</h2>
-                  <p>{project.description}</p>
-                  {project.url ? (
-                    <a
-                      className="all-projects__visit"
-                      href={project.url}
-                      target="_blank"
-                      rel="noreferrer"
-                    >
-                      زيارة المشروع <ExternalLink size={15} aria-hidden="true" />
-                    </a>
-                  ) : (
-                    <span className="all-projects__concept">
-                      <span aria-hidden="true" />
-                      نموذج تصميم
+              return (
+                <article
+                  className="all-projects__card"
+                  key={project.id}
+                >
+                  <div className="all-projects__preview">
+                    <ProjectScreen project={project} />
+                    <span className="all-projects__featured">
+                      {project.url ? "LIVE" : "Featured"}
                     </span>
-                  )}
-                </div>
-              </article>
-            );
-          })}
+                    <span className="all-projects__preview-label" dir="ltr">
+                      PROJECT PREVIEW
+                    </span>
+                  </div>
+                  <div className="all-projects__details">
+                    <h2>{project.title}</h2>
+                    <p>{project.description}</p>
+                    <div className="all-projects__tags">
+                      <span>{project.label}</span>
+                      <span>{project.demoScreen ? "معاينة تفاعلية" : "مشروع"}</span>
+                    </div>
+                    <footer className="all-projects__card-footer">
+                      <span className="all-projects__card-type">
+                        <ProjectIcon size={15} strokeWidth={1.8} aria-hidden="true" />
+                        {project.url ? "مشروع مباشر" : "نموذج تصميم"}
+                      </span>
+                      {project.url && (
+                        <a
+                          className="all-projects__visit"
+                          href={project.url}
+                          target="_blank"
+                          rel="noreferrer"
+                        >
+                          زيارة المشروع
+                          <ExternalLink size={15} aria-hidden="true" />
+                        </a>
+                      )}
+                    </footer>
+                  </div>
+                </article>
+              );
+            })}
+          </div>
         </section>
       </div>
     </main>
