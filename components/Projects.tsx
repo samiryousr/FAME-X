@@ -16,6 +16,17 @@ import {
   Layers,
   Zap,
   TrendingUp,
+  Maximize2,
+  Minimize2,
+  ShoppingBag,
+  Globe,
+  Smartphone,
+  Palette,
+  Layout,
+  Sparkles,
+  Briefcase,
+  Rocket,
+  FolderGit2,
   type LucideIcon,
 } from "lucide-react";
 import { getHomeProjects, ProjectItem } from "@/lib/projectsService";
@@ -30,6 +41,25 @@ export type Project = {
   previewImage?: string;
   images?: string[];
   url?: string;
+  imageFit?: "smart" | "cover" | "contain";
+  showOnHome?: boolean;
+  iconName?: string;
+};
+
+export const PROJECT_ICON_MAP: Record<string, LucideIcon> = {
+  ShoppingBag,
+  Globe,
+  Smartphone,
+  Palette,
+  Layout,
+  Sparkles,
+  Briefcase,
+  Rocket,
+  Layers,
+  FolderGit2,
+  Aperture,
+  Orbit,
+  Blocks,
 };
 
 export const defaultProjects: Project[] = [
@@ -38,7 +68,7 @@ export const defaultProjects: Project[] = [
     title: "متجر إلكتروني طلقة وبيبيع",
     label: "أبلكيشن متجر",
     description: "تجربة تسوق سالكة وسريعة تخلي الزبون يملى السلة ويدفع في ثواني.",
-    Icon: Blocks,
+    Icon: ShoppingBag,
     demoScreen: "commerce",
   },
   {
@@ -46,7 +76,7 @@ export const defaultProjects: Project[] = [
     title: "هوية بصرية تعلّم وتعيش",
     label: "براندينج وهوية",
     description: "ديزاين كامل مليان روح وشخصية بتعكس هيبة البراند وتفاصيله.",
-    Icon: Aperture,
+    Icon: Palette,
     demoScreen: "identity",
   },
   {
@@ -54,7 +84,7 @@ export const defaultProjects: Project[] = [
     title: "داشبورد ومنصة إدارة ذكية",
     label: "منصة ويب وسحابية",
     description: "كل أرقام وبيانات بيزنسك في مكان واحد منظم وسهل من غير وجع دماغ.",
-    Icon: Orbit,
+    Icon: Layout,
     demoScreen: "platform",
   },
 ];
@@ -62,13 +92,21 @@ export const defaultProjects: Project[] = [
 export const projects = defaultProjects;
 
 export function mapProjectItemToProject(item: ProjectItem): Project {
-  let icon = Layers;
-  if (item.demoScreen === "commerce" || item.label.includes("متجر")) {
-    icon = Blocks;
-  } else if (item.demoScreen === "identity" || item.label.includes("هوية")) {
-    icon = Aperture;
-  } else if (item.demoScreen === "platform" || item.label.includes("داشبورد")) {
-    icon = Orbit;
+  let icon: LucideIcon = Sparkles;
+  if (item.iconName && PROJECT_ICON_MAP[item.iconName]) {
+    icon = PROJECT_ICON_MAP[item.iconName];
+  } else if (item.label.includes("متجر") || item.demoScreen === "commerce") {
+    icon = ShoppingBag;
+  } else if (item.label.includes("تطبيق") || item.label.includes("موبايل")) {
+    icon = Smartphone;
+  } else if (item.label.includes("هوية") || item.label.includes("براند") || item.demoScreen === "identity") {
+    icon = Palette;
+  } else if (item.label.includes("داشبورد") || item.demoScreen === "platform") {
+    icon = Layout;
+  } else if (item.label.includes("موقع") || item.label.includes("ويب")) {
+    icon = Globe;
+  } else {
+    icon = Layers;
   }
 
   const allImages = item.images && item.images.length > 0 ? item.images : [];
@@ -84,15 +122,28 @@ export function mapProjectItemToProject(item: ProjectItem): Project {
     previewImage: primary,
     images: allImages.length > 0 ? allImages : primary ? [primary] : [],
     url: item.url,
+    imageFit: item.imageFit || "smart",
+    showOnHome: item.showOnHome,
+    iconName: item.iconName,
   };
 }
 
-export function ProjectScreen({ project }: { project: Project }) {
+export function ProjectScreen({
+  project,
+  variant = "home",
+}: {
+  project: Project;
+  variant?: "home" | "gallery";
+}) {
   const [activeImgIndex, setActiveImgIndex] = useState(0);
+  const [fitMode, setFitMode] = useState<"smart" | "cover" | "contain">(
+    project.imageFit || "smart"
+  );
 
   useEffect(() => {
     setActiveImgIndex(0);
-  }, [project.id]);
+    setFitMode(project.imageFit || "smart");
+  }, [project.id, project.imageFit]);
 
   const allImages =
     project.images && project.images.length > 0
@@ -104,18 +155,75 @@ export function ProjectScreen({ project }: { project: Project }) {
   const currentImage = allImages[activeImgIndex] || project.previewImage;
 
   if (currentImage) {
-    const preview = (
-      <div className="relative w-full h-full bg-[#0d140e]">
-        <Image
-          className="projects__real-preview-image"
-          src={currentImage}
-          alt={`معاينة مشروع ${project.title}`}
-          fill
-          sizes="(max-width: 640px) 310px, 330px"
-          priority
-        />
+    const isCover = fitMode === "cover";
+
+    const previewContent = (
+      <div className="absolute inset-0 overflow-hidden bg-[#0a0d0b] flex items-center justify-center select-none">
+        {/* Ambient Blur Layer: fills empty spaces with soft matching color aura */}
+        {!isCover && (
+          <div className="absolute inset-0 overflow-hidden pointer-events-none -z-0">
+            <Image
+              src={currentImage}
+              alt=""
+              fill
+              className="object-cover blur-2xl opacity-40 scale-125"
+              priority={false}
+              unoptimized={currentImage.includes("cloudinary.com") || currentImage.startsWith("http")}
+              aria-hidden="true"
+            />
+          </div>
+        )}
+
+        {/* Foreground Main Image: crisp and complete */}
+        <div
+          className={`absolute inset-0 flex items-center justify-center ${
+            isCover ? "" : variant === "home" ? "p-1.5 sm:p-2" : "p-2 sm:p-3"
+          } z-10`}
+        >
+          <Image
+            className={`transition-all duration-300 ${
+              isCover
+                ? "object-cover object-top"
+                : "object-contain drop-shadow-[0_8px_25px_rgba(0,0,0,0.5)]"
+            }`}
+            src={currentImage}
+            alt={`معاينة مشروع ${project.title}`}
+            fill
+            sizes="(max-width: 640px) 340px, (max-width: 1024px) 450px, 600px"
+            priority
+            unoptimized={currentImage.includes("cloudinary.com") || currentImage.startsWith("http")}
+          />
+        </div>
+
+        {/* Home Phone Mode: Toggle Fit Button (Cover vs Contain) */}
+        {variant === "home" && (
+          <button
+            type="button"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              setFitMode((prev) => (prev === "cover" ? "smart" : "cover"));
+            }}
+            className="absolute top-2.5 left-2.5 z-30 p-1.5 rounded-lg bg-black/65 hover:bg-black/90 text-white/80 hover:text-white border border-white/10 backdrop-blur transition-all text-[10px] flex items-center gap-1 cursor-pointer pointer-events-auto"
+            title={fitMode === "cover" ? "عرض الصورة كاملة بدون قص" : "ملء الشاشة بالكامل"}
+          >
+            {fitMode === "cover" ? (
+              <>
+                <Minimize2 size={12} />
+                <span className="text-[9px] font-sans">احتواء</span>
+              </>
+            ) : (
+              <>
+                <Maximize2 size={12} />
+                <span className="text-[9px] font-sans">ملء</span>
+              </>
+            )}
+          </button>
+        )}
+
+        {/* Multi-image indicator dots */}
         {allImages.length > 1 && (
-          <div className="absolute bottom-3 left-0 right-0 flex items-center justify-center gap-2 z-20 pointer-events-auto">
+          <div className="absolute bottom-3 left-0 right-0 flex items-center justify-center gap-2 z-30 pointer-events-auto">
             {allImages.map((_, idx) => (
               <button
                 key={idx}
@@ -146,10 +254,10 @@ export function ProjectScreen({ project }: { project: Project }) {
         rel="noreferrer"
         aria-label={`افتح مشروع ${project.title} في نافذة جديدة`}
       >
-        {preview}
+        {previewContent}
       </a>
     ) : (
-      <div className="projects__real-preview">{preview}</div>
+      <div className="projects__real-preview">{previewContent}</div>
     );
   }
 

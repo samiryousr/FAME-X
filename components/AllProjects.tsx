@@ -248,7 +248,20 @@ export default function AllProjects() {
                     }}
                   >
                     <div className="all-projects__preview">
-                      <ProjectScreen project={project} />
+                      <ProjectScreen project={project} variant="gallery" />
+                      {/* Status Badges like Admin */}
+                      <div className="all-projects__preview-badges">
+                        {project.showOnHome && (
+                          <span className="all-projects__badge all-projects__badge--home">
+                            الرئيسية
+                          </span>
+                        )}
+                        {project.images && project.images.length > 1 && (
+                          <span className="all-projects__badge all-projects__badge--count">
+                            {project.images.length} صور
+                          </span>
+                        )}
+                      </div>
                       {project.url && (
                         <span className="all-projects__featured all-projects__featured--live">
                           LIVE
@@ -271,33 +284,38 @@ export default function AllProjects() {
                       </span>
                     </div>
                     <div className="all-projects__details">
-                      <h2>{project.title}</h2>
-                      <p>{project.description}</p>
+                      {/* Category Label at Top (matching Admin) */}
                       <div className="all-projects__tags">
-                        <span>{project.label}</span>
-                        <span>{project.demoScreen ? "معاينة تفاعلية" : "مشروع"}</span>
+                        <span>{project.label || "مشروع مميز"}</span>
                       </div>
+                      <h2>{project.title}</h2>
+                      <p>{project.description || "لا يوجد وصف مدخل."}</p>
                       <footer className="all-projects__card-footer">
-                        <span className="all-projects__card-type">
-                          <ProjectIcon size={15} strokeWidth={1.8} aria-hidden="true" />
-                          {project.url ? "مشروع مباشر" : "نموذج تصميم"}
-                        </span>
                         {project.url ? (
-                          <a
-                            className="all-projects__visit-btn"
-                            href={project.url}
-                            target="_blank"
-                            rel="noreferrer"
-                            aria-label={`زيارة موقع مشروع ${project.title}`}
-                          >
-                            <span>زيارة الموقع</span>
-                            <ExternalLink size={15} aria-hidden="true" />
-                          </a>
+                          <>
+                            <span className="all-projects__card-type">
+                              مشروع مباشر
+                            </span>
+                            <a
+                              className="all-projects__visit-btn"
+                              href={project.url}
+                              target="_blank"
+                              rel="noreferrer"
+                              aria-label={`زيارة موقع مشروع ${project.title}`}
+                            >
+                              <span>زيارة الموقع</span>
+                              <ExternalLink size={15} aria-hidden="true" />
+                            </a>
+                          </>
                         ) : (
-                          <span className="all-projects__visit-btn all-projects__visit-btn--disabled">
-                            <span>نموذج تجريبي</span>
-                            <ExternalLink size={15} aria-hidden="true" />
-                          </span>
+                          <>
+                            <span className="all-projects__card-type">
+                              معاينة العمل
+                            </span>
+                            <span className="all-projects__visit-btn all-projects__visit-btn--badge">
+                              معاينة وتصميم
+                            </span>
+                          </>
                         )}
                       </footer>
                     </div>

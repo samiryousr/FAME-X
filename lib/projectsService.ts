@@ -24,6 +24,8 @@ export interface ProjectItem {
   showOnHome: boolean;
   order: number;
   demoScreen?: "commerce" | "identity" | "platform";
+  imageFit?: "smart" | "cover" | "contain";
+  iconName?: string;
   createdAt?: number;
 }
 
@@ -112,6 +114,7 @@ export async function getAllProjects(): Promise<ProjectItem[]> {
           showOnHome: data.showOnHome !== false,
           order: typeof data.order === "number" ? data.order : 99,
           demoScreen: data.demoScreen,
+          imageFit: (data.imageFit as "smart" | "cover" | "contain") || "smart",
           createdAt: data.createdAt?.toMillis ? data.createdAt.toMillis() : Date.now(),
         });
       });
@@ -165,6 +168,8 @@ export async function saveProject(
     showOnHome: Boolean(project.showOnHome),
     order: Number(project.order) || 1,
     demoScreen: project.demoScreen,
+    imageFit: project.imageFit || "smart",
+    iconName: project.iconName || "",
     createdAt: Date.now(),
   };
 
@@ -195,6 +200,8 @@ export async function saveProject(
       url: newItem.url,
       showOnHome: newItem.showOnHome,
       order: newItem.order,
+      imageFit: newItem.imageFit,
+      iconName: newItem.iconName || "",
     };
 
     if (newItem.demoScreen) {

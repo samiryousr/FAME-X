@@ -28,7 +28,28 @@ import {
   Image as ImageIcon,
   Save,
   FolderGit2,
+  ShoppingBag,
+  Globe,
+  Smartphone,
+  Palette,
+  Layout,
+  Sparkles,
+  Briefcase,
+  Rocket,
+  Layers,
 } from "lucide-react";
+
+const AVAILABLE_PROJECT_ICONS = [
+  { id: "ShoppingBag", label: "متجر / بيع", Icon: ShoppingBag },
+  { id: "Globe", label: "موقع ويب", Icon: Globe },
+  { id: "Smartphone", label: "تطبيق موبايل", Icon: Smartphone },
+  { id: "Palette", label: "هوية وديزاين", Icon: Palette },
+  { id: "Layout", label: "منصة وداشبورد", Icon: Layout },
+  { id: "Sparkles", label: "فكرة مميزة", Icon: Sparkles },
+  { id: "Briefcase", label: "بيزنس وخدمات", Icon: Briefcase },
+  { id: "Rocket", label: "إطلاق جديد", Icon: Rocket },
+  { id: "Layers", label: "عام / متنوع", Icon: Layers },
+];
 
 export default function AdminDashboardPage() {
   const router = useRouter();
@@ -51,6 +72,8 @@ export default function AdminDashboardPage() {
   const [previewImage, setPreviewImage] = useState("");
   const [images, setImages] = useState<string[]>([]);
   const [demoScreen, setDemoScreen] = useState<"commerce" | "identity" | "platform" | "">("");
+  const [imageFit, setImageFit] = useState<"smart" | "cover" | "contain">("smart");
+  const [iconName, setIconName] = useState<string>("ShoppingBag");
 
   // Uploading & Submitting state
   const [uploadingImage, setUploadingImage] = useState(false);
@@ -105,6 +128,8 @@ export default function AdminDashboardPage() {
     setPreviewImage("");
     setImages([]);
     setDemoScreen("");
+    setImageFit("smart");
+    setIconName("ShoppingBag");
     setFormError("");
     setIsModalOpen(true);
   };
@@ -121,6 +146,8 @@ export default function AdminDashboardPage() {
     setPreviewImage(p.previewImage || (p.images && p.images[0]) || "");
     setImages(p.images || []);
     setDemoScreen(p.demoScreen || "");
+    setImageFit(p.imageFit || "smart");
+    setIconName(p.iconName || "ShoppingBag");
     setFormError("");
     setIsModalOpen(true);
   };
@@ -212,6 +239,8 @@ export default function AdminDashboardPage() {
         showOnHome: Boolean(showOnHome),
         order: Number(order) || 1,
         demoScreen: demoScreen || undefined,
+        imageFit: imageFit,
+        iconName: iconName,
       });
 
       setIsModalOpen(false);
@@ -412,7 +441,12 @@ export default function AdminDashboardPage() {
                   <div className="p-5 flex-1 flex flex-col justify-between space-y-4">
                     <div>
                       <div className="flex items-center gap-2 mb-1.5">
-                        <span className="text-xs font-extrabold text-[#286b3c] bg-[#eef5e9] px-2.5 py-0.5 rounded-md">
+                        <span className="text-xs font-extrabold text-[#286b3c] bg-[#eef5e9] px-2.5 py-0.5 rounded-md flex items-center gap-1.5">
+                          {(() => {
+                            const found = AVAILABLE_PROJECT_ICONS.find((ic) => ic.id === p.iconName);
+                            const IconCmp = found ? found.Icon : ShoppingBag;
+                            return <IconCmp className="w-3.5 h-3.5 text-[#286b3c]" />;
+                          })()}
                           {p.label || "مشروع مميز"}
                         </span>
                       </div>
@@ -539,6 +573,35 @@ export default function AdminDashboardPage() {
                   placeholder="اكتب نبذة مختصرة وجذابة عن المشروع وأهم مميزاته..."
                   className="w-full bg-[#fdfdfc] border border-[#d8e2d5] focus:border-[#286b3c] focus:ring-2 focus:ring-[#286b3c]/15 rounded-xl py-2.5 px-3.5 text-[#20251f] text-sm outline-none transition-all placeholder:text-[#a0aaa0] resize-none"
                 />
+              </div>
+
+              {/* Project Icon Selector */}
+              <div>
+                <label className="block text-xs font-bold text-[#20251f] mb-1.5 flex items-center justify-between">
+                  <span>أيقونة المشروع</span>
+                  <span className="text-[11px] font-normal text-[#727970]">اختر أيقونة مناسبة للمشروع</span>
+                </label>
+                <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
+                  {AVAILABLE_PROJECT_ICONS.map((item) => {
+                    const IconComponent = item.Icon;
+                    const isSelected = iconName === item.id;
+                    return (
+                      <button
+                        key={item.id}
+                        type="button"
+                        onClick={() => setIconName(item.id)}
+                        className={`flex flex-col items-center justify-center gap-1.5 p-2.5 rounded-xl border text-center transition-all cursor-pointer ${
+                          isSelected
+                            ? "bg-[#286b3c] text-white border-[#286b3c] shadow-sm font-bold scale-[1.02]"
+                            : "bg-[#fdfdfc] text-[#4d564b] border-[#d8e2d5] hover:bg-[#eef5e9] hover:border-[#286b3c]/40"
+                        }`}
+                      >
+                        <IconComponent className={`w-4 h-4 ${isSelected ? "text-white" : "text-[#286b3c]"}`} />
+                        <span className="text-[10px] leading-tight line-clamp-1">{item.label}</span>
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
 
               {/* URL & Order */}
@@ -723,6 +786,22 @@ export default function AdminDashboardPage() {
                   </select>
                 </div>
               )}
+
+              {/* Image Fit Setting */}
+              <div>
+                <label className="block text-xs font-bold text-[#20251f] mb-1">
+                  طريقة تناسق وعرض الصور (Image Fit)
+                </label>
+                <select
+                  value={imageFit}
+                  onChange={(e) => setImageFit(e.target.value as "smart" | "cover" | "contain")}
+                  className="w-full bg-[#fdfdfc] border border-[#d8e2d5] rounded-xl py-2 px-3 text-xs text-[#20251f] outline-none"
+                >
+                  <option value="smart">تلقائي ذكي (مع إضاءة خلفية ناعمة ومنع أي قص) — موصى به</option>
+                  <option value="cover">ملء الإطار بالكامل (Cover — ملء كامل للشاشة)</option>
+                  <option value="contain">احتواء بدون أي قص (Contain)</option>
+                </select>
+              </div>
 
               {/* Action Buttons */}
               <div className="pt-4 border-t border-[#edf2ea] flex items-center justify-end gap-3">
