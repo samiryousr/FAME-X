@@ -64,55 +64,87 @@ export const DEFAULT_PROJECTS: ProjectItem[] = [
 ];
 
 const COLLECTION_NAME = "projects";
+const LOCAL_STORAGE_KEY = "famex_saved_projects";
+
+function getLocalProjects(): ProjectItem[] | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = localStorage.getItem(LOCAL_STORAGE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) && parsed.length > 0 ? parsed : null;
+  } catch {
+    return null;
+  }
+}
+
+function setLocalProjects(projects: ProjectItem[]): void {
+  if (typeof window === "undefined") return;
+  try {
+    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(projects));
+    window.dispatchEvent(new CustomEvent("famex_projects_updated", { detail: projects }));
+  } catch {
+    // Ignore localStorage write error
+  }
+}
 
 /**
- * Fetch all projects from Firestore.
- * If the collection is empty, returns DEFAULT_PROJECTS.
+ * Fetch all projects from Firestore with localStorage fallback and caching.
+ * If collection is empty, returns DEFAULT_PROJECTS.
  */
 export async function getAllProjects(): Promise<ProjectItem[]> {
   try {
     const q = query(collection(db, COLLECTION_NAME), orderBy("order", "asc"));
     const snapshot = await getDocs(q);
 
-    if (snapshot.empty) {
-      return DEFAULT_PROJECTS;
-    }
-
-    const projects: ProjectItem[] = [];
-    snapshot.forEach((docSnap) => {
-      const data = docSnap.data() as DocumentData;
-      projects.push({
-        id: docSnap.id,
-        title: data.title || "",
-        label: data.label || "",
-        description: data.description || "",
-        previewImage: data.previewImage || (data.images && data.images[0]) || "",
-        images: Array.isArray(data.images) ? data.images : [],
-        url: data.url || "",
-        showOnHome: data.showOnHome !== false,
-        order: typeof data.order === "number" ? data.order : 99,
-        demoScreen: data.demoScreen,
-        createdAt: data.createdAt?.toMillis ? data.createdAt.toMillis() : Date.now(),
+    if (!snapshot.empty) {
+      const projects: ProjectItem[] = [];
+      snapshot.forEach((docSnap) => {
+        const data = docSnap.data() as DocumentData;
+        projects.push({
+          id: docSnap.id,
+          title: data.title || "",
+          label: data.label || "",
+          description: data.description || "",
+          previewImage: data.previewImage || (data.images && data.images[0]) || "",
+          images: Array.isArray(data.images) ? data.images : [],
+          url: data.url || "",
+          showOnHome: data.showOnHome !== false,
+          order: typeof data.order === "number" ? data.order : 99,
+          demoScreen: data.demoScreen,
+          createdAt: data.createdAt?.toMillis ? data.createdAt.toMillis() : Date.now(),
+        });
       });
-    });
 
-    return projects;
+      setLocalProjects(projects);
+      return projects;
+    }
   } catch (error) {
-    console.warn("Could not fetch projects from Firestore, using defaults:", error);
-    return DEFAULT_PROJECTS;
+    console.warn("Could not fetch projects from Firestore, falling back to local storage / defaults:", error);
   }
+
+  // Check local storage fallback
+  const local = getLocalProjects();
+  if (local && local.length > 0) {
+    return local;
+  }
+
+  return DEFAULT_PROJECTS;
 }
 
 /**
  * Fetch projects marked to show on Home.
+ * ALWAYS capped at exactly 3 projects max for the home page.
  */
 export async function getHomeProjects(): Promise<ProjectItem[]> {
   const all = await getAllProjects();
-  return all.filter((p) => p.showOnHome);
+  const homeOnly = all.filter((p) => p.showOnHome !== false);
+  return (homeOnly.length > 0 ? homeOnly : all).slice(0, 3);
 }
 
 /**
  * Add or overwrite a project.
+ * Updates both Firestore and localStorage, notifying listeners in real-time.
  */
 export async function saveProject(
   project: Omit<ProjectItem, "id"> & { id?: string }
@@ -122,10 +154,8 @@ export async function saveProject(
       ? project.id.trim()
       : `proj_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
 
-  const docRef = doc(db, COLLECTION_NAME, docId);
-  const existing = await getDoc(docRef);
-
-  const payload: Record<string, any> = {
+  const newItem: ProjectItem = {
+    id: docId,
     title: project.title,
     label: project.label || "",
     description: project.description || "",
@@ -134,18 +164,52 @@ export async function saveProject(
     url: project.url || "",
     showOnHome: Boolean(project.showOnHome),
     order: Number(project.order) || 1,
+    demoScreen: project.demoScreen,
+    createdAt: Date.now(),
   };
 
-  if (project.demoScreen) {
-    payload.demoScreen = project.demoScreen;
-  }
-
-  if (existing.exists()) {
-    payload.updatedAt = serverTimestamp();
-    await updateDoc(docRef, payload);
+  // Immediate local update
+  const currentList = getLocalProjects() || [...DEFAULT_PROJECTS];
+  const existingIdx = currentList.findIndex((p) => p.id === docId);
+  let updatedList: ProjectItem[];
+  if (existingIdx >= 0) {
+    updatedList = [...currentList];
+    updatedList[existingIdx] = { ...updatedList[existingIdx], ...newItem };
   } else {
-    payload.createdAt = serverTimestamp();
-    await setDoc(docRef, payload);
+    updatedList = [...currentList, newItem];
+  }
+  updatedList.sort((a, b) => a.order - b.order);
+  setLocalProjects(updatedList);
+
+  // Firestore update
+  try {
+    const docRef = doc(db, COLLECTION_NAME, docId);
+    const existing = await getDoc(docRef);
+
+    const payload: Record<string, unknown> = {
+      title: newItem.title,
+      label: newItem.label,
+      description: newItem.description,
+      previewImage: newItem.previewImage,
+      images: newItem.images,
+      url: newItem.url,
+      showOnHome: newItem.showOnHome,
+      order: newItem.order,
+    };
+
+    if (newItem.demoScreen) {
+      payload.demoScreen = newItem.demoScreen;
+    }
+
+    if (existing.exists()) {
+      payload.updatedAt = serverTimestamp();
+      await updateDoc(docRef, payload);
+    } else {
+      payload.createdAt = serverTimestamp();
+      await setDoc(docRef, payload);
+    }
+  } catch (err) {
+    console.warn("Could not sync project with Firestore (local save succeeded):", err);
   }
 
   return docId;
@@ -155,6 +219,16 @@ export async function saveProject(
  * Delete a project.
  */
 export async function deleteProject(id: string): Promise<void> {
-  const docRef = doc(db, COLLECTION_NAME, id);
-  await deleteDoc(docRef);
+  // Immediate local update
+  const currentList = getLocalProjects() || [...DEFAULT_PROJECTS];
+  const updatedList = currentList.filter((p) => p.id !== id);
+  setLocalProjects(updatedList);
+
+  // Firestore delete
+  try {
+    const docRef = doc(db, COLLECTION_NAME, id);
+    await deleteDoc(docRef);
+  } catch (err) {
+    console.warn("Could not delete project from Firestore (local delete succeeded):", err);
+  }
 }

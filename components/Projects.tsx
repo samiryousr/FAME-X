@@ -237,25 +237,42 @@ export function ProjectScreen({ project }: { project: Project }) {
 }
 
 export default function Projects() {
-  const [projectList, setProjectList] = useState<Project[]>(defaultProjects);
+  const [projectList, setProjectList] = useState<Project[]>(defaultProjects.slice(0, 3));
   const [activeProject, setActiveProject] = useState<Project>(defaultProjects[0]);
 
   useEffect(() => {
     let isMounted = true;
-    getHomeProjects()
-      .then((items) => {
-        if (isMounted && items && items.length > 0) {
-          const mapped = items.map(mapProjectItemToProject);
-          setProjectList(mapped);
-          setActiveProject(mapped[0]);
-        }
-      })
-      .catch((err) => {
-        console.warn("Could not load dynamic projects from Firestore:", err);
-      });
+
+    const loadProjects = () => {
+      getHomeProjects()
+        .then((items) => {
+          if (isMounted && items && items.length > 0) {
+            const mapped = items.map(mapProjectItemToProject).slice(0, 3);
+            setProjectList(mapped);
+            setActiveProject((prev) => {
+              const stillExists = mapped.find((p) => p.id === prev?.id);
+              return stillExists || mapped[0];
+            });
+          }
+        })
+        .catch((err) => {
+          console.warn("Could not load dynamic projects:", err);
+        });
+    };
+
+    loadProjects();
+
+    const handleUpdate = () => {
+      loadProjects();
+    };
+
+    window.addEventListener("famex_projects_updated", handleUpdate);
+    window.addEventListener("storage", handleUpdate);
 
     return () => {
       isMounted = false;
+      window.removeEventListener("famex_projects_updated", handleUpdate);
+      window.removeEventListener("storage", handleUpdate);
     };
   }, []);
 
@@ -289,11 +306,19 @@ export default function Projects() {
             </div>
             <div className="projects__device-caption">
               {activeProject.url ? (
-                <a href={activeProject.url} target="_blank" rel="noreferrer">
-                  زيارة المشروع <ArrowUpLeft size={14} aria-hidden="true" />
+                <a
+                  className="projects__visit-btn"
+                  href={activeProject.url}
+                  target="_blank"
+                  rel="noreferrer"
+                  aria-label={`زيارة موقع مشروع ${activeProject.title}`}
+                >
+                  زيارة الموقع <ArrowUpLeft size={15} aria-hidden="true" />
                 </a>
               ) : (
-                <span>{activeProject.previewImage ? "معاينة المشروع" : "نموذج تجريبي"}</span>
+                <span className="projects__visit-btn projects__visit-btn--badge">
+                  {activeProject.previewImage ? "معاينة المشروع" : "نموذج تجريبي"}
+                </span>
               )}
               <i aria-hidden="true" />
             </div>

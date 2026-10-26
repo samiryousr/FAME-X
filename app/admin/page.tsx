@@ -18,7 +18,6 @@ import {
   Edit3,
   ExternalLink,
   LogOut,
-  ArrowLeft,
   UploadCloud,
   CheckCircle2,
   AlertCircle,
@@ -27,9 +26,7 @@ import {
   X,
   Star,
   Image as ImageIcon,
-  Layers,
   Save,
-  Check,
   FolderGit2,
 } from "lucide-react";
 
@@ -155,9 +152,10 @@ export default function AdminDashboardPage() {
       if (!previewImage && uploadedUrls.length > 0) {
         setPreviewImage(uploadedUrls[0]);
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Upload error:", err);
-      setFormError(err?.message || "فشل رفع الصورة إلى Cloudinary.");
+      const uploadErr = err as { message?: string } | undefined;
+      setFormError(uploadErr?.message || "فشل رفع الصورة إلى Cloudinary.");
     } finally {
       setUploadingImage(false);
       if (fileInputRef.current) {
@@ -220,9 +218,10 @@ export default function AdminDashboardPage() {
       setStatusMessage("تم حفظ وتحديث المشروع بنجاح!");
       setTimeout(() => setStatusMessage(""), 4000);
       await fetchProjects();
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Save error:", err);
-      setFormError(err?.message || "حدث خطأ أثناء حفظ المشروع.");
+      const saveErr = err as { message?: string } | undefined;
+      setFormError(saveErr?.message || "حدث خطأ أثناء حفظ المشروع.");
     } finally {
       setSaving(false);
     }
@@ -246,8 +245,9 @@ export default function AdminDashboardPage() {
       setStatusMessage("تم حذف المشروع بنجاح.");
       setTimeout(() => setStatusMessage(""), 4000);
       await fetchProjects();
-    } catch (err: any) {
-      alert("فشل حذف المشروع: " + err?.message);
+    } catch (err: unknown) {
+      const delErr = err as { message?: string } | undefined;
+      alert("فشل حذف المشروع: " + (delErr?.message || "خطأ غير معروف"));
     }
   };
 
@@ -705,7 +705,7 @@ export default function AdminDashboardPage() {
                   </label>
                   <select
                     value={demoScreen}
-                    onChange={(e) => setDemoScreen(e.target.value as any)}
+                    onChange={(e) => setDemoScreen(e.target.value as "commerce" | "identity" | "platform" | "")}
                     className="w-full bg-[#fdfdfc] border border-[#d8e2d5] rounded-xl py-2 px-3 text-xs text-[#20251f] outline-none"
                   >
                     <option value="">بدون شاشة تفاعلية</option>

@@ -93,10 +93,11 @@ export async function POST(request: Request) {
         { status: 400 }
       );
     }
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error("Cloudinary delete error:", err);
+    const errorObj = err as { message?: string } | undefined;
     return NextResponse.json(
-      { error: err?.message || "Internal server error" },
+      { error: errorObj?.message || "Internal server error" },
       { status: 500 }
     );
   }

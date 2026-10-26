@@ -131,9 +131,15 @@ type Expression = (typeof EXPRESSIONS)[number];
 
 interface NinoSkyProps {
   children?: React.ReactNode;
+  showMascot?: boolean;
+  className?: string;
 }
 
-export default function NinoSky({ children }: NinoSkyProps) {
+export default function NinoSky({
+  children,
+  showMascot = true,
+  className = "",
+}: NinoSkyProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const stageRef = useRef<HTMLDivElement>(null);
@@ -691,16 +697,16 @@ export default function NinoSky({ children }: NinoSkyProps) {
   return (
     <div
       ref={containerRef}
-      className="i9k-nino-sky i9k-nino-sky--integrated"
-      aria-label="سماء نينو الفضائية التفاعلية"
+      className={`i9k-nino-sky i9k-nino-sky--integrated ${className}`.trim()}
+      aria-label="سماء فضائية تفاعلية"
     >
       <canvas ref={canvasRef} className="i9k-nino-sky__canvas" aria-hidden="true" />
 
       {children && <div className="i9k-nino-sky__content">{children}</div>}
 
-      <div ref={stageRef} className="i9k-nino-sky__stage" />
+      {showMascot && <div ref={stageRef} className="i9k-nino-sky__stage" />}
 
-      {mounted && typeof document !== "undefined"
+      {showMascot && mounted && typeof document !== "undefined"
         ? createPortal(flightElement, document.body)
         : null}
     </div>

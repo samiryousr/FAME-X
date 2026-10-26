@@ -60,8 +60,9 @@ export async function deleteFromCloudinary(
 
     const data = await response.json();
     return data;
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.warn("Could not delete image from Cloudinary:", error);
-    return { success: false, message: error?.message };
+    const err = error as { message?: string } | undefined;
+    return { success: false, message: err?.message };
   }
 }

@@ -33,18 +33,19 @@ export default function AdminLoginPage() {
       setSubmitting(true);
       await signIn(email.trim(), password);
       router.replace("/admin");
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Login failed:", err);
+      const authError = err as { code?: string; message?: string } | undefined;
       if (
-        err?.code === "auth/invalid-credential" ||
-        err?.code === "auth/user-not-found" ||
-        err?.code === "auth/wrong-password"
+        authError?.code === "auth/invalid-credential" ||
+        authError?.code === "auth/user-not-found" ||
+        authError?.code === "auth/wrong-password"
       ) {
         setError("بيانات الدخول غير صحيحة. تأكد من الإيميل والباسورد.");
-      } else if (err?.code === "auth/too-many-requests") {
+      } else if (authError?.code === "auth/too-many-requests") {
         setError("محاولات كثيرة خاطئة. يرجى الانتظار قليلاً والمحاولة لاحقاً.");
       } else {
-        setError(err?.message || "حدث خطأ أثناء تسجيل الدخول.");
+        setError(authError?.message || "حدث خطأ أثناء تسجيل الدخول.");
       }
     } finally {
       setSubmitting(false);

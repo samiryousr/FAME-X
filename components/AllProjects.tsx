@@ -10,6 +10,7 @@ import {
   Project,
 } from "@/components/Projects";
 import { getAllProjects } from "@/lib/projectsService";
+import NinoSky from "@/components/NinoSky";
 
 type WirePoint = { x: number; y: number };
 type WireSegment = { start: WirePoint; end: WirePoint; length: number };
@@ -21,21 +22,35 @@ export default function AllProjects() {
   const glowRef = useRef<SVGPathElement>(null);
   const segmentsRef = useRef<WireSegment[]>([]);
 
-  // Load dynamic projects from Firestore
+  // Load dynamic projects from Firestore / LocalStorage and listen for changes
   useEffect(() => {
     let isMounted = true;
-    getAllProjects()
-      .then((items) => {
-        if (isMounted && items && items.length > 0) {
-          setProjectList(items.map(mapProjectItemToProject));
-        }
-      })
-      .catch((err) => {
-        console.warn("Could not load dynamic projects for all-projects page:", err);
-      });
+
+    const loadProjects = () => {
+      getAllProjects()
+        .then((items) => {
+          if (isMounted && items && items.length > 0) {
+            setProjectList(items.map(mapProjectItemToProject));
+          }
+        })
+        .catch((err) => {
+          console.warn("Could not load dynamic projects for all-projects page:", err);
+        });
+    };
+
+    loadProjects();
+
+    const handleUpdate = () => {
+      loadProjects();
+    };
+
+    window.addEventListener("famex_projects_updated", handleUpdate);
+    window.addEventListener("storage", handleUpdate);
 
     return () => {
       isMounted = false;
+      window.removeEventListener("famex_projects_updated", handleUpdate);
+      window.removeEventListener("storage", handleUpdate);
     };
   }, []);
 
@@ -181,90 +196,118 @@ export default function AllProjects() {
 
   return (
     <main className="all-projects" id="home">
-      <div className="all-projects__inner">
-        <header className="all-projects__top">
-          <Link className="all-projects__brand" href="/#home" dir="ltr">
-            FAME<span>X</span>
-          </Link>
-          <Link className="all-projects__back" href="/#projects">
-            <ArrowLeft size={16} aria-hidden="true" />
-            رجوع للموقع
-          </Link>
-        </header>
+      <NinoSky showMascot={false} className="all-projects__sky">
+        <div className="all-projects__inner">
+          <header className="all-projects__top">
+            <Link className="all-projects__brand" href="/#home" dir="ltr">
+              FAME<span>X</span>
+            </Link>
+            <Link className="all-projects__back" href="/#projects">
+              <ArrowLeft size={16} aria-hidden="true" />
+              رجوع للموقع
+            </Link>
+          </header>
 
-        <section className="all-projects__intro" aria-labelledby="all-projects-title">
-          <p className="all-projects__eyebrow">FAMEX // PORTFOLIO</p>
-          <h1 id="all-projects-title">
-            مشاريعنا <span>على حقيقتها.</span>
-          </h1>
-          <p>
-            كل مشروع له فكرته وتجربته. اختار مشروعًا لمعاينة تصميمه، أو افتح
-            الموقع مباشرةً لو أضفت رابطه.
-          </p>
-          <div className="all-projects__status">
-            <span aria-hidden="true" />
-            <span>{String(projectList.length).padStart(2, "0")} مشاريع في المعرض</span>
-          </div>
-        </section>
+          <section className="all-projects__intro" aria-labelledby="all-projects-title">
+            <p className="all-projects__eyebrow">FAMEX // PORTFOLIO</p>
+            <h1 id="all-projects-title">
+              مشاريعنا <span>على حقيقتها.</span>
+            </h1>
+            <p>
+              كل مشروع له فكرته وتجربته. اختار مشروعًا لمعاينة تصميمه، أو افتح
+              الموقع مباشرةً بضغطة زر.
+            </p>
+            <div className="all-projects__status">
+              <span aria-hidden="true" />
+              <span>{String(projectList.length).padStart(2, "0")} مشاريع في المعرض</span>
+            </div>
+          </section>
 
-        <section
-          className="services__path all-projects__path"
-          aria-label="معرض المشاريع"
-          ref={gridRef}
-        >
-          <svg className="services__wire" aria-hidden="true" focusable="false">
-            <path className="services__wire-base" ref={pathRef} />
-            <path className="services__wire-glow" ref={glowRef} />
-          </svg>
-          <div className="services__cards">
-            {projectList.map((project) => {
-              const ProjectIcon = project.Icon || Layers;
+          <section
+            className="services__path all-projects__path"
+            aria-label="معرض المشاريع"
+            ref={gridRef}
+          >
+            <svg className="services__wire" aria-hidden="true" focusable="false">
+              <path className="services__wire-base" ref={pathRef} />
+              <path className="services__wire-glow" ref={glowRef} />
+            </svg>
+            <div className="services__cards">
+              {projectList.map((project) => {
+                const ProjectIcon = project.Icon || Layers;
 
-              return (
-                <article
-                  className="all-projects__card"
-                  key={project.id}
-                >
-                  <div className="all-projects__preview">
-                    <ProjectScreen project={project} />
-                    <span className="all-projects__featured">
-                      {project.url ? "LIVE" : "Featured"}
-                    </span>
-                    <span className="all-projects__preview-label" dir="ltr">
-                      PROJECT PREVIEW
-                    </span>
-                  </div>
-                  <div className="all-projects__details">
-                    <h2>{project.title}</h2>
-                    <p>{project.description}</p>
-                    <div className="all-projects__tags">
-                      <span>{project.label}</span>
-                      <span>{project.demoScreen ? "معاينة تفاعلية" : "مشروع"}</span>
-                    </div>
-                    <footer className="all-projects__card-footer">
-                      <span className="all-projects__card-type">
-                        <ProjectIcon size={15} strokeWidth={1.8} aria-hidden="true" />
-                        {project.url ? "مشروع مباشر" : "نموذج تصميم"}
-                      </span>
+                return (
+                  <article
+                    className="all-projects__card"
+                    key={project.id}
+                    onClick={(e) => {
+                      if ((e.target as HTMLElement).closest("a, button")) return;
+                      if (project.url) {
+                        window.open(project.url, "_blank", "noopener,noreferrer");
+                      }
+                    }}
+                  >
+                    <div className="all-projects__preview">
+                      <ProjectScreen project={project} />
+                      {project.url && (
+                        <span className="all-projects__featured all-projects__featured--live">
+                          LIVE
+                        </span>
+                      )}
                       {project.url && (
                         <a
-                          className="all-projects__visit"
+                          className="all-projects__preview-overlay-btn"
                           href={project.url}
                           target="_blank"
                           rel="noreferrer"
+                          aria-label={`زيارة موقع مشروع ${project.title}`}
                         >
-                          زيارة المشروع
-                          <ExternalLink size={15} aria-hidden="true" />
+                          <span>زيارة الموقع</span>
+                          <ExternalLink size={14} aria-hidden="true" />
                         </a>
                       )}
-                    </footer>
-                  </div>
-                </article>
-              );
-            })}
-          </div>
-        </section>
-      </div>
+                      <span className="all-projects__preview-label" dir="ltr">
+                        PROJECT PREVIEW
+                      </span>
+                    </div>
+                    <div className="all-projects__details">
+                      <h2>{project.title}</h2>
+                      <p>{project.description}</p>
+                      <div className="all-projects__tags">
+                        <span>{project.label}</span>
+                        <span>{project.demoScreen ? "معاينة تفاعلية" : "مشروع"}</span>
+                      </div>
+                      <footer className="all-projects__card-footer">
+                        <span className="all-projects__card-type">
+                          <ProjectIcon size={15} strokeWidth={1.8} aria-hidden="true" />
+                          {project.url ? "مشروع مباشر" : "نموذج تصميم"}
+                        </span>
+                        {project.url ? (
+                          <a
+                            className="all-projects__visit-btn"
+                            href={project.url}
+                            target="_blank"
+                            rel="noreferrer"
+                            aria-label={`زيارة موقع مشروع ${project.title}`}
+                          >
+                            <span>زيارة الموقع</span>
+                            <ExternalLink size={15} aria-hidden="true" />
+                          </a>
+                        ) : (
+                          <span className="all-projects__visit-btn all-projects__visit-btn--disabled">
+                            <span>نموذج تجريبي</span>
+                            <ExternalLink size={15} aria-hidden="true" />
+                          </span>
+                        )}
+                      </footer>
+                    </div>
+                  </article>
+                );
+              })}
+            </div>
+          </section>
+        </div>
+      </NinoSky>
     </main>
   );
 }
