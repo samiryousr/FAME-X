@@ -27,9 +27,9 @@ import {
 } from "@/lib/arcadeSound";
 
 const PLAYERS = [
-  { id: "gamer-boy", label: "PLAYER 01" },
-  { id: "dev-girl", label: "PLAYER 02" },
-  { id: "arcade-mascot", label: "PLAYER 03" },
+  { id: "developer", label: "DEVELOPER" },
+  { id: "photographer", label: "PHOTOGRAPHER" },
+  { id: "designer", label: "DESIGNER" },
 ] as const;
 
 type PupilPosition = { x: number; y: number };
@@ -546,7 +546,7 @@ export default function Hero() {
                       dir="ltr"
                       ref={playerLabelRef}
                     >
-                      PLAYER 01
+                      DEVELOPER
                     </span>
                     <div className="arcade-machine__character-stage" aria-hidden="true">
                 <svg
@@ -555,7 +555,16 @@ export default function Hero() {
                   viewBox="0 0 96 112"
                   shapeRendering="crispEdges"
                 >
-                  <g data-player-avatar="gamer-boy" opacity="1">
+                  <g data-player-avatar="developer" opacity="1">
+                    <image href="/characters/developer.png" x="0" y="0" width="96" height="112" preserveAspectRatio="xMidYMax meet" />
+                  </g>
+                  <g data-player-avatar="photographer" opacity="0">
+                    <image href="/characters/photographer.png" x="0" y="0" width="96" height="112" preserveAspectRatio="xMidYMax meet" />
+                  </g>
+                  <g data-player-avatar="designer" opacity="0">
+                    <image href="/characters/designer.png" x="0" y="0" width="96" height="112" preserveAspectRatio="xMidYMax meet" />
+                  </g>
+                  <g data-player-cartoon="gamer-boy" style={{ display: "none" }}>
                     <g className="arcade-machine__mascot-arm arcade-machine__mascot-arm--left">
                       <rect x="16" y="64" width="16" height="18" fill="#244453" />
                       <rect x="12" y="78" width="16" height="10" fill="#244453" />
@@ -622,7 +631,7 @@ export default function Hero() {
                     <rect x="24" y="102" width="24" height="5" fill="#a8b4ad" />
                     <rect x="48" y="102" width="24" height="5" fill="#a8b4ad" />
                   </g>
-                  <g data-player-avatar="dev-girl" opacity="0">
+                  <g data-player-cartoon="dev-girl" style={{ display: "none" }}>
                     <g fill="#29233a">
                       <rect x="32" y="12" width="32" height="8" />
                       <rect x="24" y="20" width="48" height="12" />
@@ -659,7 +668,7 @@ export default function Hero() {
                     <rect x="24" y="104" width="24" height="4" fill="#89958d" />
                     <rect x="48" y="104" width="24" height="4" fill="#89958d" />
                   </g>
-                  <g data-player-avatar="arcade-mascot" opacity="0">
+                  <g data-player-cartoon="arcade-mascot" style={{ display: "none" }}>
                     <g fill="#79d75a">
                       <rect x="40" y="12" width="16" height="8" />
                       <rect x="32" y="20" width="32" height="8" />
