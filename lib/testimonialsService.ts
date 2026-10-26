@@ -19,13 +19,22 @@ export interface TestimonialItem {
   quote: string;
   rating: number;
   status: TestimonialStatus;
+  role?: string;
+  image?: string;
   createdAt: number;
 }
 
 const COLLECTION_NAME = "testimonials";
 
 function toTestimonial(id: string, data: Record<string, unknown>): TestimonialItem {
-  const createdAt = data.createdAt as { toMillis?: () => number } | undefined;
+  const createdAt = data.createdAt as { toMillis?: () => number } | number | undefined;
+
+  let createdMillis = 0;
+  if (typeof createdAt === "number") {
+    createdMillis = createdAt;
+  } else if (createdAt && typeof createdAt.toMillis === "function") {
+    createdMillis = createdAt.toMillis();
+  }
 
   return {
     id,
@@ -36,7 +45,9 @@ function toTestimonial(id: string, data: Record<string, unknown>): TestimonialIt
         ? Math.min(5, Math.max(1, data.rating))
         : 5,
     status: data.status === "approved" ? "approved" : "pending",
-    createdAt: typeof createdAt?.toMillis === "function" ? createdAt.toMillis() : 0,
+    role: typeof data.role === "string" ? data.role : "",
+    image: typeof data.image === "string" ? data.image : "",
+    createdAt: createdMillis,
   };
 }
 
@@ -97,4 +108,48 @@ export async function setTestimonialStatus(
 
 export async function deleteTestimonial(id: string): Promise<void> {
   await deleteDoc(doc(db, COLLECTION_NAME, id));
+}
+
+export async function saveTestimonial(input: {
+  id?: string;
+  name: string;
+  quote: string;
+  rating: number;
+  status?: TestimonialStatus;
+  role?: string;
+  image?: string;
+}): Promise<string> {
+  const name = input.name.trim();
+  const quote = input.quote.trim();
+  const role = (input.role || "").trim();
+  const image = (input.image || "").trim();
+  const rating = Number(input.rating) || 5;
+  const status: TestimonialStatus = input.status || "approved";
+
+  if (!name) {
+    throw new Error("يرجى كتابة اسم العميل.");
+  }
+  if (!quote) {
+    throw new Error("يرجى كتابة نص رأي العميل.");
+  }
+
+  const payload: Record<string, unknown> = {
+    name,
+    quote,
+    rating: Math.min(5, Math.max(1, rating)),
+    status,
+    role,
+    image,
+    updatedAt: serverTimestamp(),
+  };
+
+  if (input.id && input.id.trim()) {
+    const docRef = doc(db, COLLECTION_NAME, input.id.trim());
+    await updateDoc(docRef, payload);
+    return input.id.trim();
+  } else {
+    payload.createdAt = serverTimestamp();
+    const docRef = await addDoc(collection(db, COLLECTION_NAME), payload);
+    return docRef.id;
+  }
 }

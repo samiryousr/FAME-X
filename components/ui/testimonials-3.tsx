@@ -95,10 +95,21 @@ export function TestimonialsSection() {
     };
   }, []);
 
+  // Ensure we have enough items for an unbroken endless chain without any gaps
+  const displayTestimonials = (() => {
+    if (testimonials.length === 0) return [];
+    let items = [...testimonials];
+    while (items.length < 8) {
+      items = [...items, ...testimonials];
+    }
+    return items;
+  })();
+
   return (
     <div className="testimonials-wrapper" dir="rtl">
       <div
         className="testimonials-marquee"
+        dir="ltr"
         role="region"
         aria-label="آراء العملاء"
       >
@@ -109,16 +120,13 @@ export function TestimonialsSection() {
               key={copy}
               aria-hidden={copy === 1}
             >
-              {testimonials.map((testimonial) => (
+              {displayTestimonials.map((testimonial, idx) => (
                 <article
                   className="testimonial-card"
                   dir="rtl"
-                  key={`${copy}-${testimonial.id}`}
+                  key={`${copy}-${testimonial.id}-${idx}`}
                 >
                   <div className="testimonial-card__top">
-                    <span className="testimonial-card__quote-icon">
-                      <QuoteIcon />
-                    </span>
                     <div
                       className="testimonial-card__stars"
                       aria-label={`التقييم: ${testimonial.rating} من 5`}
@@ -132,6 +140,9 @@ export function TestimonialsSection() {
                         </span>
                       ))}
                     </div>
+                    <span className="testimonial-card__quote-icon">
+                      <QuoteIcon />
+                    </span>
                   </div>
                   <blockquote className="testimonial-card__text">
                     <p>{testimonial.quote}</p>
@@ -139,18 +150,24 @@ export function TestimonialsSection() {
                   <div className="testimonial-card__author">
                     {testimonial.image ? (
                       <Image
-                        className="testimonial-card__avatar"
+                        className="testimonial-card__avatar object-cover"
                         src={testimonial.image}
                         alt={`صورة ${testimonial.name}`}
                         width={52}
                         height={52}
+                        unoptimized={testimonial.image.startsWith("http")}
                       />
                     ) : (
                       <span className="testimonial-card__avatar" aria-hidden="true">
                         {testimonial.name.trim().charAt(0)}
                       </span>
                     )}
-                    <cite className="testimonial-card__name">{testimonial.name}</cite>
+                    <div>
+                      <cite className="testimonial-card__name">{testimonial.name}</cite>
+                      {testimonial.role && (
+                        <p className="text-[11px] text-[#8ea593] mt-0.5 leading-tight">{testimonial.role}</p>
+                      )}
+                    </div>
                   </div>
                 </article>
               ))}

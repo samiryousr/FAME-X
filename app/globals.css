@@ -6512,6 +6512,7 @@ body.scroll-reveal-ready .services__card.scroll-revealed {
 .testimonials-marquee {
   width: 100%;
   overflow: hidden;
+  direction: ltr !important;
   -webkit-mask-image: linear-gradient(
     90deg,
     transparent,
@@ -6522,15 +6523,12 @@ body.scroll-reveal-ready .services__card.scroll-revealed {
   mask-image: linear-gradient(90deg, transparent, #000 4%, #000 96%, transparent);
 }
 
-.testimonials-marquee__track,
-.testimonials-marquee__set {
+.testimonials-marquee__track {
   display: flex;
   width: max-content;
   align-items: stretch;
-}
-
-.testimonials-marquee__track {
-  animation: ticker-scroll 38s linear infinite alternate;
+  will-change: transform;
+  animation: testimonials-scroll 45s linear infinite;
 }
 
 .testimonials-marquee:hover .testimonials-marquee__track,
@@ -6539,11 +6537,20 @@ body.scroll-reveal-ready .services__card.scroll-revealed {
 }
 
 .testimonials-marquee__set {
-  min-width: 100vw;
+  display: flex;
   flex: 0 0 auto;
-  justify-content: center;
+  align-items: stretch;
   gap: 1.25rem;
-  padding: 0.5rem 1rem 1rem;
+  padding: 0.5rem 1.25rem 1rem 0;
+}
+
+@keyframes testimonials-scroll {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
 }
 
 .testimonial-card {

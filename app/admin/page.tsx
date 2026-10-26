@@ -15,6 +15,7 @@ import {
   deleteTestimonial,
   getAllTestimonials,
   setTestimonialStatus,
+  saveTestimonial,
   type TestimonialItem,
 } from "@/lib/testimonialsService";
 import { uploadToCloudinary, deleteFromCloudinary } from "@/lib/cloudinary";
@@ -44,6 +45,7 @@ import {
   Rocket,
   Layers,
   MessageSquare,
+  User,
 } from "lucide-react";
 
 const AVAILABLE_PROJECT_ICONS = [
@@ -69,9 +71,24 @@ export default function AdminDashboardPage() {
   const [testimonialsError, setTestimonialsError] = useState("");
   const [updatingTestimonialId, setUpdatingTestimonialId] = useState<string | null>(null);
 
-  // Form Modal State
+  // Active Tab
+  const [activeTab, setActiveTab] = useState<"projects" | "testimonials">("projects");
+
+  // Project Form Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+
+  // Testimonial Form Modal State
+  const [isTestimonialModalOpen, setIsTestimonialModalOpen] = useState(false);
+  const [editingTestimonialId, setEditingTestimonialId] = useState<string | null>(null);
+  const [testimonialName, setTestimonialName] = useState("");
+  const [testimonialRole, setTestimonialRole] = useState("");
+  const [testimonialQuote, setTestimonialQuote] = useState("");
+  const [testimonialRating, setTestimonialRating] = useState<number>(5);
+  const [testimonialImage, setTestimonialImage] = useState("");
+  const [testimonialStatusState, setTestimonialStatusState] = useState<"approved" | "pending">("approved");
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const [savingTestimonial, setSavingTestimonial] = useState(false);
 
   // Form Fields
   const [title, setTitle] = useState("");
@@ -94,6 +111,7 @@ export default function AdminDashboardPage() {
   const [statusMessage, setStatusMessage] = useState("");
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const avatarInputRef = useRef<HTMLInputElement>(null);
 
   // Authentication check
   useEffect(() => {
@@ -169,6 +187,85 @@ export default function AdminDashboardPage() {
       setTestimonialsError("تعذر حذف الرأي. تحقق من صلاحيات حساب الإدارة.");
     } finally {
       setUpdatingTestimonialId(null);
+    }
+  };
+
+  // Testimonial Form Handlers
+  const handleOpenNewTestimonial = () => {
+    setEditingTestimonialId(null);
+    setTestimonialName("");
+    setTestimonialRole("");
+    setTestimonialQuote("");
+    setTestimonialRating(5);
+    setTestimonialImage("");
+    setTestimonialStatusState("approved");
+    setFormError("");
+    setIsTestimonialModalOpen(true);
+  };
+
+  const handleEditTestimonial = (item: TestimonialItem) => {
+    setEditingTestimonialId(item.id);
+    setTestimonialName(item.name);
+    setTestimonialRole(item.role || "");
+    setTestimonialQuote(item.quote);
+    setTestimonialRating(item.rating || 5);
+    setTestimonialImage(item.image || "");
+    setTestimonialStatusState(item.status);
+    setFormError("");
+    setIsTestimonialModalOpen(true);
+  };
+
+  const handleSaveTestimonial = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setFormError("");
+
+    if (!testimonialName.trim()) {
+      setFormError("يرجى كتابة اسم العميل.");
+      return;
+    }
+    if (!testimonialQuote.trim()) {
+      setFormError("يرجى كتابة نص رأي العميل.");
+      return;
+    }
+
+    try {
+      setSavingTestimonial(true);
+      await saveTestimonial({
+        id: editingTestimonialId || undefined,
+        name: testimonialName.trim(),
+        role: testimonialRole.trim(),
+        quote: testimonialQuote.trim(),
+        rating: testimonialRating,
+        image: testimonialImage.trim(),
+        status: testimonialStatusState,
+      });
+
+      setIsTestimonialModalOpen(false);
+      setStatusMessage(editingTestimonialId ? "تم تعديل رأي العميل بنجاح!" : "تمت إضافة رأي العميل بنجاح!");
+      setTimeout(() => setStatusMessage(""), 4000);
+      await fetchTestimonials();
+    } catch (err: unknown) {
+      console.error("Save testimonial error:", err);
+      const saveErr = err as { message?: string } | undefined;
+      setFormError(saveErr?.message || "حدث خطأ أثناء حفظ رأي العميل.");
+    } finally {
+      setSavingTestimonial(false);
+    }
+  };
+
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      setUploadingAvatar(true);
+      const url = await uploadToCloudinary(file);
+      setTestimonialImage(url);
+    } catch (err) {
+      console.error("Avatar upload error:", err);
+      alert("فشل رفع صورة العميل إلى Cloudinary.");
+    } finally {
+      setUploadingAvatar(false);
     }
   };
 
@@ -411,249 +508,363 @@ export default function AdminDashboardPage() {
           </div>
         )}
 
-        {/* Action Header */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 py-1">
-          <div>
-            <h1 className="text-2xl sm:text-3xl font-black text-[#20251f]">
-              إدارة <span className="text-[#286b3c]">المشاريع</span>
-            </h1>
-            <p className="text-xs sm:text-sm text-[#727970] mt-1">
-              أضف، عدل، وارفع صور مشاريعك لعرضها في الموقع الرئيسي وصفحة المشاريع.
-            </p>
-          </div>
+        {/* Navigation Tabs */}
+        <div className="flex items-center gap-2 border-b-2 border-[#e2e8de] pb-3">
+          <button
+            type="button"
+            onClick={() => setActiveTab("projects")}
+            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-extrabold transition-all cursor-pointer ${
+              activeTab === "projects"
+                ? "bg-[#286b3c] text-white shadow-md shadow-[#286b3c]/20"
+                : "bg-white text-[#727970] hover:text-[#20251f] hover:bg-[#eef5e9] border border-[#e2e8de]"
+            }`}
+          >
+            <FolderGit2 className="w-4 h-4" />
+            <span>المشاريع</span>
+            <span
+              className={`text-xs px-2 py-0.5 rounded-full font-[family-name:var(--font-mono)] ${
+                activeTab === "projects" ? "bg-white/20 text-white" : "bg-[#eef5e9] text-[#286b3c]"
+              }`}
+            >
+              {projects.length}
+            </span>
+          </button>
 
           <button
-            onClick={handleOpenNew}
-            className="w-full sm:w-auto flex items-center justify-center gap-2 bg-gradient-to-r from-[#286b3c] to-[#39834c] hover:from-[#215730] hover:to-[#2e743f] text-white font-extrabold text-sm px-5 py-3.5 rounded-2xl shadow-[0_6px_20px_rgba(40,107,60,0.22)] hover:shadow-[0_8px_25px_rgba(40,107,60,0.32)] transition-all cursor-pointer active:scale-95"
+            type="button"
+            onClick={() => setActiveTab("testimonials")}
+            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-extrabold transition-all cursor-pointer ${
+              activeTab === "testimonials"
+                ? "bg-[#286b3c] text-white shadow-md shadow-[#286b3c]/20"
+                : "bg-white text-[#727970] hover:text-[#20251f] hover:bg-[#eef5e9] border border-[#e2e8de]"
+            }`}
           >
-            <Plus className="w-4 h-4" />
-            إضافة مشروع جديد
+            <MessageSquare className="w-4 h-4" />
+            <span>آراء العملاء</span>
+            {testimonials.length > 0 && (
+              <span
+                className={`text-xs px-2 py-0.5 rounded-full font-[family-name:var(--font-mono)] ${
+                  activeTab === "testimonials" ? "bg-white/20 text-white" : "bg-[#eef5e9] text-[#286b3c]"
+                }`}
+              >
+                {testimonials.length}
+              </span>
+            )}
+            {testimonials.filter((t) => t.status === "pending").length > 0 && (
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-500 text-white">
+                {testimonials.filter((t) => t.status === "pending").length} بانتظار المراجعة
+              </span>
+            )}
           </button>
         </div>
 
-        {/* Projects Grid */}
-        {loadingProjects ? (
-          <div className="py-20 flex flex-col items-center justify-center gap-3">
-            <Loader2 className="w-8 h-8 animate-spin text-[#286b3c]" />
-            <p className="text-xs text-[#727970] font-[family-name:var(--font-mono)]">جاري جلب المشاريع من السيرفر...</p>
-          </div>
-        ) : projects.length === 0 ? (
-          <div className="p-12 text-center bg-[#ffffff] border-2 border-dashed border-[#d8e2d5] rounded-3xl">
-            <ImageIcon className="w-12 h-12 text-[#9bb098] mx-auto mb-3" />
-            <h3 className="text-lg font-bold text-[#20251f] mb-1">لا توجد مشاريع مضافة حتى الآن</h3>
-            <p className="text-xs text-[#727970] mb-4">ابدأ بإضافة أول مشروع ليظهر لزوار موقع FameX.</p>
-            <button
-              onClick={handleOpenNew}
-              className="inline-flex items-center gap-2 bg-gradient-to-r from-[#286b3c] to-[#39834c] text-white font-bold text-xs px-4 py-2.5 rounded-xl cursor-pointer"
-            >
-              <Plus className="w-4 h-4" />
-              إضافة مشروع الآن
-            </button>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6">
-            {projects.map((p) => {
-              const primaryImg = p.previewImage || (p.images && p.images[0]);
-              const imageCount = p.images?.length || (p.previewImage ? 1 : 0);
+        {/* PROJECTS TAB */}
+        {activeTab === "projects" && (
+          <div className="space-y-6">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 py-1">
+              <div>
+                <h1 className="text-2xl sm:text-3xl font-black text-[#20251f]">
+                  إدارة <span className="text-[#286b3c]">المشاريع</span>
+                </h1>
+                <p className="text-xs sm:text-sm text-[#727970] mt-1">
+                  أضف، عدل، وارفع صور مشاريعك لعرضها في الموقع الرئيسي وصفحة المشاريع.
+                </p>
+              </div>
 
-              return (
-                <article
-                  key={p.id}
-                  className="bg-[#ffffff] border-2 border-[#e2e8de] hover:border-[#39834c]/60 rounded-3xl overflow-hidden flex flex-col transition-all duration-300 hover:shadow-[0_10px_35px_rgba(32,58,36,0.08)] group"
+              <button
+                onClick={handleOpenNew}
+                className="w-full sm:w-auto flex items-center justify-center gap-2 bg-gradient-to-r from-[#286b3c] to-[#39834c] hover:from-[#215730] hover:to-[#2e743f] text-white font-extrabold text-sm px-5 py-3.5 rounded-2xl shadow-[0_6px_20px_rgba(40,107,60,0.22)] hover:shadow-[0_8px_25px_rgba(40,107,60,0.32)] transition-all cursor-pointer active:scale-95"
+              >
+                <Plus className="w-4 h-4" />
+                إضافة مشروع جديد
+              </button>
+            </div>
+
+            {/* Projects Grid */}
+            {loadingProjects ? (
+              <div className="py-20 flex flex-col items-center justify-center gap-3">
+                <Loader2 className="w-8 h-8 animate-spin text-[#286b3c]" />
+                <p className="text-xs text-[#727970] font-[family-name:var(--font-mono)]">جاري جلب المشاريع من السيرفر...</p>
+              </div>
+            ) : projects.length === 0 ? (
+              <div className="p-12 text-center bg-[#ffffff] border-2 border-dashed border-[#d8e2d5] rounded-3xl">
+                <ImageIcon className="w-12 h-12 text-[#9bb098] mx-auto mb-3" />
+                <h3 className="text-lg font-bold text-[#20251f] mb-1">لا توجد مشاريع مضافة حتى الآن</h3>
+                <p className="text-xs text-[#727970] mb-4">ابدأ بإضافة أول مشروع ليظهر لزوار موقع FameX.</p>
+                <button
+                  onClick={handleOpenNew}
+                  className="inline-flex items-center gap-2 bg-gradient-to-r from-[#286b3c] to-[#39834c] text-white font-bold text-xs px-4 py-2.5 rounded-xl cursor-pointer"
                 >
-                  {/* Image / Screen Preview */}
-                  <div className="relative aspect-[16/10] bg-[#101812] overflow-hidden border-b border-[#e2e8de]">
-                    {primaryImg ? (
-                      <Image
-                        src={primaryImg}
-                        alt={p.title}
-                        fill
-                        className="object-cover group-hover:scale-105 transition-transform duration-500"
-                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex flex-col items-center justify-center text-[#9db09a] gap-2">
-                        <FolderGit2 className="w-8 h-8 opacity-60 text-[#39834c]" />
-                        <span className="text-xs font-[family-name:var(--font-mono)] text-[#cfe0c9]">
-                          {p.demoScreen ? `شاشة ديمو (${p.demoScreen})` : "لا توجد صورة"}
-                        </span>
-                      </div>
-                    )}
+                  <Plus className="w-4 h-4" />
+                  إضافة مشروع الآن
+                </button>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6">
+                {projects.map((p) => {
+                  const primaryImg = p.previewImage || (p.images && p.images[0]);
+                  const imageCount = p.images?.length || (p.previewImage ? 1 : 0);
 
-                    {/* Badges */}
-                    <div className="absolute top-3 right-3 flex items-center gap-1.5 z-10">
-                      {p.showOnHome && (
-                        <span className="bg-[#286b3c] text-white text-[10px] font-extrabold px-2.5 py-0.5 rounded-full shadow">
-                          الرئيسية
-                        </span>
-                      )}
-                      <span className="bg-[#101812]/80 backdrop-blur text-white text-[10px] font-[family-name:var(--font-mono)] px-2.5 py-0.5 rounded-full border border-white/10">
-                        {imageCount} {imageCount === 1 ? "صورة" : "صور"}
-                      </span>
-                    </div>
-
-                    <div className="absolute top-3 left-3 z-10">
-                      <span className="bg-[#ffffff]/90 text-[#286b3c] text-[10px] font-bold px-2 py-0.5 rounded-full border border-[#d8e2d5] shadow-sm">
-                        #{p.order}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Body Content */}
-                  <div className="p-5 flex-1 flex flex-col justify-between space-y-4">
-                    <div>
-                      <div className="flex items-center gap-2 mb-1.5">
-                        <span className="text-xs font-extrabold text-[#286b3c] bg-[#eef5e9] px-2.5 py-0.5 rounded-md flex items-center gap-1.5">
-                          {(() => {
-                            const found = AVAILABLE_PROJECT_ICONS.find((ic) => ic.id === p.iconName);
-                            const IconCmp = found ? found.Icon : ShoppingBag;
-                            return <IconCmp className="w-3.5 h-3.5 text-[#286b3c]" />;
-                          })()}
-                          {p.label || "مشروع مميز"}
-                        </span>
-                      </div>
-                      <h3 className="text-base font-bold text-[#20251f] group-hover:text-[#286b3c] transition-colors line-clamp-1">
-                        {p.title}
-                      </h3>
-                      <p className="text-xs text-[#727970] mt-1.5 line-clamp-2 leading-relaxed">
-                        {p.description || "لا يوجد وصف مدخل."}
-                      </p>
-                    </div>
-
-                    {/* Actions */}
-                    <div className="pt-3 border-t border-[#edf2ea] flex items-center justify-between">
-                      <div className="flex items-center gap-1.5">
-                        {p.url && (
-                          <a
-                            href={p.url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="p-2 text-[#626a60] hover:text-[#286b3c] bg-[#f7f7f2] hover:bg-[#eef5e9] rounded-xl transition-colors"
-                            title="رابط المشروع"
-                          >
-                            <ExternalLink className="w-3.5 h-3.5" />
-                          </a>
+                  return (
+                    <article
+                      key={p.id}
+                      className="bg-[#ffffff] border-2 border-[#e2e8de] hover:border-[#39834c]/60 rounded-3xl overflow-hidden flex flex-col transition-all duration-300 hover:shadow-[0_10px_35px_rgba(32,58,36,0.08)] group"
+                    >
+                      {/* Image / Screen Preview */}
+                      <div className="relative aspect-[16/10] bg-[#101812] overflow-hidden border-b border-[#e2e8de]">
+                        {primaryImg ? (
+                          <Image
+                            src={primaryImg}
+                            alt={p.title}
+                            fill
+                            className="object-cover group-hover:scale-105 transition-transform duration-500"
+                            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex flex-col items-center justify-center text-[#9db09a] gap-2">
+                            <FolderGit2 className="w-8 h-8 opacity-60 text-[#39834c]" />
+                            <span className="text-xs font-[family-name:var(--font-mono)] text-[#cfe0c9]">
+                              {p.demoScreen ? `شاشة ديمو (${p.demoScreen})` : "لا توجد صورة"}
+                            </span>
+                          </div>
                         )}
+
+                        {/* Badges */}
+                        <div className="absolute top-3 right-3 flex items-center gap-1.5 z-10">
+                          {p.showOnHome && (
+                            <span className="bg-[#286b3c] text-white text-[10px] font-extrabold px-2.5 py-0.5 rounded-full shadow">
+                              الرئيسية
+                            </span>
+                          )}
+                          <span className="bg-[#101812]/80 backdrop-blur text-white text-[10px] font-[family-name:var(--font-mono)] px-2.5 py-0.5 rounded-full border border-white/10">
+                            {imageCount} {imageCount === 1 ? "صورة" : "صور"}
+                          </span>
+                        </div>
+
+                        <div className="absolute top-3 left-3 z-10">
+                          <span className="bg-[#ffffff]/90 text-[#286b3c] text-[10px] font-bold px-2 py-0.5 rounded-full border border-[#d8e2d5] shadow-sm">
+                            #{p.order}
+                          </span>
+                        </div>
                       </div>
 
-                      <div className="flex items-center gap-2">
-                        <button
-                          onClick={() => handleEdit(p)}
-                          className="flex items-center gap-1.5 text-xs font-bold bg-[#eef5e9] hover:bg-[#286b3c] text-[#286b3c] hover:text-white px-3.5 py-2 rounded-xl border border-[#cfe0c9] hover:border-[#286b3c] transition-all cursor-pointer"
-                        >
-                          <Edit3 className="w-3.5 h-3.5" />
-                          تعديل
-                        </button>
-                        <button
-                          onClick={() => handleDelete(p.id, p.title, p.images)}
-                          className="p-2 text-red-600 hover:text-red-700 bg-red-50 hover:bg-red-100 rounded-xl border border-red-200 transition-all cursor-pointer"
-                          title="حذف المشروع"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
+                      {/* Body Content */}
+                      <div className="p-5 flex-1 flex flex-col justify-between space-y-4">
+                        <div>
+                          <div className="flex items-center gap-2 mb-1.5">
+                            <span className="text-xs font-extrabold text-[#286b3c] bg-[#eef5e9] px-2.5 py-0.5 rounded-md flex items-center gap-1.5">
+                              {(() => {
+                                const found = AVAILABLE_PROJECT_ICONS.find((ic) => ic.id === p.iconName);
+                                const IconCmp = found ? found.Icon : ShoppingBag;
+                                return <IconCmp className="w-3.5 h-3.5 text-[#286b3c]" />;
+                              })()}
+                              {p.label || "مشروع مميز"}
+                            </span>
+                          </div>
+                          <h3 className="text-base font-bold text-[#20251f] group-hover:text-[#286b3c] transition-colors line-clamp-1">
+                            {p.title}
+                          </h3>
+                          <p className="text-xs text-[#727970] mt-1.5 line-clamp-2 leading-relaxed">
+                            {p.description || "لا يوجد وصف مدخل."}
+                          </p>
+                        </div>
+
+                        {/* Actions */}
+                        <div className="pt-3 border-t border-[#edf2ea] flex items-center justify-between">
+                          <div className="flex items-center gap-1.5">
+                            {p.url && (
+                              <a
+                                href={p.url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="p-2 text-[#626a60] hover:text-[#286b3c] bg-[#f7f7f2] hover:bg-[#eef5e9] rounded-xl transition-colors"
+                                title="رابط المشروع"
+                              >
+                                <ExternalLink className="w-3.5 h-3.5" />
+                              </a>
+                            )}
+                          </div>
+
+                          <div className="flex items-center gap-2">
+                            <button
+                              onClick={() => handleEdit(p)}
+                              className="flex items-center gap-1.5 text-xs font-bold bg-[#eef5e9] hover:bg-[#286b3c] text-[#286b3c] hover:text-white px-3.5 py-2 rounded-xl border border-[#cfe0c9] hover:border-[#286b3c] transition-all cursor-pointer"
+                            >
+                              <Edit3 className="w-3.5 h-3.5" />
+                              تعديل
+                            </button>
+                            <button
+                              onClick={() => handleDelete(p.id, p.title, p.images)}
+                              className="p-2 text-red-600 hover:text-red-700 bg-red-50 hover:bg-red-100 rounded-xl border border-red-200 transition-all cursor-pointer"
+                              title="حذف المشروع"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        </div>
                       </div>
-                    </div>
-                  </div>
-                </article>
-              );
-            })}
+                    </article>
+                  );
+                })}
+              </div>
+            )}
           </div>
         )}
 
-        <section className="space-y-5 pt-6 border-t-2 border-[#e2e8de]" aria-labelledby="testimonials-admin-heading">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-            <div>
-              <h2 id="testimonials-admin-heading" className="text-2xl font-black text-[#20251f]">
-                إدارة <span className="text-[#286b3c]">آراء العملاء</span>
-              </h2>
-              <p className="text-xs sm:text-sm text-[#727970] mt-1">
-                راجع الآراء الجديدة، وانشر المناسب منها أو أخفِها واحذف غير المرغوب.
-              </p>
-            </div>
-            <span className="text-xs font-bold text-[#286b3c] bg-[#eef5e9] px-3 py-2 rounded-xl border border-[#cfe0c9]">
-              {testimonials.filter((item) => item.status === "pending").length} بانتظار المراجعة
-            </span>
-          </div>
+        {/* TESTIMONIALS TAB */}
+        {activeTab === "testimonials" && (
+          <div className="space-y-6">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 py-1">
+              <div>
+                <h1 className="text-2xl sm:text-3xl font-black text-[#20251f]">
+                  إدارة <span className="text-[#286b3c]">آراء العملاء</span>
+                </h1>
+                <p className="text-xs sm:text-sm text-[#727970] mt-1">
+                  أضف آراء جديدة مباشرة، عدّل الآراء القائمة، أو راجع الآراء الواردة من زوار الموقع.
+                </p>
+              </div>
 
-          {testimonialsError && (
-            <div className="p-4 bg-red-50 border border-red-200 rounded-2xl text-red-700 text-sm flex items-center gap-2" role="alert">
-              <AlertCircle className="w-4 h-4 shrink-0" />
-              <span>{testimonialsError}</span>
+              <button
+                type="button"
+                onClick={handleOpenNewTestimonial}
+                className="w-full sm:w-auto flex items-center justify-center gap-2 bg-gradient-to-r from-[#286b3c] to-[#39834c] hover:from-[#215730] hover:to-[#2e743f] text-white font-extrabold text-sm px-5 py-3.5 rounded-2xl shadow-[0_6px_20px_rgba(40,107,60,0.22)] hover:shadow-[0_8px_25px_rgba(40,107,60,0.32)] transition-all cursor-pointer active:scale-95"
+              >
+                <Plus className="w-4 h-4" />
+                إضافة رأي عميل جديد
+              </button>
             </div>
-          )}
 
-          {loadingTestimonials ? (
-            <div className="py-12 flex items-center justify-center gap-3 text-[#727970]">
-              <Loader2 className="w-6 h-6 animate-spin text-[#286b3c]" />
-              <span className="text-sm">جاري تحميل الآراء...</span>
-            </div>
-          ) : testimonials.length === 0 ? (
-            <div className="p-10 text-center bg-white border-2 border-dashed border-[#d8e2d5] rounded-3xl">
-              <MessageSquare className="w-10 h-10 text-[#9bb098] mx-auto mb-3" />
-              <p className="text-sm font-bold text-[#20251f]">لا توجد آراء حتى الآن</p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-              {testimonials.map((testimonial) => (
-                <article
-                  key={testimonial.id}
-                  className="bg-white border-2 border-[#e2e8de] rounded-2xl p-4 sm:p-5 space-y-4"
+            {testimonialsError && (
+              <div className="p-4 bg-red-50 border border-red-200 rounded-2xl text-red-700 text-sm flex items-center gap-2" role="alert">
+                <AlertCircle className="w-4 h-4 shrink-0" />
+                <span>{testimonialsError}</span>
+              </div>
+            )}
+
+            {loadingTestimonials ? (
+              <div className="py-20 flex flex-col items-center justify-center gap-3">
+                <Loader2 className="w-8 h-8 animate-spin text-[#286b3c]" />
+                <p className="text-xs text-[#727970] font-[family-name:var(--font-mono)]">جاري جلب آراء العملاء...</p>
+              </div>
+            ) : testimonials.length === 0 ? (
+              <div className="p-12 text-center bg-[#ffffff] border-2 border-dashed border-[#d8e2d5] rounded-3xl">
+                <MessageSquare className="w-12 h-12 text-[#9bb098] mx-auto mb-3" />
+                <h3 className="text-lg font-bold text-[#20251f] mb-1">لا توجد آراء عملاء مضافة بعد</h3>
+                <p className="text-xs text-[#727970] mb-4">
+                  يمكنك إضافة رأي عميل مباشرة لعرضه في شريط آراء العملاء بالصفحة الرئيسية.
+                </p>
+                <button
+                  type="button"
+                  onClick={handleOpenNewTestimonial}
+                  className="inline-flex items-center gap-2 bg-gradient-to-r from-[#286b3c] to-[#39834c] text-white font-bold text-xs px-4 py-2.5 rounded-xl cursor-pointer"
                 >
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="flex items-center gap-1 text-amber-500" aria-label={`${testimonial.rating} من 5 نجوم`}>
-                      {Array.from({ length: 5 }, (_, index) => (
-                        <Star
-                          key={index}
-                          className={`w-4 h-4 ${index < testimonial.rating ? "fill-current" : ""}`}
-                        />
-                      ))}
+                  <Plus className="w-4 h-4" />
+                  إضافة رأي عميل الآن
+                </button>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6">
+                {testimonials.map((testimonial) => (
+                  <article
+                    key={testimonial.id}
+                    className="bg-white border-2 border-[#e2e8de] hover:border-[#39834c]/60 rounded-3xl p-5 sm:p-6 space-y-4 flex flex-col justify-between transition-all duration-300 hover:shadow-[0_10px_35px_rgba(32,58,36,0.08)] group"
+                  >
+                    <div className="space-y-3">
+                      {/* Rating & Status */}
+                      <div className="flex items-center justify-between gap-3">
+                        <div className="flex items-center gap-1 text-amber-500" aria-label={`${testimonial.rating} من 5 نجوم`}>
+                          {Array.from({ length: 5 }, (_, index) => (
+                            <Star
+                              key={index}
+                              className={`w-4 h-4 ${index < testimonial.rating ? "fill-amber-400 text-amber-500" : "text-[#d1ded0]"}`}
+                            />
+                          ))}
+                        </div>
+                        <span
+                          className={`text-[11px] font-extrabold px-3 py-1 rounded-full ${
+                            testimonial.status === "approved"
+                              ? "text-emerald-800 bg-emerald-50 border border-emerald-200"
+                              : "text-amber-800 bg-amber-50 border border-amber-200"
+                          }`}
+                        >
+                          {testimonial.status === "approved" ? "منشور" : "بانتظار المراجعة"}
+                        </span>
+                      </div>
+
+                      {/* Quote */}
+                      <blockquote className="text-sm leading-relaxed text-[#353c33] font-medium min-h-[60px]">
+                        "{testimonial.quote}"
+                      </blockquote>
                     </div>
-                    <span className={`text-[11px] font-extrabold px-2.5 py-1 rounded-full ${
-                      testimonial.status === "approved"
-                        ? "text-emerald-800 bg-emerald-50 border border-emerald-200"
-                        : "text-amber-800 bg-amber-50 border border-amber-200"
-                    }`}>
-                      {testimonial.status === "approved" ? "منشور" : "بانتظار المراجعة"}
-                    </span>
-                  </div>
-                  <blockquote className="text-sm leading-7 text-[#434a41]">
-                    {testimonial.quote}
-                  </blockquote>
-                  <div className="flex items-center justify-between gap-3 border-t border-[#edf2ea] pt-3">
-                    <div className="min-w-0">
-                      <p className="font-bold text-sm text-[#20251f] truncate">{testimonial.name}</p>
-                      <p className="text-[11px] text-[#727970]">
-                        {testimonial.createdAt
-                          ? new Date(testimonial.createdAt).toLocaleDateString("ar-EG")
-                          : "تاريخ غير متاح"}
-                      </p>
+
+                    {/* Author & Actions Footer */}
+                    <div className="space-y-3 pt-3 border-t border-[#edf2ea]">
+                      <div className="flex items-center gap-3">
+                        {testimonial.image ? (
+                          <div className="relative w-10 h-10 rounded-full overflow-hidden border-2 border-[#cfe0c9] shrink-0">
+                            <Image
+                              src={testimonial.image}
+                              alt={testimonial.name}
+                              fill
+                              className="object-cover"
+                              sizes="40px"
+                              unoptimized={testimonial.image.startsWith("http")}
+                            />
+                          </div>
+                        ) : (
+                          <div className="w-10 h-10 rounded-full bg-[#eef5e9] border border-[#cfe0c9] flex items-center justify-center font-bold text-sm text-[#286b3c] shrink-0">
+                            {testimonial.name ? testimonial.name.trim().charAt(0) : <User className="w-4 h-4" />}
+                          </div>
+                        )}
+                        <div className="min-w-0 flex-1">
+                          <p className="font-bold text-sm text-[#20251f] truncate">{testimonial.name}</p>
+                          <p className="text-[11px] text-[#727970] truncate">
+                            {testimonial.role || (testimonial.createdAt ? new Date(testimonial.createdAt).toLocaleDateString("ar-EG") : "عميل")}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center justify-between pt-1">
+                        <button
+                          type="button"
+                          disabled={updatingTestimonialId === testimonial.id}
+                          onClick={() => handleTestimonialStatus(testimonial)}
+                          className={`text-xs font-bold px-3 py-1.5 rounded-xl border transition-colors disabled:opacity-50 cursor-pointer ${
+                            testimonial.status === "approved"
+                              ? "text-amber-700 bg-amber-50 hover:bg-amber-100 border-amber-200"
+                              : "text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border-emerald-200"
+                          }`}
+                        >
+                          {testimonial.status === "approved" ? "إخفاء" : "نشر الرأي"}
+                        </button>
+
+                        <div className="flex items-center gap-1.5">
+                          <button
+                            type="button"
+                            onClick={() => handleEditTestimonial(testimonial)}
+                            className="flex items-center gap-1 text-xs font-bold bg-[#eef5e9] hover:bg-[#286b3c] text-[#286b3c] hover:text-white px-3 py-1.5 rounded-xl border border-[#cfe0c9] hover:border-[#286b3c] transition-all cursor-pointer"
+                          >
+                            <Edit3 className="w-3.5 h-3.5" />
+                            تعديل
+                          </button>
+                          <button
+                            type="button"
+                            disabled={updatingTestimonialId === testimonial.id}
+                            onClick={() => handleTestimonialDelete(testimonial)}
+                            className="p-1.5 text-red-600 hover:text-red-700 bg-red-50 hover:bg-red-100 border border-red-200 rounded-xl transition-all cursor-pointer disabled:opacity-50"
+                            title="حذف الرأي"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </div>
                     </div>
-                    <div className="flex shrink-0 items-center gap-2">
-                      <button
-                        type="button"
-                        disabled={updatingTestimonialId === testimonial.id}
-                        onClick={() => handleTestimonialStatus(testimonial)}
-                        className="text-xs font-bold text-[#286b3c] bg-[#eef5e9] hover:bg-[#e4ede0] border border-[#cfe0c9] px-3 py-2 rounded-xl transition-colors disabled:opacity-50"
-                      >
-                        {testimonial.status === "approved" ? "إخفاء" : "نشر"}
-                      </button>
-                      <button
-                        type="button"
-                        disabled={updatingTestimonialId === testimonial.id}
-                        onClick={() => handleTestimonialDelete(testimonial)}
-                        className="p-2 text-red-600 hover:bg-red-50 border border-red-200 rounded-xl transition-colors disabled:opacity-50"
-                        aria-label={`حذف رأي ${testimonial.name}`}
-                        title="حذف الرأي"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </div>
-                </article>
-              ))}
-            </div>
-          )}
-        </section>
+                  </article>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* MODAL: ADD / EDIT PROJECT (RESPONSIVE & COMFORTABLE ON MOBILE) */}
@@ -983,6 +1194,258 @@ export default function AdminDashboardPage() {
                     <>
                       <Save className="w-4 h-4" />
                       <span>{editingId ? "تحديث المشروع" : "حفظ المشروع"}</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: ADD / EDIT TESTIMONIAL */}
+      {isTestimonialModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-black/60 backdrop-blur-sm overflow-y-auto">
+          <div className="w-full max-w-xl bg-[#ffffff] border-2 border-[#d8e2d5] rounded-3xl shadow-[0_20px_60px_rgba(32,58,36,0.18)] p-5 sm:p-7 relative my-4 sm:my-8 text-right max-h-[92vh] overflow-y-auto">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between pb-4 border-b border-[#edf2ea] mb-5">
+              <button
+                type="button"
+                onClick={() => setIsTestimonialModalOpen(false)}
+                className="p-2 text-[#727970] hover:text-[#20251f] rounded-xl hover:bg-[#f7f7f2] transition-colors cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+              <div className="text-right">
+                <h2 className="text-lg sm:text-xl font-extrabold text-[#20251f]">
+                  {editingTestimonialId ? "تعديل رأي العميل" : "إضافة رأي عميل جديد"}
+                </h2>
+                <p className="text-xs text-[#727970] mt-0.5">
+                  أدخل بيانات العميل وتقييمه ورأيه لعرضه في قسم آراء العملاء بالموقع
+                </p>
+              </div>
+            </div>
+
+            {/* Error Message */}
+            {formError && (
+              <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-xl text-red-700 text-xs flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 text-red-500 shrink-0" />
+                <span>{formError}</span>
+              </div>
+            )}
+
+            {/* Form */}
+            <form onSubmit={handleSaveTestimonial} className="space-y-4">
+              {/* Client Name & Role */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-[#20251f] mb-1.5">
+                    اسم العميل <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={testimonialName}
+                    onChange={(e) => setTestimonialName(e.target.value)}
+                    required
+                    placeholder="مثال: م/ كريم عبد العزيز"
+                    className="w-full bg-[#fdfdfc] border border-[#d8e2d5] focus:border-[#286b3c] focus:ring-2 focus:ring-[#286b3c]/15 rounded-xl py-2.5 px-3.5 text-[#20251f] text-sm outline-none transition-all placeholder:text-[#a0aaa0]"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-[#20251f] mb-1.5">
+                    الوظيفة / اسم المشروع أو الشركة
+                  </label>
+                  <input
+                    type="text"
+                    value={testimonialRole}
+                    onChange={(e) => setTestimonialRole(e.target.value)}
+                    placeholder="مثال: مؤسس متجر فاشون / صاحب شركة"
+                    className="w-full bg-[#fdfdfc] border border-[#d8e2d5] focus:border-[#286b3c] focus:ring-2 focus:ring-[#286b3c]/15 rounded-xl py-2.5 px-3.5 text-[#20251f] text-sm outline-none transition-all placeholder:text-[#a0aaa0]"
+                  />
+                </div>
+              </div>
+
+              {/* Rating Selector */}
+              <div>
+                <label className="block text-xs font-bold text-[#20251f] mb-1.5">
+                  التقييم (النجوم)
+                </label>
+                <div className="flex items-center gap-2 bg-[#fdfdfc] border border-[#d8e2d5] rounded-xl p-3">
+                  <div className="flex items-center gap-1.5">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <button
+                        key={star}
+                        type="button"
+                        onClick={() => setTestimonialRating(star)}
+                        className="p-1 hover:scale-125 transition-transform cursor-pointer"
+                      >
+                        <Star
+                          className={`w-6 h-6 ${
+                            star <= testimonialRating
+                              ? "fill-amber-400 text-amber-500"
+                              : "text-[#d1ded0]"
+                          }`}
+                        />
+                      </button>
+                    ))}
+                  </div>
+                  <span className="text-xs font-bold text-[#286b3c] mr-3">
+                    {testimonialRating} من 5 نجوم
+                  </span>
+                </div>
+              </div>
+
+              {/* Quote / Review Text */}
+              <div>
+                <label className="block text-xs font-bold text-[#20251f] mb-1.5">
+                  نص رأي العميل <span className="text-red-500">*</span>
+                </label>
+                <textarea
+                  value={testimonialQuote}
+                  onChange={(e) => setTestimonialQuote(e.target.value)}
+                  rows={4}
+                  required
+                  placeholder="اكتب تجربة ورأي العميل بالتفصيل..."
+                  className="w-full bg-[#fdfdfc] border border-[#d8e2d5] focus:border-[#286b3c] focus:ring-2 focus:ring-[#286b3c]/15 rounded-xl py-2.5 px-3.5 text-[#20251f] text-sm outline-none transition-all placeholder:text-[#a0aaa0] resize-none"
+                />
+              </div>
+
+              {/* Avatar Upload / URL */}
+              <div>
+                <label className="block text-xs font-bold text-[#20251f] mb-1.5">
+                  صورة العميل (اختياري)
+                </label>
+                <div className="flex items-center gap-3">
+                  {testimonialImage ? (
+                    <div className="relative w-14 h-14 rounded-full overflow-hidden border-2 border-[#286b3c] shrink-0">
+                      <Image
+                        src={testimonialImage}
+                        alt="صورة العميل"
+                        fill
+                        className="object-cover"
+                        unoptimized={testimonialImage.startsWith("http")}
+                      />
+                    </div>
+                  ) : (
+                    <div className="w-14 h-14 rounded-full bg-[#f7f7f2] border-2 border-dashed border-[#d8e2d5] flex items-center justify-center shrink-0 text-[#9bb098]">
+                      <User className="w-6 h-6" />
+                    </div>
+                  )}
+
+                  <div className="flex-1 space-y-2">
+                    <div className="flex items-center gap-2">
+                      <input
+                        ref={avatarInputRef}
+                        type="file"
+                        accept="image/*"
+                        onChange={handleAvatarUpload}
+                        className="hidden"
+                      />
+                      <button
+                        type="button"
+                        disabled={uploadingAvatar}
+                        onClick={() => avatarInputRef.current?.click()}
+                        className="flex items-center gap-1.5 text-xs font-bold bg-[#eef5e9] hover:bg-[#e4ede0] text-[#286b3c] border border-[#cfe0c9] px-3 py-2 rounded-xl transition-all cursor-pointer disabled:opacity-50"
+                      >
+                        {uploadingAvatar ? (
+                          <>
+                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                            جاري الرفع...
+                          </>
+                        ) : (
+                          <>
+                            <UploadCloud className="w-3.5 h-3.5" />
+                            رفع صورة من الجهاز
+                          </>
+                        )}
+                      </button>
+
+                      {testimonialImage && (
+                        <button
+                          type="button"
+                          onClick={() => setTestimonialImage("")}
+                          className="text-xs text-red-600 hover:text-red-700 bg-red-50 hover:bg-red-100 border border-red-200 px-2.5 py-2 rounded-xl transition-colors cursor-pointer"
+                        >
+                          إزالة الصورة
+                        </button>
+                      )}
+                    </div>
+                    <input
+                      type="text"
+                      value={testimonialImage}
+                      onChange={(e) => setTestimonialImage(e.target.value)}
+                      placeholder="أو ضع رابط صورة مباشر (URL)..."
+                      dir="ltr"
+                      className="w-full bg-[#fdfdfc] border border-[#d8e2d5] rounded-xl py-1.5 px-3 text-xs text-[#20251f] outline-none text-left"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Status */}
+              <div>
+                <label className="block text-xs font-bold text-[#20251f] mb-1.5">
+                  حالة النشر
+                </label>
+                <div className="grid grid-cols-2 gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setTestimonialStatusState("approved")}
+                    className={`p-3 rounded-xl border text-center transition-all cursor-pointer ${
+                      testimonialStatusState === "approved"
+                        ? "bg-emerald-50 border-emerald-500 text-emerald-800 font-bold"
+                        : "bg-[#fdfdfc] border-[#d8e2d5] text-[#727970] hover:bg-[#f7f7f2]"
+                    }`}
+                  >
+                    <div className="flex items-center justify-center gap-1.5 mb-1">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                      <span className="text-xs">منشور فوراً</span>
+                    </div>
+                    <p className="text-[10px] text-[#727970]">يظهر لزوار الموقع في الرئيسية</p>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setTestimonialStatusState("pending")}
+                    className={`p-3 rounded-xl border text-center transition-all cursor-pointer ${
+                      testimonialStatusState === "pending"
+                        ? "bg-amber-50 border-amber-500 text-amber-800 font-bold"
+                        : "bg-[#fdfdfc] border-[#d8e2d5] text-[#727970] hover:bg-[#f7f7f2]"
+                    }`}
+                  >
+                    <div className="flex items-center justify-center gap-1.5 mb-1">
+                      <AlertCircle className="w-4 h-4 text-amber-600" />
+                      <span className="text-xs">بانتظار المراجعة</span>
+                    </div>
+                    <p className="text-[10px] text-[#727970]">مخفي مؤقتاً لحين تأكيده</p>
+                  </button>
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="pt-4 border-t border-[#edf2ea] flex items-center justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={() => setIsTestimonialModalOpen(false)}
+                  className="px-4 py-2.5 rounded-xl text-xs font-bold text-[#727970] hover:text-[#20251f] bg-[#f7f7f2] hover:bg-[#edf2ea] transition-colors cursor-pointer"
+                >
+                  إلغاء
+                </button>
+                <button
+                  type="submit"
+                  disabled={savingTestimonial || uploadingAvatar}
+                  className="flex items-center gap-2 bg-gradient-to-r from-[#286b3c] to-[#39834c] hover:from-[#215730] hover:to-[#2e743f] text-white font-extrabold text-xs px-6 py-3 rounded-xl shadow-[0_4px_16px_rgba(40,107,60,0.25)] transition-all cursor-pointer disabled:opacity-50"
+                >
+                  {savingTestimonial ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <span>جاري الحفظ...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Save className="w-4 h-4" />
+                      <span>{editingTestimonialId ? "تحديث الرأي" : "حفظ الرأي"}</span>
                     </>
                   )}
                 </button>
