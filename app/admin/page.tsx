@@ -11,6 +11,12 @@ import {
   deleteProject,
   ProjectItem,
 } from "@/lib/projectsService";
+import {
+  deleteTestimonial,
+  getAllTestimonials,
+  setTestimonialStatus,
+  type TestimonialItem,
+} from "@/lib/testimonialsService";
 import { uploadToCloudinary, deleteFromCloudinary } from "@/lib/cloudinary";
 import {
   Plus,
@@ -28,6 +34,7 @@ import {
   Image as ImageIcon,
   Save,
   FolderGit2,
+  MessageSquare,
 } from "lucide-react";
 
 export default function AdminDashboardPage() {
@@ -36,6 +43,10 @@ export default function AdminDashboardPage() {
 
   const [projects, setProjects] = useState<ProjectItem[]>([]);
   const [loadingProjects, setLoadingProjects] = useState(true);
+  const [testimonials, setTestimonials] = useState<TestimonialItem[]>([]);
+  const [loadingTestimonials, setLoadingTestimonials] = useState(true);
+  const [testimonialsError, setTestimonialsError] = useState("");
+  const [updatingTestimonialId, setUpdatingTestimonialId] = useState<string | null>(null);
 
   // Form Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -81,11 +92,62 @@ export default function AdminDashboardPage() {
     }
   };
 
+  const fetchTestimonials = async () => {
+    try {
+      setLoadingTestimonials(true);
+      setTestimonialsError("");
+      const data = await getAllTestimonials();
+      setTestimonials(data);
+    } catch (err) {
+      console.error("Failed to load testimonials:", err);
+      setTestimonialsError("تعذر تحميل الآراء. تحقق من اتصال Firebase والصلاحيات.");
+    } finally {
+      setLoadingTestimonials(false);
+    }
+  };
+
   useEffect(() => {
     if (user) {
       fetchProjects();
+      fetchTestimonials();
     }
   }, [user]);
+
+  const handleTestimonialStatus = async (testimonial: TestimonialItem) => {
+    const status = testimonial.status === "approved" ? "pending" : "approved";
+
+    try {
+      setUpdatingTestimonialId(testimonial.id);
+      await setTestimonialStatus(testimonial.id, status);
+      setTestimonials((current) =>
+        current.map((item) => item.id === testimonial.id ? { ...item, status } : item)
+      );
+      setStatusMessage(status === "approved" ? "تم نشر الرأي بنجاح." : "تم إخفاء الرأي.");
+      setTimeout(() => setStatusMessage(""), 4000);
+    } catch (err) {
+      console.error("Failed to update testimonial status:", err);
+      setTestimonialsError("تعذر تحديث حالة الرأي. تحقق من صلاحيات حساب الإدارة.");
+    } finally {
+      setUpdatingTestimonialId(null);
+    }
+  };
+
+  const handleTestimonialDelete = async (testimonial: TestimonialItem) => {
+    if (!confirm(`هل أنت متأكد من حذف رأي "${testimonial.name}" نهائيًا؟`)) return;
+
+    try {
+      setUpdatingTestimonialId(testimonial.id);
+      await deleteTestimonial(testimonial.id);
+      setTestimonials((current) => current.filter((item) => item.id !== testimonial.id));
+      setStatusMessage("تم حذف الرأي بنجاح.");
+      setTimeout(() => setStatusMessage(""), 4000);
+    } catch (err) {
+      console.error("Failed to delete testimonial:", err);
+      setTestimonialsError("تعذر حذف الرأي. تحقق من صلاحيات حساب الإدارة.");
+    } finally {
+      setUpdatingTestimonialId(null);
+    }
+  };
 
   // Handle Logout
   const handleLogout = async () => {
@@ -463,6 +525,101 @@ export default function AdminDashboardPage() {
             })}
           </div>
         )}
+
+        <section className="space-y-5 pt-6 border-t-2 border-[#e2e8de]" aria-labelledby="testimonials-admin-heading">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+            <div>
+              <h2 id="testimonials-admin-heading" className="text-2xl font-black text-[#20251f]">
+                إدارة <span className="text-[#286b3c]">آراء العملاء</span>
+              </h2>
+              <p className="text-xs sm:text-sm text-[#727970] mt-1">
+                راجع الآراء الجديدة، وانشر المناسب منها أو أخفِها واحذف غير المرغوب.
+              </p>
+            </div>
+            <span className="text-xs font-bold text-[#286b3c] bg-[#eef5e9] px-3 py-2 rounded-xl border border-[#cfe0c9]">
+              {testimonials.filter((item) => item.status === "pending").length} بانتظار المراجعة
+            </span>
+          </div>
+
+          {testimonialsError && (
+            <div className="p-4 bg-red-50 border border-red-200 rounded-2xl text-red-700 text-sm flex items-center gap-2" role="alert">
+              <AlertCircle className="w-4 h-4 shrink-0" />
+              <span>{testimonialsError}</span>
+            </div>
+          )}
+
+          {loadingTestimonials ? (
+            <div className="py-12 flex items-center justify-center gap-3 text-[#727970]">
+              <Loader2 className="w-6 h-6 animate-spin text-[#286b3c]" />
+              <span className="text-sm">جاري تحميل الآراء...</span>
+            </div>
+          ) : testimonials.length === 0 ? (
+            <div className="p-10 text-center bg-white border-2 border-dashed border-[#d8e2d5] rounded-3xl">
+              <MessageSquare className="w-10 h-10 text-[#9bb098] mx-auto mb-3" />
+              <p className="text-sm font-bold text-[#20251f]">لا توجد آراء حتى الآن</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              {testimonials.map((testimonial) => (
+                <article
+                  key={testimonial.id}
+                  className="bg-white border-2 border-[#e2e8de] rounded-2xl p-4 sm:p-5 space-y-4"
+                >
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex items-center gap-1 text-amber-500" aria-label={`${testimonial.rating} من 5 نجوم`}>
+                      {Array.from({ length: 5 }, (_, index) => (
+                        <Star
+                          key={index}
+                          className={`w-4 h-4 ${index < testimonial.rating ? "fill-current" : ""}`}
+                        />
+                      ))}
+                    </div>
+                    <span className={`text-[11px] font-extrabold px-2.5 py-1 rounded-full ${
+                      testimonial.status === "approved"
+                        ? "text-emerald-800 bg-emerald-50 border border-emerald-200"
+                        : "text-amber-800 bg-amber-50 border border-amber-200"
+                    }`}>
+                      {testimonial.status === "approved" ? "منشور" : "بانتظار المراجعة"}
+                    </span>
+                  </div>
+                  <blockquote className="text-sm leading-7 text-[#434a41]">
+                    {testimonial.quote}
+                  </blockquote>
+                  <div className="flex items-center justify-between gap-3 border-t border-[#edf2ea] pt-3">
+                    <div className="min-w-0">
+                      <p className="font-bold text-sm text-[#20251f] truncate">{testimonial.name}</p>
+                      <p className="text-[11px] text-[#727970]">
+                        {testimonial.createdAt
+                          ? new Date(testimonial.createdAt).toLocaleDateString("ar-EG")
+                          : "تاريخ غير متاح"}
+                      </p>
+                    </div>
+                    <div className="flex shrink-0 items-center gap-2">
+                      <button
+                        type="button"
+                        disabled={updatingTestimonialId === testimonial.id}
+                        onClick={() => handleTestimonialStatus(testimonial)}
+                        className="text-xs font-bold text-[#286b3c] bg-[#eef5e9] hover:bg-[#e4ede0] border border-[#cfe0c9] px-3 py-2 rounded-xl transition-colors disabled:opacity-50"
+                      >
+                        {testimonial.status === "approved" ? "إخفاء" : "نشر"}
+                      </button>
+                      <button
+                        type="button"
+                        disabled={updatingTestimonialId === testimonial.id}
+                        onClick={() => handleTestimonialDelete(testimonial)}
+                        className="p-2 text-red-600 hover:bg-red-50 border border-red-200 rounded-xl transition-colors disabled:opacity-50"
+                        aria-label={`حذف رأي ${testimonial.name}`}
+                        title="حذف الرأي"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                </article>
+              ))}
+            </div>
+          )}
+        </section>
       </div>
 
       {/* MODAL: ADD / EDIT PROJECT (RESPONSIVE & COMFORTABLE ON MOBILE) */}

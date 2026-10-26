@@ -5,6 +5,7 @@ import Hero from "@/components/Hero";
 import Navbar from "@/components/Navbar";
 import Projects from "@/components/Projects";
 import Services from "@/components/Services";
+import TestimonialsSection from "@/components/ui/testimonials-3";
 
 export default function HomePage() {
   return (
@@ -48,6 +49,18 @@ export default function HomePage() {
         <Services />
         <Projects />
         <Contact />
+        <section className="testimonials-section section" id="testimonials">
+          <div className="container">
+            <div className="section__heading" style={{ marginInline: "auto", textAlign: "center" }}>
+              <p className="eyebrow">آراء عملائنا</p>
+              <h2 className="section__title">كلام من القلب 💚</h2>
+              <p className="section__intro">
+                مش إحنا اللي هنمدح نفسنا — خلي عملائنا يحكولك.
+              </p>
+            </div>
+            <TestimonialsSection />
+          </div>
+        </section>
       </main>
       <Footer />
     </>
