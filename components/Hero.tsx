@@ -5,7 +5,6 @@ import {
   ArrowLeft,
   ChevronDown,
   Gamepad2,
-  RotateCcw,
   Volume2,
   VolumeX,
   Zap,
@@ -422,10 +421,6 @@ export default function Hero() {
             role="region"
             aria-label="جهاز آركيد FameX"
           >
-            {/* T-Molding Glowing Edge Trims */}
-            <div className="arcade-cabinet__trim arcade-cabinet__trim--left" aria-hidden="true" />
-            <div className="arcade-cabinet__trim arcade-cabinet__trim--right" aria-hidden="true" />
-
             {/* Marquee Canopy & Top Speakers */}
             <div className="arcade-cabinet__canopy">
               <div className="arcade-cabinet__speakers" aria-hidden="true">
@@ -835,17 +830,6 @@ export default function Hero() {
                 <div className="arcade-cabinet__keyhole" aria-hidden="true" title="قفل الآركيد" />
               </div>
 
-              <button
-                className="arcade-machine__selector"
-                type="button"
-                onClick={() => handleButtonClick("jump")}
-                data-arcade-custom="true"
-                dir="ltr"
-                title={arcadePowerState !== "ready" ? "أدخل عملة أولاً لتفعيل اللاعب" : "تبديل اللاعب"}
-              >
-                <span>SELECT PLAYER</span>
-                <RotateCcw size={13} aria-hidden="true" />
-              </button>
             </div>
           </div>
         </div>
