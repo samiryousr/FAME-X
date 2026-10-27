@@ -6,7 +6,7 @@
 :root {
   --font-digital: var(--font-ibm-plex-sans-arabic), -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   --font-body: var(--font-ibm-plex-sans-arabic), -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  --font-arcade: var(--font-silkscreen), var(--font-changa), monospace;
+  --font-arcade: var(--font-silkscreen), monospace;
   --font-pixel: var(--font-press-start), var(--font-silkscreen), monospace;
   --font-mono: var(--font-vt323), monospace;
   color-scheme: light;
@@ -3881,32 +3881,55 @@ body {
 .about__stats {
   display: grid;
   width: min(100%, 900px);
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 16px;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 24px;
   margin-top: 22px;
 }
 
 .about__stat {
   display: grid;
-  min-height: 138px;
+  min-width: 0;
+  min-height: 156px;
   align-content: center;
-  gap: 12px;
-  border: 1px solid rgb(166 244 93 / 24%);
-  border-radius: 10px;
+  gap: 16px;
+  padding: 20px 16px;
+  overflow: hidden;
+  border: 1px solid rgb(166 244 93 / 38%);
+  border-radius: 8px;
   background:
-    radial-gradient(ellipse at 50% 0%, rgb(166 244 93 / 8%), transparent 65%),
+    radial-gradient(ellipse at 50% 0%, rgb(166 244 93 / 12%), transparent 68%),
     rgb(8 16 11 / 72%);
-  box-shadow: inset 0 0 24px rgb(166 244 93 / 3%);
+  box-shadow:
+    inset 0 0 24px rgb(166 244 93 / 5%),
+    0 0 0 3px rgb(166 244 93 / 5%);
+  text-align: center;
+  transition:
+    border-color 180ms ease,
+    box-shadow 180ms ease,
+    transform 180ms ease;
+}
+
+.about__stat:hover {
+  transform: translateY(-3px);
+  border-color: rgb(166 244 93 / 72%);
+  box-shadow:
+    inset 0 0 24px rgb(166 244 93 / 8%),
+    0 0 18px rgb(166 244 93 / 12%);
 }
 
 .about__stat-value {
   display: flex;
   justify-content: center;
+  align-items: baseline;
   color: #a6f45d;
   font-family: var(--font-pixel);
-  font-size: clamp(1.8rem, 4vw, 2.8rem);
+  font-size: clamp(2rem, 5vw, 3rem);
   line-height: 1;
   text-shadow: 0 0 16px rgb(166 244 93 / 35%);
+}
+
+.about__stat-suffix {
+  margin-inline-start: 0.08em;
 }
 
 .about__stat-digit-window {
@@ -3932,8 +3955,14 @@ body {
 }
 
 .about__stat-label {
+  max-width: 22ch;
+  justify-self: center;
   color: #d1dfd2;
-  font-size: 1rem;
+  font-size: clamp(0.9rem, 1.5vw, 1rem);
+  font-weight: 600;
+  line-height: 1.65;
+  text-align: center;
+  text-wrap: balance;
 }
 
 .about + .services {
@@ -4112,21 +4141,24 @@ body.scroll-reveal-ready .services__card.scroll-revealed {
 
   .about__stats {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 8px;
-    margin-top: 14px;
+    gap: 10px;
+    margin-top: 12px;
   }
 
   .about__stat {
-    min-height: 112px;
-    gap: 9px;
+    min-height: 104px;
+    gap: 7px;
+    padding: 12px 8px;
   }
 
   .about__stat-value {
-    font-size: clamp(2rem, 8vw, 2.6rem);
+    font-size: clamp(1.45rem, 6vw, 2rem);
   }
 
   .about__stat-label {
-    font-size: 0.78rem;
+    max-width: 17ch;
+    font-size: 0.72rem;
+    line-height: 1.45;
   }
 
   .about__layout {
@@ -4149,6 +4181,18 @@ body.scroll-reveal-ready .services__card.scroll-revealed {
     width: 100%;
     min-height: 190px;
     padding: 18px;
+  }
+}
+
+@media (min-width: 640px) and (max-width: 1023px) {
+  .about__stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1024px) {
+  .about__stats {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 }
 
@@ -4387,16 +4431,16 @@ body.scroll-reveal-ready .services__card.scroll-revealed {
 }
 
 .projects__phone::before {
-  top: 116px;
+  top: 96px;
   left: -4px;
-  height: 42px;
-  box-shadow: 0 53px 0 -0.2px #414842;
+  height: 30px;
+  box-shadow: 0 39px 0 -0.2px #414842;
 }
 
 .projects__phone::after {
-  top: 137px;
+  top: 112px;
   right: -4px;
-  height: 66px;
+  height: 42px;
 }
 
 .projects__phone-bezel {
@@ -6374,14 +6418,24 @@ body.scroll-reveal-ready .services__card.scroll-revealed {
   }
 
   .projects__phone {
-    width: min(100%, 320px);
-    padding: 8px;
-    border-radius: 42px;
+    width: min(100%, 258px);
+    padding: 6px;
+    border-radius: 36px;
   }
 
-  .projects__phone::before,
+  .projects__phone::before {
+    top: 62px;
+    left: -3px;
+    width: 3px;
+    height: 20px;
+    box-shadow: 0 26px 0 -0.2px #414842;
+  }
+
   .projects__phone::after {
-    display: none;
+    top: 72px;
+    right: -3px;
+    width: 3px;
+    height: 30px;
   }
 
   .projects__phone-bezel {
@@ -6396,9 +6450,9 @@ body.scroll-reveal-ready .services__card.scroll-revealed {
   }
 
   .projects__phone-screen {
-    height: min(62svh, 560px);
-    min-height: 460px;
-    border-radius: 28px;
+    height: min(56svh, 480px);
+    min-height: 380px;
+    border-radius: 25px;
   }
 
   .projects__status-bar {
@@ -6465,11 +6519,6 @@ body.scroll-reveal-ready .services__card.scroll-revealed {
   .projects__screen-content--commerce .projects__shop-banner h3 {
     font-size: 1.2rem;
     line-height: 1.4;
-  }
-
-  .projects__screen-content--commerce .projects__shop-banner > span {
-    margin-top: 8px;
-    font-size: 0.58rem;
   }
 
   .projects__screen-content--commerce .projects__product-art {
@@ -6719,12 +6768,46 @@ body.scroll-reveal-ready .services__card.scroll-revealed {
   }
 
   .projects__phone {
-    width: min(100%, 300px);
+    width: min(100%, 222px);
+    padding: 5px;
+  }
+
+  .projects__phone::before {
+    top: 54px;
+    height: 17px;
+    box-shadow: 0 21px 0 -0.2px #414842;
+  }
+
+  .projects__phone::after {
+    top: 62px;
+    height: 24px;
   }
 
   .projects__phone-screen {
-    height: min(58svh, 500px);
-    min-height: 420px;
+    height: min(50svh, 390px);
+    min-height: 320px;
+  }
+
+  .projects__screen-content--commerce .projects__product-art {
+    width: 38px;
+    height: 48px;
+  }
+
+  .about__stats {
+    gap: 8px;
+  }
+
+  .about__stat {
+    min-height: 96px;
+    padding: 10px 6px;
+  }
+
+  .about__stat-value {
+    font-size: clamp(1.3rem, 6vw, 1.7rem);
+  }
+
+  .about__stat-label {
+    font-size: 0.66rem;
   }
 
   .projects__status-bar {
@@ -6851,6 +6934,10 @@ body.scroll-reveal-ready .services__card.scroll-revealed {
 
 .testimonials-section {
   background: transparent;
+}
+
+.testimonials-loading {
+  min-height: 360px;
 }
 
 .testimonials-section .section__title {

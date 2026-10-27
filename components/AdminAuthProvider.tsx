@@ -2,12 +2,12 @@
 
 import React, { createContext, useContext, useEffect, useState } from "react";
 import {
-  User,
+  type User,
   onAuthStateChanged,
   signInWithEmailAndPassword,
   signOut as fbSignOut,
 } from "firebase/auth";
-import { auth } from "@/lib/firebase";
+import { getFirebaseAuth } from "@/lib/firebase";
 
 interface AuthContextType {
   user: User | null;
@@ -28,20 +28,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      setUser(currentUser);
+    let unsubscribe: (() => void) | undefined;
+    try {
+      unsubscribe = onAuthStateChanged(getFirebaseAuth(), (currentUser) => {
+        setUser(currentUser);
+        setLoading(false);
+      });
+    } catch (error) {
+      console.error("Firebase authentication is not configured:", error);
       setLoading(false);
-    });
+    }
 
-    return () => unsubscribe();
+    return () => unsubscribe?.();
   }, []);
 
   const signIn = async (email: string, pass: string) => {
-    await signInWithEmailAndPassword(auth, email, pass);
+    await signInWithEmailAndPassword(getFirebaseAuth(), email, pass);
   };
 
   const signOut = async () => {
-    await fbSignOut(auth);
+    await fbSignOut(getFirebaseAuth());
   };
 
   return (

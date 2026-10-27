@@ -9,7 +9,7 @@ import {
   updateDoc,
   where,
 } from "firebase/firestore";
-import { db } from "@/lib/firebase";
+import { getFirebaseDb } from "@/lib/firebase";
 
 export type TestimonialStatus = "pending" | "approved";
 
@@ -52,7 +52,7 @@ function toTestimonial(id: string, data: Record<string, unknown>): TestimonialIt
 }
 
 async function getTestimonials(): Promise<TestimonialItem[]> {
-  const snapshot = await getDocs(collection(db, COLLECTION_NAME));
+  const snapshot = await getDocs(collection(getFirebaseDb(), COLLECTION_NAME));
   return snapshot.docs
     .map((testimonialDoc) => toTestimonial(testimonialDoc.id, testimonialDoc.data()))
     .sort((first, second) => second.createdAt - first.createdAt);
@@ -60,7 +60,7 @@ async function getTestimonials(): Promise<TestimonialItem[]> {
 
 export async function getPublishedTestimonials(): Promise<TestimonialItem[]> {
   const snapshot = await getDocs(
-    query(collection(db, COLLECTION_NAME), where("status", "==", "approved")),
+    query(collection(getFirebaseDb(), COLLECTION_NAME), where("status", "==", "approved")),
   );
 
   return snapshot.docs
@@ -90,7 +90,7 @@ export async function submitTestimonial(input: {
     throw new Error("Rating must be between 1 and 5.");
   }
 
-  await addDoc(collection(db, COLLECTION_NAME), {
+  await addDoc(collection(getFirebaseDb(), COLLECTION_NAME), {
     name,
     quote,
     rating: input.rating,
@@ -103,11 +103,11 @@ export async function setTestimonialStatus(
   id: string,
   status: TestimonialStatus,
 ): Promise<void> {
-  await updateDoc(doc(db, COLLECTION_NAME, id), { status });
+  await updateDoc(doc(getFirebaseDb(), COLLECTION_NAME, id), { status });
 }
 
 export async function deleteTestimonial(id: string): Promise<void> {
-  await deleteDoc(doc(db, COLLECTION_NAME, id));
+  await deleteDoc(doc(getFirebaseDb(), COLLECTION_NAME, id));
 }
 
 export async function saveTestimonial(input: {
@@ -144,12 +144,12 @@ export async function saveTestimonial(input: {
   };
 
   if (input.id && input.id.trim()) {
-    const docRef = doc(db, COLLECTION_NAME, input.id.trim());
+    const docRef = doc(getFirebaseDb(), COLLECTION_NAME, input.id.trim());
     await updateDoc(docRef, payload);
     return input.id.trim();
   } else {
     payload.createdAt = serverTimestamp();
-    const docRef = await addDoc(collection(db, COLLECTION_NAME), payload);
+    const docRef = await addDoc(collection(getFirebaseDb(), COLLECTION_NAME), payload);
     return docRef.id;
   }
 }

@@ -1,0 +1,108 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isAdmin() {
+      return request.auth != null && request.auth.token.admin == true;
+    }
+
+    function validProject() {
+      let data = request.resource.data;
+      return data.keys().hasAll([
+          'title',
+          'label',
+          'description',
+          'previewImage',
+          'images',
+          'url',
+          'showOnHome',
+          'order',
+          'imageFit',
+          'iconName'
+        ])
+        && data.keys().hasOnly([
+          'title',
+          'label',
+          'description',
+          'previewImage',
+          'images',
+          'url',
+          'showOnHome',
+          'order',
+          'imageFit',
+          'iconName',
+          'demoScreen',
+          'createdAt',
+          'updatedAt'
+        ])
+        && data.title is string && data.title.size() <= 120
+        && data.label is string && data.label.size() <= 80
+        && data.description is string && data.description.size() <= 2000
+        && data.previewImage is string && data.previewImage.size() <= 2048
+        && data.images is list && data.images.size() <= 30
+        && data.url is string && data.url.size() <= 2048
+        && data.showOnHome is bool
+        && data.order is int && data.order >= 0
+        && data.imageFit in ['smart', 'cover', 'contain']
+        && data.iconName is string && data.iconName.size() <= 80;
+    }
+
+    function validPublicTestimonial() {
+      let data = request.resource.data;
+      return data.keys().hasAll([
+          'name',
+          'quote',
+          'rating',
+          'status',
+          'createdAt'
+        ])
+        && data.keys().hasOnly([
+          'name',
+          'quote',
+          'rating',
+          'status',
+          'createdAt'
+        ])
+        && data.name is string && data.name.size() >= 2 && data.name.size() <= 80
+        && data.quote is string && data.quote.size() >= 5 && data.quote.size() <= 1000
+        && data.rating is int && data.rating >= 1 && data.rating <= 5
+        && data.status == 'pending'
+        && data.createdAt == request.time;
+    }
+
+    function validAdminTestimonial() {
+      let data = request.resource.data;
+      return data.keys().hasAll(['name', 'quote', 'rating', 'status'])
+        && data.keys().hasOnly([
+          'name',
+          'quote',
+          'rating',
+          'status',
+          'role',
+          'image',
+          'createdAt',
+          'updatedAt'
+        ])
+        && data.name is string && data.name.size() >= 2 && data.name.size() <= 80
+        && data.quote is string && data.quote.size() >= 5 && data.quote.size() <= 1000
+        && data.rating is int && data.rating >= 1 && data.rating <= 5
+        && data.status in ['pending', 'approved']
+        && (!('role' in data) || (data.role is string && data.role.size() <= 80))
+        && (!('image' in data) || (data.image is string && data.image.size() <= 2048));
+    }
+
+    match /projects/{projectId} {
+      allow read: if true;
+      allow create, update: if isAdmin() && validProject();
+      allow delete: if isAdmin();
+    }
+
+    match /testimonials/{testimonialId} {
+      allow read: if isAdmin() || resource.data.status == 'approved';
+      allow create: if (isAdmin() && validAdminTestimonial())
+        || (!isAdmin() && validPublicTestimonial());
+      allow update: if isAdmin() && validAdminTestimonial();
+      allow delete: if isAdmin();
+    }
+  }
+}

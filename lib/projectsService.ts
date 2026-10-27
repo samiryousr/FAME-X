@@ -11,7 +11,7 @@ import {
   serverTimestamp,
   type DocumentData,
 } from "firebase/firestore";
-import { db } from "@/lib/firebase";
+import { getFirebaseDb } from "@/lib/firebase";
 
 export interface ProjectItem {
   id: string;
@@ -96,7 +96,7 @@ function setLocalProjects(projects: ProjectItem[]): void {
  */
 export async function getAllProjects(): Promise<ProjectItem[]> {
   try {
-    const q = query(collection(db, COLLECTION_NAME), orderBy("order", "asc"));
+    const q = query(collection(getFirebaseDb(), COLLECTION_NAME), orderBy("order", "asc"));
     const snapshot = await getDocs(q);
 
     if (!snapshot.empty) {
@@ -188,7 +188,7 @@ export async function saveProject(
 
   // Firestore update
   try {
-    const docRef = doc(db, COLLECTION_NAME, docId);
+    const docRef = doc(getFirebaseDb(), COLLECTION_NAME, docId);
     const existing = await getDoc(docRef);
 
     const payload: Record<string, unknown> = {
@@ -233,7 +233,7 @@ export async function deleteProject(id: string): Promise<void> {
 
   // Firestore delete
   try {
-    const docRef = doc(db, COLLECTION_NAME, id);
+    const docRef = doc(getFirebaseDb(), COLLECTION_NAME, id);
     await deleteDoc(docRef);
   } catch (err) {
     console.warn("Could not delete project from Firestore (local delete succeeded):", err);

@@ -1,3 +1,4 @@
+import dynamic from "next/dynamic";
 import About from "@/components/About";
 import Contact from "@/components/Contact";
 import Footer from "@/components/Footer";
@@ -5,7 +6,11 @@ import Hero from "@/components/Hero";
 import Navbar from "@/components/Navbar";
 import Projects from "@/components/Projects";
 import Services from "@/components/Services";
-import TestimonialsSection from "@/components/ui/testimonials-3";
+
+const TestimonialsSection = dynamic(
+  () => import("@/components/ui/testimonials-3"),
+  { loading: () => <div className="testimonials-loading" aria-hidden="true" /> },
+);
 
 const TICKER_ITEMS = [
   { en: "STRATEGY", ar: "تخطيط ع الصح" },

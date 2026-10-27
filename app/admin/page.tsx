@@ -365,6 +365,9 @@ export default function AdminDashboardPage() {
       }
     } catch (err) {
       console.warn("Could not delete from Cloudinary:", err);
+      setFormError(
+        err instanceof Error ? err.message : "تعذر حذف الصورة من Cloudinary.",
+      );
     } finally {
       setDeletingImageIndex(null);
     }
@@ -422,15 +425,21 @@ export default function AdminDashboardPage() {
     }
 
     try {
+      let allImagesDeleted = true;
       // Delete images from Cloudinary if available
       if (projectImages && projectImages.length > 0) {
-        for (const imgUrl of projectImages) {
-          deleteFromCloudinary(imgUrl).catch(() => {});
-        }
+        const results = await Promise.allSettled(
+          projectImages.map((imgUrl) => deleteFromCloudinary(imgUrl)),
+        );
+        allImagesDeleted = results.every((result) => result.status === "fulfilled");
       }
 
       await deleteProject(id);
-      setStatusMessage("تم حذف المشروع بنجاح.");
+      setStatusMessage(
+        allImagesDeleted
+          ? "تم حذف المشروع بنجاح."
+          : "تم حذف المشروع، لكن تعذر حذف بعض الصور من Cloudinary.",
+      );
       setTimeout(() => setStatusMessage(""), 4000);
       await fetchProjects();
     } catch (err: unknown) {
@@ -808,7 +817,6 @@ export default function AdminDashboardPage() {
                               fill
                               className="object-cover"
                               sizes="40px"
-                              unoptimized={testimonial.image.startsWith("http")}
                             />
                           </div>
                         ) : (
@@ -1324,7 +1332,6 @@ export default function AdminDashboardPage() {
                         alt="صورة العميل"
                         fill
                         className="object-cover"
-                        unoptimized={testimonialImage.startsWith("http")}
                       />
                     </div>
                   ) : (

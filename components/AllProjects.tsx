@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState, useEffect, useRef } from "react";
-import { ArrowLeft, ExternalLink, Layers } from "lucide-react";
+import { ArrowLeft, ExternalLink } from "lucide-react";
 import {
   ProjectScreen,
   defaultProjects,
@@ -234,8 +234,6 @@ export default function AllProjects() {
             </svg>
             <div className="services__cards">
               {projectList.map((project) => {
-                const ProjectIcon = project.Icon || Layers;
-
                 return (
                   <article
                     className="all-projects__card"

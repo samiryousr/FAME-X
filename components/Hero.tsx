@@ -15,8 +15,6 @@ import {
   playJoystickSound,
   playLaserSound,
   playJumpSound,
-  playStartSound,
-  playWarpSound,
   playTvWarpSound,
   toggleArcadeMute,
   playCrtPowerOnSound,
@@ -24,6 +22,7 @@ import {
   stopArcadeMusic,
   playPowerUpSound,
 } from "@/lib/arcadeSound";
+import TypewriterHero from "@/components/TypewriterHero";
 
 const PLAYERS = [
   { id: "developer", label: "DEVELOPER" },
@@ -385,7 +384,11 @@ export default function Hero() {
             </span>
           </p>
           <h1 className="hero__title">
-            فكرتك تستاهل تظهر صح
+            <TypewriterHero
+              text="فكرتك تستاهل تظهر صح"
+              speed={85}
+              className="hero__title-typewriter"
+            />
             <span className="hero__title-accent">وتسيب بصمة ما تتنسيش.</span>
           </h1>
           <p className="hero__tagline">

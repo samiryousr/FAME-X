@@ -1,38 +1,40 @@
-import { initializeApp, getApps, getApp, FirebaseApp } from "firebase/app";
-import { getAnalytics, isSupported, Analytics } from "firebase/analytics";
-import { getFirestore, Firestore } from "firebase/firestore";
-import { getAuth, Auth } from "firebase/auth";
+import { getApp, getApps, initializeApp, type FirebaseApp } from "firebase/app";
+import { getAuth } from "firebase/auth";
+import { getFirestore } from "firebase/firestore";
 
-const firebaseConfig = {
-  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY || "AIzaSyDummyKeyForBuildOnly123456789",
-  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || "dummy-project.firebaseapp.com",
-  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || "dummy-project",
-  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || "dummy-project.appspot.com",
-  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || "123456789",
-  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID || "1:123456789:web:abcdef",
-  measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID,
-};
+function getFirebaseConfig() {
+  const config = {
+    apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+    authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+    projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+    storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+    messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+    appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
+  };
+  const missing = Object.entries(config)
+    .filter(([, value]) => !value)
+    .map(([key]) => `NEXT_PUBLIC_FIREBASE_${key.replace(/[A-Z]/g, (letter) => `_${letter}`).toUpperCase()}`);
 
-// Initialize Firebase (safely prevent multiple initializations in Next.js hot reload / SSR)
-const app: FirebaseApp =
-  getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
+  if (missing.length > 0) {
+    throw new Error(`Missing Firebase environment variables: ${missing.join(", ")}`);
+  }
 
-const auth: Auth = getAuth(app);
-const db: Firestore = getFirestore(app);
-
-let analytics: Analytics | null = null;
-
-if (typeof window !== "undefined") {
-  isSupported()
-    .then((supported) => {
-      if (supported) {
-        analytics = getAnalytics(app);
-      }
-    })
-    .catch((err) => {
-      console.warn("Firebase Analytics could not be initialized:", err);
-    });
+  return {
+    ...config,
+    measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID,
+  };
 }
 
-export { app, auth, db, analytics, firebaseConfig };
-export default app;
+export function getFirebaseApp(): FirebaseApp {
+  return getApps().length > 0
+    ? getApp()
+    : initializeApp(getFirebaseConfig());
+}
+
+export function getFirebaseAuth() {
+  return getAuth(getFirebaseApp());
+}
+
+export function getFirebaseDb() {
+  return getFirestore(getFirebaseApp());
+}

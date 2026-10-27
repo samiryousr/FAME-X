@@ -1,38 +1,57 @@
+import { getFirebaseAuth } from "@/lib/firebase";
+
+const MAX_IMAGE_SIZE_BYTES = 4 * 1024 * 1024;
+const ALLOWED_IMAGE_TYPES = new Set([
+  "image/avif",
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+]);
+
 /**
  * Uploads an image file directly to Cloudinary using an unsigned upload preset.
  * Returns the secure CDN URL for the uploaded image.
  */
 export async function uploadToCloudinary(file: File): Promise<string> {
-  const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
-  const uploadPreset = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET;
-
-  if (!cloudName || !uploadPreset) {
-    throw new Error(
-      "Cloudinary credentials missing. Please check NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME and NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET in .env.local"
-    );
+  if (!ALLOWED_IMAGE_TYPES.has(file.type)) {
+    throw new Error("ارفع صورة بصيغة AVIF أو JPEG أو PNG أو WebP فقط.");
+  }
+  if (file.size === 0 || file.size > MAX_IMAGE_SIZE_BYTES) {
+    throw new Error("حجم الصورة يجب ألا يتجاوز 4 ميجابايت.");
   }
 
+  const user = getFirebaseAuth().currentUser;
+  if (!user) {
+    throw new Error("يجب تسجيل الدخول قبل رفع الصور.");
+  }
+
+  const idToken = await user.getIdToken();
   const formData = new FormData();
   formData.append("file", file);
-  formData.append("upload_preset", uploadPreset);
 
-  const response = await fetch(
-    `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
-    {
-      method: "POST",
-      body: formData,
-    }
-  );
+  const response = await fetch("/api/cloudinary/upload", {
+    method: "POST",
+    headers: { Authorization: `Bearer ${idToken}` },
+    body: formData,
+    cache: "no-store",
+  });
 
+  const data = (await response.json()) as {
+    secureUrl?: string;
+    error?: string;
+  };
   if (!response.ok) {
-    const errorData = await response.json().catch(() => null);
-    throw new Error(
-      errorData?.error?.message || `فشل رفع الصورة (${response.status})`
-    );
+    throw new Error(data.error || `فشل رفع الصورة (${response.status})`);
+  }
+  if (
+    !data.secureUrl ||
+    new URL(data.secureUrl).hostname !== "res.cloudinary.com" ||
+    !data.secureUrl.startsWith("https://")
+  ) {
+    throw new Error("استجابة Cloudinary لا تحتوي على رابط صورة آمن.");
   }
 
-  const data = await response.json();
-  return data.secure_url;
+  return data.secureUrl;
 }
 
 /**
@@ -51,18 +70,28 @@ export async function uploadMultipleToCloudinary(
 export async function deleteFromCloudinary(
   imageUrl: string
 ): Promise<{ success: boolean; message?: string }> {
-  try {
-    const response = await fetch("/api/cloudinary/delete", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ imageUrl }),
-    });
-
-    const data = await response.json();
-    return data;
-  } catch (error: unknown) {
-    console.warn("Could not delete image from Cloudinary:", error);
-    const err = error as { message?: string } | undefined;
-    return { success: false, message: err?.message };
+  const user = getFirebaseAuth().currentUser;
+  if (!user) {
+    throw new Error("يجب تسجيل الدخول قبل حذف الصور.");
   }
+
+  const idToken = await user.getIdToken();
+  const response = await fetch("/api/cloudinary/delete", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${idToken}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ imageUrl }),
+    cache: "no-store",
+  });
+  const data = (await response.json()) as {
+    success?: boolean;
+    error?: string;
+  };
+  if (!response.ok || !data.success) {
+    throw new Error(data.error || "تعذر حذف الصورة من Cloudinary.");
+  }
+
+  return { success: true };
 }

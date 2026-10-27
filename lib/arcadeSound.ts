@@ -98,8 +98,8 @@ export function playArcadeStartupMusic() {
   currentMusicGain = musicMaster;
 
   // Standard Chiptune Frequencies
-  const C4 = 261.63, D4 = 293.66, E4 = 329.63, F4 = 349.23, G4 = 392.00, A4 = 440.00, B4 = 493.88;
-  const C5 = 523.25, D5 = 587.33, E5 = 659.25, F5 = 698.46, G5 = 783.99, A5 = 880.00, B5 = 987.77;
+  const C4 = 261.63;
+  const C5 = 523.25, E5 = 659.25, G5 = 783.99, A5 = 880.00, B5 = 987.77;
   const C6 = 1046.50, D6 = 1174.66, E6 = 1318.51, G6 = 1567.98;
   const C3 = 130.81, E3 = 164.81, G3 = 196.00, A3 = 220.00, F3 = 174.61;
 

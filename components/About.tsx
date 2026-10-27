@@ -66,10 +66,10 @@ export default function About() {
   }, []);
 
   const aboutStats = [
-    { value: "013", label: "مشروع تم تنفيذه" },
-    { value: "004", label: "خدمات رقمية" },
-    { value: "003", label: "منصات: ويب وiOS وAndroid" },
-    { value: "003", label: "مراحل تنفيذ المشروع" },
+    { value: "04", suffix: "", label: "مراحل العمل والإنتاج" },
+    { value: "10", suffix: "+", label: "منصات ويب و تطبيقات موبايل" },
+    { value: "15", suffix: "+", label: "خدمات وحلول رقمية" },
+    { value: "50", suffix: "+", label: "مشروع ناجح تم تنفيذه" },
   ];
 
   return (
@@ -94,12 +94,12 @@ export default function About() {
         </p>
         <p className="about__note">تفكير استراتيجي، تنفيذ ع الفرازة، وشراكة حقيقية مكملة معاك.</p>
         <div className="about__stats" aria-label="أرقامنا">
-          {aboutStats.map(({ value, label }) => (
+          {aboutStats.map(({ value, suffix, label }) => (
             <div
               className="about__stat"
               key={label}
               role="group"
-              aria-label={`${value} ${label}`}
+              aria-label={`${value}${suffix} ${label}`}
             >
               <span className="about__stat-value" dir="ltr" aria-hidden="true">
                 {value.split("").map((digit, index) => (
@@ -118,6 +118,7 @@ export default function About() {
                     </span>
                   </span>
                 ))}
+                {suffix && <span className="about__stat-suffix">{suffix}</span>}
               </span>
               <span className="about__stat-label">{label}</span>
             </div>

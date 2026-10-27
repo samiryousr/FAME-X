@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import {
-  Changa,
   IBM_Plex_Sans_Arabic,
   Press_Start_2P,
   Silkscreen,
@@ -8,13 +7,7 @@ import {
 } from "next/font/google";
 import "./globals.css";
 import "../components/PixelBlast.css";
-import InteractiveBackground from "@/components/InteractiveBackground";
-
-const changaFont = Changa({
-  weight: ["400", "500", "600", "700", "800"],
-  subsets: ["arabic", "latin"],
-  variable: "--font-changa",
-});
+import InteractiveBackgroundLoader from "@/components/InteractiveBackgroundLoader";
 
 const arabicFont = IBM_Plex_Sans_Arabic({
   weight: ["400", "500", "600", "700"],
@@ -55,10 +48,10 @@ export default function RootLayout({
     <html
       lang="ar"
       dir="rtl"
-      className={`${changaFont.variable} ${arabicFont.variable} ${pressStartFont.variable} ${silkscreenFont.variable} ${terminalFont.variable}`}
+      className={`${arabicFont.variable} ${pressStartFont.variable} ${silkscreenFont.variable} ${terminalFont.variable}`}
     >
       <body className="relative min-h-screen">
-        <InteractiveBackground />
+        <InteractiveBackgroundLoader />
         {children}
       </body>
     </html>

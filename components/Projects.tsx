@@ -168,8 +168,6 @@ export function ProjectScreen({
               alt=""
               fill
               className="object-cover blur-2xl opacity-40 scale-125"
-              priority={false}
-              unoptimized={currentImage.includes("cloudinary.com") || currentImage.startsWith("http")}
               aria-hidden="true"
             />
           </div>
@@ -191,8 +189,6 @@ export function ProjectScreen({
             alt={`معاينة مشروع ${project.title}`}
             fill
             sizes="(max-width: 640px) 340px, (max-width: 1024px) 450px, 600px"
-            priority
-            unoptimized={currentImage.includes("cloudinary.com") || currentImage.startsWith("http")}
           />
         </div>
 

@@ -35,7 +35,7 @@ export default function ContactForm() {
     const cleanName = name.trim();
     const cleanIdea = idea.trim();
 
-    if (!cleanName || !cleanIdea) {
+    if (cleanName.length < 2 || cleanName.length > 80 || cleanIdea.length < 5 || cleanIdea.length > 1000) {
       return;
     }
 
@@ -69,14 +69,17 @@ export default function ContactForm() {
             name="name"
             type="text"
             required
-            className={hasAttempted && !name.trim() ? "contact__input is-invalid" : "contact__input"}
+            minLength={2}
+            maxLength={80}
+            aria-invalid={hasAttempted && (name.trim().length < 2 || name.trim().length > 80)}
+            className={hasAttempted && (name.trim().length < 2 || name.trim().length > 80) ? "contact__input is-invalid" : "contact__input"}
             placeholder="نحب نناديك بإيه؟"
             value={name}
             onChange={(e) => setName(e.target.value)}
           />
-          {hasAttempted && !name.trim() && (
+          {hasAttempted && name.trim().length < 2 && (
             <p className="contact__field-error" role="alert">
-              من فضلك اكتب اسمك
+              اكتب اسمك بحرفين على الأقل
             </p>
           )}
         </div>
@@ -112,15 +115,18 @@ export default function ContactForm() {
             id="contact-idea"
             name="idea"
             required
-            className={hasAttempted && !idea.trim() ? "contact__textarea is-invalid" : "contact__textarea"}
+            minLength={5}
+            maxLength={1000}
+            aria-invalid={hasAttempted && (idea.trim().length < 5 || idea.trim().length > 1000)}
+            className={hasAttempted && (idea.trim().length < 5 || idea.trim().length > 1000) ? "contact__textarea is-invalid" : "contact__textarea"}
             rows={4}
             placeholder="تطبيق موبايل، موقع، أو فكرة لسه بتكبر..."
             value={idea}
             onChange={(e) => setIdea(e.target.value)}
           />
-          {hasAttempted && !idea.trim() && (
+          {hasAttempted && idea.trim().length < 5 && (
             <p className="contact__field-error" role="alert">
-              من فضلك احكيلنا باختصار عن فكرتك
+              احكيلنا عن فكرتك في 5 أحرف على الأقل
             </p>
           )}
         </div>

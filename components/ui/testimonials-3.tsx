@@ -155,7 +155,6 @@ export function TestimonialsSection() {
                         alt={`صورة ${testimonial.name}`}
                         width={52}
                         height={52}
-                        unoptimized={testimonial.image.startsWith("http")}
                       />
                     ) : (
                       <span className="testimonial-card__avatar" aria-hidden="true">
