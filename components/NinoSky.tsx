@@ -201,11 +201,11 @@ export default function NinoSky({
 
     // Responsive placement for Crescent Moon and Saturn
     const isMobile = width < 640;
-    const crescentR = isMobile ? Math.min(26, width * 0.08) : 40;
+    const crescentR = isMobile ? Math.min(14, width * 0.045) : 40;
     const crescentX = width - Math.max(crescentR + 24, width * 0.12);
     const crescentY = isMobile ? height * 0.10 : height * 0.18;
 
-    const saturnR = isMobile ? Math.min(22, width * 0.065) : 34;
+    const saturnR = isMobile ? Math.min(12, width * 0.04) : 34;
     const saturnX = Math.max(saturnR * 1.9 + 18, width * 0.12);
     const saturnY = isMobile ? height * 0.88 : height * 0.80;
 

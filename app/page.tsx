@@ -7,6 +7,28 @@ import Projects from "@/components/Projects";
 import Services from "@/components/Services";
 import TestimonialsSection from "@/components/ui/testimonials-3";
 
+const TICKER_ITEMS = [
+  { en: "STRATEGY", ar: "تخطيط ع الصح" },
+  { en: "DESIGN", ar: "ديزاين من الآخر" },
+  { en: "DEVELOPMENT", ar: "كود طلقة" },
+  { en: "GROWTH", ar: "مبيعات تفرّق" },
+] as const;
+
+function ArcadeTickerSet({ hidden = false }: { hidden?: boolean }) {
+  return (
+    <div className="arcade-ticker__set" aria-hidden={hidden || undefined}>
+      {Array.from({ length: 3 }, (_, loop) =>
+        TICKER_ITEMS.map((item) => (
+          <span key={`${loop}-${item.en}`}>
+            {item.en} <b>{item.ar}</b>
+            <i />
+          </span>
+        )),
+      )}
+    </div>
+  );
+}
+
 export default function HomePage() {
   return (
     <>
@@ -15,34 +37,13 @@ export default function HomePage() {
         <Hero />
         <div
           className="arcade-ticker"
+          dir="ltr"
           role="region"
           aria-label="خدماتنا: استراتيجية، تصميم، تطوير، ونمو"
         >
-          <div className="arcade-ticker__track" dir="ltr">
-            {[0, 1].map((copy) => (
-              <div
-                className="arcade-ticker__set"
-                key={copy}
-                aria-hidden={copy === 1}
-              >
-                <span>
-                  STRATEGY <b>تخطيط ع الصح</b>
-                </span>
-                <i />
-                <span>
-                  DESIGN <b>ديزاين من الآخر</b>
-                </span>
-                <i />
-                <span>
-                  DEVELOPMENT <b>كود طلقة</b>
-                </span>
-                <i />
-                <span>
-                  GROWTH <b>مبيعات تفرّق</b>
-                </span>
-                <i />
-              </div>
-            ))}
+          <div className="arcade-ticker__track">
+            <ArcadeTickerSet />
+            <ArcadeTickerSet hidden />
           </div>
         </div>
         <About />
@@ -53,7 +54,7 @@ export default function HomePage() {
           <div className="container">
             <div className="section__heading" style={{ marginInline: "auto", textAlign: "center" }}>
               <p className="eyebrow">آراء عملائنا</p>
-              <h2 className="section__title">كلام من القلب 💚</h2>
+              <h2 className="section__title">تجارب عملائنا</h2>
               <p className="section__intro">
                 مش إحنا اللي هنمدح نفسنا — خلي عملائنا يحكولك.
               </p>

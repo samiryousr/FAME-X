@@ -4,15 +4,9 @@ import { useEffect, useRef } from "react";
 import type { CSSProperties } from "react";
 
 const aboutCopy =
-  "إحنا مش مجرد ناس بتكتب كود وتعمل ديزاين وخلاص.. إحنا حريفة ديجيتال وشغفنا نخلّي بيزنسك يسبق الكل. بنسمع منك فكرتك للآخر، ونبني معاك خطوة بخطوة حلول ذكية وسهلة تخلّي عميلك يقع في حب منتجك من أول لمسة.";
+  "إحنا مش مجرد ناس بتكتب كود وتعمل ديزاين وخلاص.. إحنا حريفة ديجيتال وشغفنا نخلّي بيزنسك يسبق الكل. بنسمع منك فكرتك للآخر، ونبني معاك خطوة بخطوة حلول ذكية وسهلة تخلي عميلك ينجذب لمنتجك من أول لمسة.";
 
 const aboutWords = aboutCopy.split(/(\s+)/);
-
-const aboutStats = [
-  { value: "03", label: "حلول ديجيتال طلقة" },
-  { value: "03", label: "نماذج سريعة جاهزة" },
-  { value: "01", label: "خطة نجاح مضمونة" },
-];
 
 export default function About() {
   const sectionRef = useRef<HTMLElement>(null);
@@ -70,6 +64,13 @@ export default function About() {
       window.removeEventListener("resize", updateProgress);
     };
   }, []);
+
+  const aboutStats = [
+    { value: "013", label: "مشروع تم تنفيذه" },
+    { value: "004", label: "خدمات رقمية" },
+    { value: "003", label: "منصات: ويب وiOS وAndroid" },
+    { value: "003", label: "مراحل تنفيذ المشروع" },
+  ];
 
   return (
     <section

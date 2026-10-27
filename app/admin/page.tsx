@@ -793,7 +793,7 @@ export default function AdminDashboardPage() {
 
                       {/* Quote */}
                       <blockquote className="text-sm leading-relaxed text-[#353c33] font-medium min-h-[60px]">
-                        "{testimonial.quote}"
+                        &ldquo;{testimonial.quote}&rdquo;
                       </blockquote>
                     </div>
 

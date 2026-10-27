@@ -54,7 +54,7 @@ function FooterContent({
                 </span>
               </a>
               <p className="footer-tagline">
-                صُنع بحب 💚، وبأعلى ليفل من الكود والابتكار، لنقل أفكارك إلى القمة.
+                نطوّر أفكارك بأعلى ليفل من الكود والابتكار، لنقل مشروعك إلى القمة.
               </p>
               <div className="i9k-footer__status">
                 <span className="i9k-footer__status-dot" aria-hidden="true" />

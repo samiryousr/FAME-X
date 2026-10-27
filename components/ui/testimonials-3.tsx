@@ -237,7 +237,7 @@ function ReviewForm() {
       <div className="review-invite">
         <div>
           <h3 className="review-invite__title">
-            {submitted ? "شكرًا لمشاركة رأيك 💚" : "رأيك يهمنا 💚"}
+            {submitted ? "شكرًا لمشاركة رأيك" : "رأيك يهمنا"}
           </h3>
           <p className="review-invite__text">
             {submitted
@@ -321,7 +321,7 @@ function ReviewForm() {
                   <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
                   <polyline points="22 4 12 14.01 9 11.01" />
                 </svg>
-                <p>شكرًا ليك! رأيك اتبعت للمراجعة 💚</p>
+                <p>شكرًا ليك! رأيك اتبعت للمراجعة</p>
                 <button
                   type="button"
                   className="review-form-submit"

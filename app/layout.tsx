@@ -1,5 +1,11 @@
 import type { Metadata } from "next";
-import { Changa, Press_Start_2P, Silkscreen, VT323 } from "next/font/google";
+import {
+  Changa,
+  IBM_Plex_Sans_Arabic,
+  Press_Start_2P,
+  Silkscreen,
+  VT323,
+} from "next/font/google";
 import "./globals.css";
 import "../components/PixelBlast.css";
 import InteractiveBackground from "@/components/InteractiveBackground";
@@ -8,6 +14,12 @@ const changaFont = Changa({
   weight: ["400", "500", "600", "700", "800"],
   subsets: ["arabic", "latin"],
   variable: "--font-changa",
+});
+
+const arabicFont = IBM_Plex_Sans_Arabic({
+  weight: ["400", "500", "600", "700"],
+  subsets: ["arabic", "latin"],
+  variable: "--font-ibm-plex-sans-arabic",
 });
 
 const pressStartFont = Press_Start_2P({
@@ -43,7 +55,7 @@ export default function RootLayout({
     <html
       lang="ar"
       dir="rtl"
-      className={`${changaFont.variable} ${pressStartFont.variable} ${silkscreenFont.variable} ${terminalFont.variable}`}
+      className={`${changaFont.variable} ${arabicFont.variable} ${pressStartFont.variable} ${silkscreenFont.variable} ${terminalFont.variable}`}
     >
       <body className="relative min-h-screen">
         <InteractiveBackground />
@@ -52,4 +64,3 @@ export default function RootLayout({
     </html>
   );
 }
-

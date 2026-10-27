@@ -17,6 +17,7 @@ import {
   Zap,
   TrendingUp,
   Maximize2,
+  Menu,
   Minimize2,
   ShoppingBag,
   Globe,
@@ -309,8 +310,9 @@ export function ProjectScreen({
       <div className="projects__screen-content projects__screen-content--commerce">
         <div className="projects__screen-topline">
           <span className="projects__mini-mark"><Blocks size={15} /></span>
-          <span>متجري</span>
+          <span className="projects__screen-store-name">متجري</span>
           <span className="projects__bag">٢</span>
+          <span className="projects__screen-menu" aria-hidden="true"><Menu size={14} /></span>
         </div>
         <div className="projects__shop-banner">
           <p className="projects__screen-kicker">كوليكشن جديد</p>
@@ -412,24 +414,26 @@ export default function Projects() {
                 </div>
               </div>
             </div>
-            <div className="projects__device-caption">
-              {activeProject.url ? (
-                <a
-                  className="projects__visit-btn"
-                  href={activeProject.url}
-                  target="_blank"
-                  rel="noreferrer"
-                  aria-label={`زيارة موقع مشروع ${activeProject.title}`}
-                >
-                  زيارة الموقع <ArrowUpLeft size={15} aria-hidden="true" />
-                </a>
-              ) : (
-                <span className="projects__visit-btn projects__visit-btn--badge">
-                  {activeProject.previewImage ? "معاينة المشروع" : "نموذج تجريبي"}
-                </span>
-              )}
-              <i aria-hidden="true" />
-            </div>
+            {(activeProject.url || activeProject.previewImage) && (
+              <div className="projects__device-caption">
+                {activeProject.url ? (
+                  <a
+                    className="projects__visit-btn"
+                    href={activeProject.url}
+                    target="_blank"
+                    rel="noreferrer"
+                    aria-label={`زيارة موقع مشروع ${activeProject.title}`}
+                  >
+                    زيارة الموقع <ArrowUpLeft size={15} aria-hidden="true" />
+                  </a>
+                ) : (
+                  <span className="projects__visit-btn projects__visit-btn--badge">
+                    معاينة المشروع
+                  </span>
+                )}
+                <i aria-hidden="true" />
+              </div>
+            )}
           </div>
 
           <div className="projects__selector">
