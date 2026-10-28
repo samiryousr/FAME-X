@@ -554,13 +554,13 @@ export default function Hero() {
                   shapeRendering="crispEdges"
                 >
                   <g data-player-avatar="developer" opacity="1">
-                    <image href="/characters/developer.png" x="0" y="0" width="96" height="112" preserveAspectRatio="xMidYMax meet" />
+                    <image href="/characters/developer_v3.png" x="0" y="0" width="96" height="112" preserveAspectRatio="xMidYMax meet" />
                   </g>
                   <g data-player-avatar="photographer" opacity="0">
-                    <image href="/characters/photographer.png" x="0" y="0" width="96" height="112" preserveAspectRatio="xMidYMax meet" />
+                    <image href="/characters/photographer_v3.png" x="0" y="0" width="96" height="112" preserveAspectRatio="xMidYMax meet" />
                   </g>
                   <g data-player-avatar="designer" opacity="0">
-                    <image href="/characters/designer.png" x="0" y="0" width="96" height="112" preserveAspectRatio="xMidYMax meet" />
+                    <image href="/characters/designer_v3.png" x="0" y="0" width="96" height="112" preserveAspectRatio="xMidYMax meet" />
                   </g>
                   <g data-player-cartoon="gamer-boy" style={{ display: "none" }}>
                     <g className="arcade-machine__mascot-arm arcade-machine__mascot-arm--left">

@@ -244,6 +244,26 @@ export function playSelectSound(pitchFactor = 1) {
 /**
  * 🕹️ صوت حركة عصا التحكم الميكانيكية (Mechanical Joystick Click)
  */
+export function playDialogueBlipSound() {
+  if (isMuted) return;
+  const ctx = getAudioContext();
+  if (!ctx) return;
+  try {
+    const now = ctx.currentTime;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = "triangle";
+    osc.frequency.setValueAtTime(540, now);
+    osc.frequency.exponentialRampToValueAtTime(780, now + 0.035);
+    gain.gain.setValueAtTime(0.04, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.035);
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start(now);
+    osc.stop(now + 0.04);
+  } catch { }
+}
+
 export function playJoystickSound() {
   if (isMuted) return;
   const ctx = getAudioContext();

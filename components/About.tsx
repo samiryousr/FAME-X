@@ -2,11 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import type { CSSProperties } from "react";
-
-const aboutCopy =
-  "إحنا مش مجرد ناس بتكتب كود وتعمل ديزاين وخلاص.. إحنا حريفة ديجيتال وشغفنا نخلّي بيزنسك يسبق الكل. بنسمع منك فكرتك للآخر، ونبني معاك خطوة بخطوة حلول ذكية وسهلة تخلي عميلك ينجذب لمنتجك من أول لمسة.";
-
-const aboutWords = aboutCopy.split(/(\s+)/);
+import StoryDialogue from "@/components/StoryDialogue";
 
 export default function About() {
   const sectionRef = useRef<HTMLElement>(null);
@@ -15,7 +11,6 @@ export default function About() {
     const section = sectionRef.current;
     if (!section) return;
 
-    let animationFrame = 0;
     const numberObserver =
       "IntersectionObserver" in window
         ? new IntersectionObserver(
@@ -25,43 +20,14 @@ export default function About() {
                 numberObserver?.disconnect();
               }
             },
-            { threshold: 0.1 },
+            { threshold: 0.15 },
           )
         : null;
     numberObserver?.observe(section);
     if (!numberObserver) section.dataset.numbersReady = "true";
 
-    const updateProgress = () => {
-      cancelAnimationFrame(animationFrame);
-      animationFrame = requestAnimationFrame(() => {
-        const scrollRange = Math.max(
-          section.offsetHeight - window.innerHeight,
-          1,
-        );
-        const progress = Math.min(
-          1,
-          Math.max(0, -section.getBoundingClientRect().top / scrollRange),
-        );
-        const words = section.querySelectorAll<HTMLElement>("[data-about-word]");
-        words.forEach((word, index) => {
-          const wordProgress = Math.min(
-            1,
-            Math.max(0, progress * words.length - index),
-          );
-          word.style.setProperty("--word-reveal-progress", `${wordProgress * 100}%`);
-        });
-      });
-    };
-
-    updateProgress();
-    window.addEventListener("scroll", updateProgress, { passive: true });
-    window.addEventListener("resize", updateProgress);
-
     return () => {
       numberObserver?.disconnect();
-      cancelAnimationFrame(animationFrame);
-      window.removeEventListener("scroll", updateProgress);
-      window.removeEventListener("resize", updateProgress);
     };
   }, []);
 
@@ -81,18 +47,10 @@ export default function About() {
       <div className="container about__layout">
         <p className="eyebrow">حكايتنا ومين إحنا</p>
         <h2 className="section__title">التفاصيل الصغيرة هي اللي بتصنع البيزنس الكبير.</h2>
-        <p className="about__text">
-          {aboutWords.map((word, index) =>
-            /\s+/.test(word) ? (
-              word
-            ) : (
-              <span data-about-word key={index}>
-                {word}
-              </span>
-            ),
-          )}
-        </p>
-        <p className="about__note">تفكير استراتيجي، تنفيذ ع الفرازة، وشراكة حقيقية مكملة معاك.</p>
+
+        {/* 🕹️ Retro RPG Story Mode Dialogue Stage (طور القصة) */}
+        <StoryDialogue />
+
         <div className="about__stats" aria-label="أرقامنا">
           {aboutStats.map(({ value, suffix, label }) => (
             <div
