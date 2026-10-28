@@ -29,41 +29,7 @@ export interface ProjectItem {
   createdAt?: number;
 }
 
-export const DEFAULT_PROJECTS: ProjectItem[] = [
-  {
-    id: "commerce",
-    title: "متجر إلكتروني طلقة وبيبيع",
-    label: "أبلكيشن متجر",
-    description: "تجربة تسوق سالكة وسريعة تخلي الزبون يملى السلة ويدفع في ثواني.",
-    previewImage: "",
-    images: [],
-    demoScreen: "commerce",
-    showOnHome: true,
-    order: 1,
-  },
-  {
-    id: "identity",
-    title: "هوية بصرية تعلّم وتعيش",
-    label: "براندينج وهوية",
-    description: "ديزاين كامل مليان روح وشخصية بتعكس هيبة البراند وتفاصيله.",
-    previewImage: "",
-    images: [],
-    demoScreen: "identity",
-    showOnHome: true,
-    order: 2,
-  },
-  {
-    id: "platform",
-    title: "داشبورد ومنصة إدارة ذكية",
-    label: "منصة ويب وسحابية",
-    description: "كل أرقام وبيانات بيزنسك في مكان واحد منظم وسهل من غير وجع دماغ.",
-    previewImage: "",
-    images: [],
-    demoScreen: "platform",
-    showOnHome: true,
-    order: 3,
-  },
-];
+export const DEFAULT_PROJECTS: ProjectItem[] = [];
 
 const COLLECTION_NAME = "projects";
 const LOCAL_STORAGE_KEY = "famex_saved_projects";
@@ -74,7 +40,23 @@ function getLocalProjects(): ProjectItem[] | null {
     const raw = localStorage.getItem(LOCAL_STORAGE_KEY);
     if (!raw) return null;
     const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) && parsed.length > 0 ? parsed : null;
+    if (!Array.isArray(parsed)) return null;
+
+    // حذف المشاريع التجريبية السابقة نهائياً من الذاكرة المحلية
+    const cleaned = parsed.filter(
+      (p: ProjectItem) =>
+        p &&
+        p.id !== "commerce" &&
+        p.id !== "identity" &&
+        p.id !== "platform"
+    );
+
+    if (cleaned.length !== parsed.length) {
+      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(cleaned));
+      window.dispatchEvent(new CustomEvent("famex_projects_updated", { detail: cleaned }));
+    }
+
+    return cleaned.length > 0 ? cleaned : null;
   } catch {
     return null;
   }
@@ -132,7 +114,7 @@ export async function getAllProjects(): Promise<ProjectItem[]> {
     return local;
   }
 
-  return DEFAULT_PROJECTS;
+  return [];
 }
 
 /**
@@ -174,7 +156,7 @@ export async function saveProject(
   };
 
   // Immediate local update
-  const currentList = getLocalProjects() || [...DEFAULT_PROJECTS];
+  const currentList = getLocalProjects() || [];
   const existingIdx = currentList.findIndex((p) => p.id === docId);
   let updatedList: ProjectItem[];
   if (existingIdx >= 0) {
@@ -227,7 +209,7 @@ export async function saveProject(
  */
 export async function deleteProject(id: string): Promise<void> {
   // Immediate local update
-  const currentList = getLocalProjects() || [...DEFAULT_PROJECTS];
+  const currentList = getLocalProjects() || [];
   const updatedList = currentList.filter((p) => p.id !== id);
   setLocalProjects(updatedList);
 

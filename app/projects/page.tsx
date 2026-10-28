@@ -11,7 +11,7 @@ export default function AllProjectsPage() {
   return (
     <>
       <AllProjects />
-      <Footer showMascot={false} homeHref="/" />
+      <Footer homeHref="/" />
     </>
   );
 }

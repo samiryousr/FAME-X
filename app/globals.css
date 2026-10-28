@@ -5122,7 +5122,7 @@ body.scroll-reveal-ready .services__card.scroll-revealed {
   min-height: 100vh;
   overflow: hidden;
   border-bottom: 1px solid rgba(166, 244, 93, 0.12);
-  background: var(--site-background);
+  background: transparent;
   color: #88998b;
 }
 
@@ -5131,7 +5131,21 @@ body.scroll-reveal-ready .services__card.scroll-revealed {
   width: 100%;
 }
 
-.all-projects::before,
+.all-projects::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 1200px;
+  height: 500px;
+  background: radial-gradient(ellipse at 50% 0%, rgba(166, 244, 93, 0.08) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.all-projects_none,
 .all-projects::after {
   display: none;
 }

@@ -2,7 +2,8 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
+import { motion, AnimatePresence } from "motion/react";
 import {
   Aperture,
   ArrowLeft,
@@ -28,6 +29,8 @@ import {
   Briefcase,
   Rocket,
   FolderGit2,
+  ChevronLeft,
+  ChevronRight,
   type LucideIcon,
 } from "lucide-react";
 import { getHomeProjects, ProjectItem } from "@/lib/projectsService";
@@ -63,32 +66,7 @@ export const PROJECT_ICON_MAP: Record<string, LucideIcon> = {
   Blocks,
 };
 
-export const defaultProjects: Project[] = [
-  {
-    id: "commerce",
-    title: "متجر إلكتروني طلقة وبيبيع",
-    label: "أبلكيشن متجر",
-    description: "تجربة تسوق سالكة وسريعة تخلي الزبون يملى السلة ويدفع في ثواني.",
-    Icon: ShoppingBag,
-    demoScreen: "commerce",
-  },
-  {
-    id: "identity",
-    title: "هوية بصرية تعلّم وتعيش",
-    label: "براندينج وهوية",
-    description: "ديزاين كامل مليان روح وشخصية بتعكس هيبة البراند وتفاصيله.",
-    Icon: Palette,
-    demoScreen: "identity",
-  },
-  {
-    id: "platform",
-    title: "داشبورد ومنصة إدارة ذكية",
-    label: "منصة ويب وسحابية",
-    description: "كل أرقام وبيانات بيزنسك في مكان واحد منظم وسهل من غير وجع دماغ.",
-    Icon: Layout,
-    demoScreen: "platform",
-  },
-];
+export const defaultProjects: Project[] = [];
 
 export const projects = defaultProjects;
 
@@ -140,6 +118,8 @@ export function ProjectScreen({
   const [fitMode, setFitMode] = useState<"smart" | "cover" | "contain">(
     project.imageFit || "smart"
   );
+  const [direction, setDirection] = useState(0);
+  const isDraggingRef = useRef(false);
 
   useEffect(() => {
     setActiveImgIndex(0);
@@ -153,13 +133,25 @@ export function ProjectScreen({
       ? [project.previewImage]
       : [];
 
+  const handleNext = useCallback(() => {
+    if (allImages.length <= 1) return;
+    setDirection(1);
+    setActiveImgIndex((prev) => (prev + 1) % allImages.length);
+  }, [allImages.length]);
+
+  const handlePrev = useCallback(() => {
+    if (allImages.length <= 1) return;
+    setDirection(-1);
+    setActiveImgIndex((prev) => (prev - 1 + allImages.length) % allImages.length);
+  }, [allImages.length]);
+
   const currentImage = allImages[activeImgIndex] || project.previewImage;
 
   if (currentImage) {
     const isCover = fitMode === "cover";
 
     const previewContent = (
-      <div className="absolute inset-0 overflow-hidden bg-[#0a0d0b] flex items-center justify-center select-none">
+      <div className="group/screen absolute inset-0 overflow-hidden bg-[#0a0d0b] flex items-center justify-center select-none touch-pan-y">
         {/* Ambient Blur Layer: fills empty spaces with soft matching color aura */}
         {!isCover && (
           <div className="absolute inset-0 overflow-hidden pointer-events-none -z-0">
@@ -167,30 +159,60 @@ export function ProjectScreen({
               src={currentImage}
               alt=""
               fill
-              className="object-cover blur-2xl opacity-40 scale-125"
+              className="object-cover blur-2xl opacity-40 scale-125 transition-all duration-500"
               aria-hidden="true"
             />
           </div>
         )}
 
-        {/* Foreground Main Image: crisp and complete */}
-        <div
-          className={`absolute inset-0 flex items-center justify-center ${
-            isCover ? "" : variant === "home" ? "p-1.5 sm:p-2" : "p-2 sm:p-3"
-          } z-10`}
-        >
-          <Image
-            className={`transition-all duration-300 ${
-              isCover
-                ? "object-cover object-top"
-                : "object-contain drop-shadow-[0_8px_25px_rgba(0,0,0,0.5)]"
-            }`}
-            src={currentImage}
-            alt={`معاينة مشروع ${project.title}`}
-            fill
-            sizes="(max-width: 640px) 340px, (max-width: 1024px) 450px, 600px"
-          />
-        </div>
+        {/* Foreground Main Image with Swipe / Dragging (Mobile & Computer) */}
+        <AnimatePresence initial={false} custom={direction}>
+          <motion.div
+            key={activeImgIndex}
+            custom={direction}
+            initial={{ opacity: 0, x: direction * 50 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -direction * 50 }}
+            transition={{ duration: 0.25, ease: "easeOut" }}
+            drag={allImages.length > 1 ? "x" : false}
+            dragConstraints={{ left: 0, right: 0 }}
+            dragElastic={0.25}
+            onDragStart={() => {
+              isDraggingRef.current = true;
+            }}
+            onDragEnd={(_, info) => {
+              const swipe = info.offset.x;
+              const velocity = info.velocity.x;
+              if (swipe < -35 || velocity < -250) {
+                // سحب لليسار: الصورة التالية
+                handleNext();
+              } else if (swipe > 35 || velocity > 250) {
+                // سحب لليمين: الصورة السابقة
+                handlePrev();
+              }
+              setTimeout(() => {
+                isDraggingRef.current = false;
+              }, 120);
+            }}
+            className={`absolute inset-0 flex items-center justify-center ${
+              isCover ? "" : variant === "home" ? "p-1.5 sm:p-2" : "p-2 sm:p-3"
+            } z-10 ${allImages.length > 1 ? "cursor-grab active:cursor-grabbing" : ""}`}
+          >
+            <Image
+              className={`transition-all duration-300 pointer-events-none ${
+                isCover
+                  ? "object-cover object-top"
+                  : "object-contain drop-shadow-[0_8px_25px_rgba(0,0,0,0.5)]"
+              }`}
+              src={currentImage}
+              alt={`معاينة مشروع ${project.title}`}
+              fill
+              sizes="(max-width: 640px) 340px, (max-width: 1024px) 450px, 600px"
+              draggable={false}
+              priority={activeImgIndex === 0}
+            />
+          </motion.div>
+        </AnimatePresence>
 
         {/* Home Phone Mode: Toggle Fit Button (Cover vs Contain) */}
         {variant === "home" && (
@@ -218,6 +240,41 @@ export function ProjectScreen({
           </button>
         )}
 
+        {/* Multi-image Navigation Arrows (Computer & Mobile) */}
+        {allImages.length > 1 && (
+          <>
+            {/* زر الصورة السابقة (يسار) */}
+            <button
+              type="button"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                handlePrev();
+              }}
+              className="absolute left-2 top-1/2 -translate-y-1/2 z-30 p-1.5 rounded-full bg-black/65 hover:bg-black/90 text-white/80 hover:text-white border border-white/10 backdrop-blur transition-all opacity-0 group-hover/screen:opacity-100 hidden sm:flex items-center justify-center cursor-pointer shadow-lg hover:scale-110 active:scale-95 pointer-events-auto"
+              aria-label="الصورة السابقة"
+              title="السابق"
+            >
+              <ChevronLeft size={16} />
+            </button>
+
+            {/* زر الصورة التالية (يمين) */}
+            <button
+              type="button"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                handleNext();
+              }}
+              className="absolute right-2 top-1/2 -translate-y-1/2 z-30 p-1.5 rounded-full bg-black/65 hover:bg-black/90 text-white/80 hover:text-white border border-white/10 backdrop-blur transition-all opacity-0 group-hover/screen:opacity-100 hidden sm:flex items-center justify-center cursor-pointer shadow-lg hover:scale-110 active:scale-95 pointer-events-auto"
+              aria-label="الصورة التالية"
+              title="التالي"
+            >
+              <ChevronRight size={16} />
+            </button>
+          </>
+        )}
+
         {/* Multi-image indicator dots */}
         {allImages.length > 1 && (
           <div className="absolute bottom-3 left-0 right-0 flex items-center justify-center gap-2 z-30 pointer-events-auto">
@@ -228,9 +285,10 @@ export function ProjectScreen({
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
+                  setDirection(idx > activeImgIndex ? 1 : -1);
                   setActiveImgIndex(idx);
                 }}
-                className={`w-2.5 h-2.5 rounded-full transition-all ${
+                className={`w-2.5 h-2.5 rounded-full transition-all cursor-pointer ${
                   idx === activeImgIndex
                     ? "bg-[#39a653] scale-125 shadow-[0_0_8px_#39a653]"
                     : "bg-white/60 hover:bg-white"
@@ -249,6 +307,12 @@ export function ProjectScreen({
         href={project.url}
         target="_blank"
         rel="noreferrer"
+        onClick={(e) => {
+          if (isDraggingRef.current) {
+            e.preventDefault();
+            e.stopPropagation();
+          }
+        }}
         aria-label={`افتح مشروع ${project.title} في نافذة جديدة`}
       >
         {previewContent}
@@ -343,8 +407,8 @@ export function ProjectScreen({
 }
 
 export default function Projects() {
-  const [projectList, setProjectList] = useState<Project[]>(defaultProjects.slice(0, 3));
-  const [activeProject, setActiveProject] = useState<Project>(defaultProjects[0]);
+  const [projectList, setProjectList] = useState<Project[]>([]);
+  const [activeProject, setActiveProject] = useState<Project | null>(null);
 
   useEffect(() => {
     let isMounted = true;
@@ -352,13 +416,18 @@ export default function Projects() {
     const loadProjects = () => {
       getHomeProjects()
         .then((items) => {
-          if (isMounted && items && items.length > 0) {
-            const mapped = items.map(mapProjectItemToProject).slice(0, 3);
-            setProjectList(mapped);
-            setActiveProject((prev) => {
-              const stillExists = mapped.find((p) => p.id === prev?.id);
-              return stillExists || mapped[0];
-            });
+          if (isMounted) {
+            if (items && items.length > 0) {
+              const mapped = items.map(mapProjectItemToProject).slice(0, 3);
+              setProjectList(mapped);
+              setActiveProject((prev) => {
+                const stillExists = mapped.find((p) => p.id === prev?.id);
+                return stillExists || mapped[0];
+              });
+            } else {
+              setProjectList([]);
+              setActiveProject(null);
+            }
           }
         })
         .catch((err) => {
@@ -391,7 +460,8 @@ export default function Projects() {
           <p className="section__intro">جرّب وعاين الشغل بنفسك على الموبايل ده وحس بالفرق في التجربة.</p>
         </header>
 
-        <div className="projects__showcase">
+        {activeProject ? (
+          <div className="projects__showcase">
           <div className="projects__device-column">
             <div className="projects__phone" data-project={activeProject.id} aria-label={`معاينة ${activeProject.title}`}>
               <div className="projects__phone-bezel">
@@ -465,6 +535,11 @@ export default function Projects() {
             </p>
           </div>
         </div>
+        ) : (
+          <div className="py-16 text-center text-[#7d9b7f] font-mono border border-dashed border-[#1f3f26] rounded-2xl bg-black/40">
+            <p>لا توجد مشاريع مضافة حالياً في الرئيسية.</p>
+          </div>
+        )}
         <div className="projects__all-projects-wrap">
           <Link className="projects__all-projects" href="/projects">
             عرض كل المشاريع <ArrowUpLeft size={17} aria-hidden="true" />

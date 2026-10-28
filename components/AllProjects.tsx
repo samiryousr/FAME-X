@@ -10,13 +10,13 @@ import {
   Project,
 } from "@/components/Projects";
 import { getAllProjects } from "@/lib/projectsService";
-import NinoSky from "@/components/NinoSky";
+
 
 type WirePoint = { x: number; y: number };
 type WireSegment = { start: WirePoint; end: WirePoint; length: number };
 
 export default function AllProjects() {
-  const [projectList, setProjectList] = useState<Project[]>(defaultProjects);
+  const [projectList, setProjectList] = useState<Project[]>([]);
   const gridRef = useRef<HTMLElement>(null);
   const pathRef = useRef<SVGPathElement>(null);
   const glowRef = useRef<SVGPathElement>(null);
@@ -196,7 +196,7 @@ export default function AllProjects() {
 
   return (
     <main className="all-projects" id="home">
-      <NinoSky showMascot={false} className="all-projects__sky">
+
         <div className="all-projects__inner">
           <header className="all-projects__top">
             <Link className="all-projects__brand" href="/#home" dir="ltr">
@@ -323,7 +323,7 @@ export default function AllProjects() {
             </div>
           </section>
         </div>
-      </NinoSky>
+
     </main>
   );
 }
