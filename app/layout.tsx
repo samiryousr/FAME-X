@@ -38,7 +38,10 @@ export const viewport: Viewport = {
   colorScheme: "dark",
 };
 
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://famex.dev";
+
 export const metadata: Metadata = {
+  metadataBase: new URL(siteUrl),
   title: {
     default: "FameX | حريفة الديجيتال وحلول الألعاب",
     template: "%s | FameX",
@@ -61,6 +64,7 @@ export const metadata: Metadata = {
     description:
       "بنحوّل أفكارك لمنتجات وتجارب ديجيتال طلقة تخلّي بيزنسك يسبق الكل ويبيع صح.. من غير لف ولا دوران.",
     siteName: "FameX",
+    url: siteUrl,
     images: [
       {
         url: "/famex-symbol.png",
@@ -71,6 +75,13 @@ export const metadata: Metadata = {
     ],
     locale: "ar_EG",
     type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "FameX | حريفة الديجيتال وحلول الألعاب",
+    description:
+      "بنحوّل أفكارك لمنتجات وتجارب ديجيتال طلقة تخلّي بيزنسك يسبق الكل ويبيع صح.. من غير لف ولا دوران.",
+    images: ["/famex-symbol.png"],
   },
 };
 
