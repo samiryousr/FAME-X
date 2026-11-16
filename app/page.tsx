@@ -6,6 +6,7 @@ import Hero from "@/components/Hero";
 import Navbar from "@/components/Navbar";
 import Projects from "@/components/Projects";
 import Services from "@/components/Services";
+import PartnersMarquee from "@/components/PartnersMarquee";
 
 const TestimonialsSection = dynamic(
   () => import("@/components/ui/testimonials-3"),
@@ -54,6 +55,7 @@ export default function HomePage() {
         <About />
         <Services />
         <Projects />
+        <PartnersMarquee />
         <Contact />
         <section className="testimonials-section section" id="testimonials">
           <div className="container">

@@ -31,13 +31,22 @@ import TestimonialsTab from "@/components/admin/TestimonialsTab";
 import TestimonialModal from "@/components/admin/TestimonialModal";
 import ConfirmDialog from "@/components/admin/ConfirmDialog";
 import SettingsTab from "@/components/admin/SettingsTab";
+import PartnersTab from "@/components/admin/PartnersTab";
+import PartnerModal from "@/components/admin/PartnerModal";
+import {
+  getAllPartners,
+  savePartner as savePartnerService,
+  deletePartner as deletePartnerService,
+  togglePartnerVisibility as togglePartnerVisibilityService,
+  type Partner,
+} from "@/lib/partnersService";
 
 export default function AdminDashboardPage() {
   const router = useRouter();
   const { user, loading: authLoading, signOut } = useAuth();
 
   // Active Tab
-  const [activeTab, setActiveTab] = useState<"projects" | "testimonials" | "settings">("projects");
+  const [activeTab, setActiveTab] = useState<"projects" | "testimonials" | "settings" | "partners">("projects");
 
   // Projects State
   const [projects, setProjects] = useState<ProjectItem[]>([]);
@@ -99,6 +108,13 @@ export default function AdminDashboardPage() {
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [savingTestimonial, setSavingTestimonial] = useState(false);
 
+  // Partners State
+  const [partners, setPartners] = useState<Partner[]>([]);
+  const [loadingPartners, setLoadingPartners] = useState(true);
+  const [isPartnerModalOpen, setIsPartnerModalOpen] = useState(false);
+  const [editingPartner, setEditingPartner] = useState<Partner | null>(null);
+  const [togglingPartnerHomeId, setTogglingPartnerHomeId] = useState<string | null>(null);
+
   // Auth Guard
   useEffect(() => {
     if (!authLoading && !user) {
@@ -134,10 +150,24 @@ export default function AdminDashboardPage() {
     }
   };
 
+  // Load Partners
+  const fetchPartners = async () => {
+    try {
+      setLoadingPartners(true);
+      const data = await getAllPartners();
+      setPartners(data);
+    } catch (err) {
+      console.error("Failed to load partners:", err);
+    } finally {
+      setLoadingPartners(false);
+    }
+  };
+
   useEffect(() => {
     if (user) {
       fetchProjects();
       fetchTestimonials();
+      fetchPartners();
     }
   }, [user]);
 
@@ -450,6 +480,93 @@ export default function AdminDashboardPage() {
     }
   };
 
+  // ===================== PARTNERS HANDLERS =====================
+  const handleOpenNewPartner = () => {
+    setEditingPartner(null);
+    setIsPartnerModalOpen(true);
+  };
+
+  const handleEditPartner = (p: Partner) => {
+    setEditingPartner(p);
+    setIsPartnerModalOpen(true);
+  };
+
+  const handleTogglePartnerHome = async (p: Partner) => {
+    const nextState = !p.showOnHome;
+    try {
+      setTogglingPartnerHomeId(p.id);
+      await togglePartnerVisibilityService(p.id, nextState);
+      setPartners((curr) =>
+        curr.map((item) => (item.id === p.id ? { ...item, showOnHome: nextState } : item))
+      );
+      showToast(
+        nextState
+          ? `تم إظهار الشريك "${p.name}" في الرئيسية!`
+          : `تم إخفاء الشريك "${p.name}" من الرئيسية.`
+      );
+    } catch (err) {
+      console.error("Failed to toggle partner visibility:", err);
+      alert("حدث خطأ أثناء تعديل حالة العرض.");
+    } finally {
+      setTogglingPartnerHomeId(null);
+    }
+  };
+
+  const handleDeletePartner = (p: Partner) => {
+    setConfirmDialog({
+      isOpen: true,
+      title: "تأكيد حذف الشريك",
+      message: `هل أنت متأكد من حذف شريك النجاح "${p.name}" نهائياً من القائمة؟`,
+      confirmText: "نعم، احذف الشريك",
+      isDanger: true,
+      onConfirm: async () => {
+        try {
+          setConfirmDialog((prev) => ({ ...prev, isLoading: true }));
+          await deletePartnerService(p.id);
+          if (p.logoUrl) {
+            try {
+              await deleteFromCloudinary(p.logoUrl);
+            } catch {
+              // ignore cloudinary cleanup error if any
+            }
+          }
+          setPartners((curr) => curr.filter((item) => item.id !== p.id));
+          showToast(`تم حذف الشريك "${p.name}" بنجاح.`);
+        } catch (err) {
+          console.error("Delete partner error:", err);
+          alert("حدث خطأ أثناء حذف الشريك.");
+        } finally {
+          setConfirmDialog((prev) => ({ ...prev, isOpen: false, isLoading: false }));
+        }
+      },
+    });
+  };
+
+  const handleSavePartner = async (partnerData: Omit<Partner, "id"> & { id?: string }) => {
+    const savedId = await savePartnerService(partnerData);
+    setPartners((curr) => {
+      const existingIndex = curr.findIndex((item) => item.id === savedId);
+      const updatedItem: Partner = {
+        id: savedId,
+        name: partnerData.name,
+        logoUrl: partnerData.logoUrl,
+        websiteUrl: partnerData.websiteUrl,
+        order: partnerData.order,
+        showOnHome: partnerData.showOnHome,
+      };
+      if (existingIndex >= 0) {
+        const list = [...curr];
+        list[existingIndex] = updatedItem;
+        list.sort((a, b) => a.order - b.order);
+        return list;
+      }
+      const list = [...curr, updatedItem];
+      list.sort((a, b) => a.order - b.order);
+      return list;
+    });
+    showToast(partnerData.id ? "تم حفظ تعديلات الشريك بنجاح!" : "تمت إضافة الشريك بنجاح إلى شريط الرئيسية!");
+  };
+
   // Summary Metrics for Stats Card
   const stats = useMemo(() => {
     const homeCount = projects.filter((p) => p.showOnHome).length;
@@ -492,6 +609,7 @@ export default function AdminDashboardPage() {
           projectsCount={projects.length}
           testimonialsCount={testimonials.length}
           pendingTestimonialsCount={testimonials.filter((t) => t.status === "pending").length}
+          partnersCount={partners.length}
           statusMessage={statusMessage}
           onTabChange={setActiveTab}
           onLogout={handleLogout}
@@ -528,6 +646,16 @@ export default function AdminDashboardPage() {
             onEdit={handleEditTestimonial}
             onDelete={handleDeleteTestimonial}
             onToggleStatus={handleToggleTestimonialStatus}
+          />
+        ) : activeTab === "partners" ? (
+          <PartnersTab
+            partners={partners}
+            loading={loadingPartners}
+            onAddNew={handleOpenNewPartner}
+            onEdit={handleEditPartner}
+            onDelete={handleDeletePartner}
+            onToggleHome={handleTogglePartnerHome}
+            togglingHomeId={togglingPartnerHomeId}
           />
         ) : (
           <SettingsTab
@@ -594,6 +722,14 @@ export default function AdminDashboardPage() {
         onAvatarUpload={handleAvatarUpload}
         onSave={handleSaveTestimonial}
         onClose={() => setIsTestimonialModalOpen(false)}
+      />
+
+      {/* Partner Form Modal */}
+      <PartnerModal
+        isOpen={isPartnerModalOpen}
+        editingPartner={editingPartner}
+        onSave={handleSavePartner}
+        onClose={() => setIsPartnerModalOpen(false)}
       />
 
       {/* Custom Sleek Confirmation Dialog */}
