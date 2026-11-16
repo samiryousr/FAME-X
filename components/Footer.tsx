@@ -1,10 +1,19 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import NinoSky from "@/components/NinoSky";
 import {
   FacebookIcon,
   InstagramIcon,
   MailIcon,
+  LinkedInIcon,
 } from "@/components/SocialIcons";
+import {
+  subscribeToContactSettings,
+  type ContactSettings,
+  DEFAULT_CONTACT_SETTINGS,
+} from "@/lib/settingsService";
 
 type FooterProps = {
   showMascot?: boolean;
@@ -15,6 +24,15 @@ export default function Footer({
   showMascot = true,
   homeHref = "",
 }: FooterProps) {
+  const [settings, setSettings] = useState<ContactSettings>(DEFAULT_CONTACT_SETTINGS);
+
+  useEffect(() => {
+    const unsubscribe = subscribeToContactSettings((data) => {
+      setSettings(data);
+    });
+    return () => unsubscribe();
+  }, []);
+
   const currentYear = new Date().getFullYear();
   const sectionHref = (section: string) =>
     homeHref ? `${homeHref}#${section}` : `#${section}`;
@@ -23,10 +41,18 @@ export default function Footer({
     <footer className="footer i9k-footer i9k-footer--structured" id="footer">
       {showMascot ? (
         <NinoSky>
-          <FooterContent currentYear={currentYear} sectionHref={sectionHref} />
+          <FooterContent
+            currentYear={currentYear}
+            sectionHref={sectionHref}
+            settings={settings}
+          />
         </NinoSky>
       ) : (
-        <FooterContent currentYear={currentYear} sectionHref={sectionHref} />
+        <FooterContent
+          currentYear={currentYear}
+          sectionHref={sectionHref}
+          settings={settings}
+        />
       )}
     </footer>
   );
@@ -35,9 +61,11 @@ export default function Footer({
 function FooterContent({
   currentYear,
   sectionHref,
+  settings,
 }: {
   currentYear: number;
   sectionHref: (section: string) => string;
+  settings: ContactSettings;
 }) {
   return (
         <div className="container i9k-footer__inner">
@@ -69,31 +97,48 @@ function FooterContent({
                 <span>متاح لاستقبال مشاريع جديدة</span>
               </div>
               <div className="i9k-footer__socials" aria-label="حسابات التواصل الاجتماعي">
-                <a
-                  href="https://facebook.com"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="i9k-footer__social-link"
-                  aria-label="فيسبوك"
-                >
-                  <FacebookIcon size={16} />
-                </a>
-                <a
-                  href="https://instagram.com"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="i9k-footer__social-link"
-                  aria-label="إنستجرام"
-                >
-                  <InstagramIcon size={16} />
-                </a>
-                <a
-                  href="mailto:hello@famex.dev"
-                  className="i9k-footer__social-link"
-                  aria-label="البريد الإلكتروني"
-                >
-                  <MailIcon size={16} />
-                </a>
+                {settings.facebookUrl && (
+                  <a
+                    href={settings.facebookUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="i9k-footer__social-link"
+                    aria-label="فيسبوك"
+                  >
+                    <FacebookIcon size={16} />
+                  </a>
+                )}
+                {settings.instagramUrl && (
+                  <a
+                    href={settings.instagramUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="i9k-footer__social-link"
+                    aria-label="إنستجرام"
+                  >
+                    <InstagramIcon size={16} />
+                  </a>
+                )}
+                {settings.email && (
+                  <a
+                    href={`mailto:${settings.email}`}
+                    className="i9k-footer__social-link"
+                    aria-label="البريد الإلكتروني"
+                  >
+                    <MailIcon size={16} />
+                  </a>
+                )}
+                {settings.linkedinUrl && (
+                  <a
+                    href={settings.linkedinUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="i9k-footer__social-link"
+                    aria-label="لينكد إن"
+                  >
+                    <LinkedInIcon size={16} />
+                  </a>
+                )}
               </div>
             </div>
 

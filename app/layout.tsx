@@ -48,8 +48,8 @@ export const metadata: Metadata = {
   icons: {
     icon: [
       { url: "/famex-symbol.svg", type: "image/svg+xml" },
-      { url: "/favicon.ico", sizes: "any" },
       { url: "/famex-symbol.png", sizes: "192x192", type: "image/png" },
+      { url: "/favicon.ico", sizes: "any" },
     ],
     shortcut: "/favicon.ico",
     apple: [

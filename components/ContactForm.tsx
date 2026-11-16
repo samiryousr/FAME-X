@@ -7,6 +7,7 @@ import {
   Zap,
 } from "lucide-react";
 import { WhatsAppIcon } from "@/components/SocialIcons";
+import { cleanPhoneNumber } from "@/lib/settingsService";
 
 const QUICK_TAGS = [
   "تطبيق موبايل",
@@ -14,7 +15,7 @@ const QUICK_TAGS = [
   "تصميم UI/UX",
 ];
 
-export default function ContactForm() {
+export default function ContactForm({ whatsappNumber }: { whatsappNumber?: string }) {
   const [name, setName] = useState("");
   const [idea, setIdea] = useState("");
   const [hasAttempted, setHasAttempted] = useState(false);
@@ -40,7 +41,10 @@ export default function ContactForm() {
     }
 
     const message = `مرحباً فريق FameX 👋\nاسمي: ${cleanName}\nفكرة مشروعي:\n${cleanIdea}\n\nجاهز نبدأ قعدة ونطلّع الفكرة للنور!`;
-    const url = `https://wa.me/?text=${encodeURIComponent(message)}`;
+    const rawPhone = cleanPhoneNumber(whatsappNumber);
+    const url = rawPhone
+      ? `https://wa.me/${rawPhone}?text=${encodeURIComponent(message)}`
+      : `https://wa.me/?text=${encodeURIComponent(message)}`;
     window.open(url, "_blank", "noopener,noreferrer");
   };
 

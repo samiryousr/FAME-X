@@ -1,11 +1,33 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import ContactForm from "@/components/ContactForm";
 import { PixelGamepad } from "@/components/PixelIcons";
 import {
   WhatsAppIcon,
   MailIcon,
 } from "@/components/SocialIcons";
+import {
+  subscribeToContactSettings,
+  cleanPhoneNumber,
+  type ContactSettings,
+  DEFAULT_CONTACT_SETTINGS,
+} from "@/lib/settingsService";
 
 export default function Contact() {
+  const [settings, setSettings] = useState<ContactSettings>(DEFAULT_CONTACT_SETTINGS);
+
+  useEffect(() => {
+    const unsubscribe = subscribeToContactSettings((data) => {
+      setSettings(data);
+    });
+    return () => unsubscribe();
+  }, []);
+
+  const rawPhone = cleanPhoneNumber(settings.whatsappNumber);
+  const whatsappUrl = rawPhone ? `https://wa.me/${rawPhone}` : "https://wa.me/";
+  const emailUrl = `mailto:${settings.email || "hello@famex.dev"}`;
+
   return (
     <section className="section contact" id="contact">
       <div className="container contact__container">
@@ -41,7 +63,7 @@ export default function Contact() {
               <span className="contact__quick-label">أو تواصل معنا مباشرة:</span>
               <div className="contact__quick-pills">
                 <a
-                  href="https://wa.me/"
+                  href={whatsappUrl}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="contact__quick-pill"
@@ -51,7 +73,7 @@ export default function Contact() {
                   <span>واتساب</span>
                 </a>
                 <a
-                  href="mailto:hello@famex.dev"
+                  href={emailUrl}
                   className="contact__quick-pill"
                   aria-label="تواصل عبر الإيميل"
                 >
@@ -63,7 +85,7 @@ export default function Contact() {
           </div>
 
           {/* Left Side (RTL): Interactive Message Builder Card */}
-          <ContactForm />
+          <ContactForm whatsappNumber={settings.whatsappNumber} />
         </div>
       </div>
     </section>

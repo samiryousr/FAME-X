@@ -104,5 +104,10 @@ service cloud.firestore {
       allow update: if isAdmin() && validAdminTestimonial();
       allow delete: if isAdmin();
     }
+
+    match /settings/{settingId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
   }
 }

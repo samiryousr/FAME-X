@@ -30,13 +30,14 @@ import ProjectModal from "@/components/admin/ProjectModal";
 import TestimonialsTab from "@/components/admin/TestimonialsTab";
 import TestimonialModal from "@/components/admin/TestimonialModal";
 import ConfirmDialog from "@/components/admin/ConfirmDialog";
+import SettingsTab from "@/components/admin/SettingsTab";
 
 export default function AdminDashboardPage() {
   const router = useRouter();
   const { user, loading: authLoading, signOut } = useAuth();
 
   // Active Tab
-  const [activeTab, setActiveTab] = useState<"projects" | "testimonials">("projects");
+  const [activeTab, setActiveTab] = useState<"projects" | "testimonials" | "settings">("projects");
 
   // Projects State
   const [projects, setProjects] = useState<ProjectItem[]>([]);
@@ -517,7 +518,7 @@ export default function AdminDashboardPage() {
             onToggleHome={handleToggleHome}
             togglingHomeId={togglingHomeId}
           />
-        ) : (
+        ) : activeTab === "testimonials" ? (
           <TestimonialsTab
             testimonials={testimonials}
             loading={loadingTestimonials}
@@ -527,6 +528,13 @@ export default function AdminDashboardPage() {
             onEdit={handleEditTestimonial}
             onDelete={handleDeleteTestimonial}
             onToggleStatus={handleToggleTestimonialStatus}
+          />
+        ) : (
+          <SettingsTab
+            onSuccessToast={(msg) => {
+              setStatusMessage(msg);
+              setTimeout(() => setStatusMessage(""), 4000);
+            }}
           />
         )}
       </div>

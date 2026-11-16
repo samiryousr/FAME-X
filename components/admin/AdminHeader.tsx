@@ -9,16 +9,17 @@ import {
   FolderGit2,
   MessageSquare,
   CheckCircle2,
+  Phone,
 } from "lucide-react";
 
 interface AdminHeaderProps {
   userEmail?: string | null;
-  activeTab: "projects" | "testimonials";
+  activeTab: "projects" | "testimonials" | "settings";
   projectsCount: number;
   testimonialsCount: number;
   pendingTestimonialsCount: number;
   statusMessage?: string;
-  onTabChange: (tab: "projects" | "testimonials") => void;
+  onTabChange: (tab: "projects" | "testimonials" | "settings") => void;
   onLogout: () => void;
 }
 
@@ -148,6 +149,19 @@ export default function AdminHeader({
               {pendingTestimonialsCount} بانتظار المراجعة
             </span>
           )}
+        </button>
+
+        <button
+          type="button"
+          onClick={() => onTabChange("settings")}
+          className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-extrabold transition-all cursor-pointer ${
+            activeTab === "settings"
+              ? "bg-[#286b3c] text-white shadow-md shadow-[#286b3c]/20"
+              : "bg-white text-[#727970] hover:text-[#20251f] hover:bg-[#eef5e9] border border-[#e2e8de]"
+          }`}
+        >
+          <Phone className="w-4 h-4" />
+          <span>بيانات التواصل</span>
         </button>
       </nav>
     </div>
