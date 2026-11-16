@@ -1,3 +1,4 @@
+import Image from "next/image";
 import NinoSky from "@/components/NinoSky";
 import {
   FacebookIcon,
@@ -43,7 +44,14 @@ function FooterContent({
           <div className="i9k-footer__top">
             {/* Brand & Identity Column */}
             <div className="i9k-footer__brand">
-              <a href={sectionHref("home")} className="i9k-footer__brand-link" aria-label="FameX - الرئيسية">
+              <a href={sectionHref("home")} className="i9k-footer__brand-link flex items-center gap-2.5" aria-label="FameX - الرئيسية">
+                <Image
+                  src="/famex-symbol.svg"
+                  alt="FameX Logo"
+                  width={40}
+                  height={34}
+                  className="shrink-0"
+                />
                 <span className="brand-visual" aria-hidden="true">
                   <span className="brand-current" dir="ltr">
                     <span className="brand-letter">

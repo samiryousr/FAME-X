@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { useAuth } from "@/components/AdminAuthProvider";
 import { Lock, Mail, ArrowLeft, ShieldAlert, LogIn, Loader2 } from "lucide-react";
 
@@ -82,8 +83,14 @@ export default function AdminLoginPage() {
 
         {/* Title */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-[#39834c] to-[#28633a] shadow-[0_6px_18px_rgba(40,107,60,0.25)] text-white mb-3.5">
-            <Lock className="w-6 h-6" />
+          <div className="inline-flex items-center justify-center p-3 rounded-2xl bg-[#eef5e9] border border-[#cfe0c9] shadow-sm mb-3.5">
+            <Image
+              src="/famex-symbol.svg"
+              alt="FameX Logo"
+              width={44}
+              height={36}
+              priority
+            />
           </div>
           <h1 className="text-2xl font-extrabold text-[#20251f]">
             تسجيل دخول <span className="text-[#286b3c]">الأدمن</span>

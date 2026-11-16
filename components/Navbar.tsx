@@ -65,7 +65,7 @@ export default function Navbar() {
           <Image
             className="navbar__mark"
             src="/famex-symbol.svg"
-            alt=""
+            alt="FameX Logo"
             width={44}
             height={38}
             priority

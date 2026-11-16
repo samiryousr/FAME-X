@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import {
   Eye,
   ExternalLink,
@@ -38,11 +39,21 @@ export default function AdminHeader({
         <div className="flex items-center gap-3">
           <Link
             href="/"
-            className="text-xl font-bold tracking-wider font-[family-name:var(--font-pixel)] hover:opacity-90 transition-opacity"
+            className="flex items-center gap-2 text-xl font-bold tracking-wider font-[family-name:var(--font-pixel)] hover:opacity-90 transition-opacity"
             dir="ltr"
           >
-            <span className="text-[#286b3c]">FAME</span>
-            <span className="text-[#39a653]">X</span>
+            <Image
+              src="/famex-symbol.svg"
+              alt="FameX Logo"
+              width={28}
+              height={23}
+              priority
+              className="shrink-0"
+            />
+            <span>
+              <span className="text-[#286b3c]">FAME</span>
+              <span className="text-[#39a653]">X</span>
+            </span>
           </Link>
           <span className="text-[#c5d1c2]">/</span>
           <span className="text-xs font-bold text-[#286b3c] bg-[#eef5e9] px-3 py-1 rounded-lg border border-[#cfe0c9]">

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useState, useEffect, useRef } from "react";
 import { ArrowLeft, Layers, FolderGit2, RotateCw } from "lucide-react";
 import {
@@ -292,8 +293,18 @@ export default function AllProjects() {
 
         <div className="all-projects__inner">
           <header className="all-projects__top">
-            <Link className="all-projects__brand" href="/#home" dir="ltr">
-              FAME<span>X</span>
+            <Link className="all-projects__brand flex items-center gap-2.5" href="/#home" dir="ltr">
+              <Image
+                src="/famex-symbol.svg"
+                alt="FameX Logo"
+                width={36}
+                height={30}
+                priority
+                className="shrink-0"
+              />
+              <span>
+                FAME<span>X</span>
+              </span>
             </Link>
             <Link className="all-projects__back" href="/#projects">
               <ArrowLeft size={16} aria-hidden="true" />

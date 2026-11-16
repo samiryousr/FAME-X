@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import {
   IBM_Plex_Sans_Arabic,
   Press_Start_2P,
@@ -33,10 +33,45 @@ const terminalFont = VT323({
   variable: "--font-vt323",
 });
 
+export const viewport: Viewport = {
+  themeColor: "#070d08",
+  colorScheme: "dark",
+};
+
 export const metadata: Metadata = {
-  title: "FameX | حريفة الديجيتال وحلول الألعاب",
+  title: {
+    default: "FameX | حريفة الديجيتال وحلول الألعاب",
+    template: "%s | FameX",
+  },
   description:
     "بنحوّل أفكارك لمنتجات وتجارب ديجيتال طلقة تخلّي بيزنسك يسبق الكل ويبيع صح.. من غير لف ولا دوران.",
+  icons: {
+    icon: [
+      { url: "/famex-symbol.svg", type: "image/svg+xml" },
+      { url: "/favicon.ico", sizes: "any" },
+      { url: "/famex-symbol.png", sizes: "192x192", type: "image/png" },
+    ],
+    shortcut: "/favicon.ico",
+    apple: [
+      { url: "/famex-symbol.png", sizes: "180x180", type: "image/png" },
+    ],
+  },
+  openGraph: {
+    title: "FameX | حريفة الديجيتال وحلول الألعاب",
+    description:
+      "بنحوّل أفكارك لمنتجات وتجارب ديجيتال طلقة تخلّي بيزنسك يسبق الكل ويبيع صح.. من غير لف ولا دوران.",
+    siteName: "FameX",
+    images: [
+      {
+        url: "/famex-symbol.png",
+        width: 656,
+        height: 360,
+        alt: "FameX Digital Players",
+      },
+    ],
+    locale: "ar_EG",
+    type: "website",
+  },
 };
 
 export default function RootLayout({
