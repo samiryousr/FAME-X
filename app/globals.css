@@ -7675,42 +7675,59 @@ body.scroll-reveal-ready .services__card.scroll-revealed {
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  padding: 8px 16px;
+  border-radius: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(11, 23, 14, 0.5);
+  backdrop-filter: blur(8px);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.partner-logo-item:hover {
+  border-color: rgba(166, 244, 93, 0.45);
+  background: rgba(15, 34, 20, 0.8);
+  box-shadow: 0 0 24px rgba(166, 244, 93, 0.18), inset 0 0 12px rgba(166, 244, 93, 0.06);
+  transform: translateY(-2px) scale(1.04);
 }
 
 .partner-logo-item img {
-  height: 50px;
+  height: 48px;
   width: auto;
   max-width: 160px;
   object-fit: contain;
-  opacity: 0.85;
-  transition: opacity 0.3s ease, transform 0.35s ease, filter 0.3s ease;
+  border-radius: 10px;
+  opacity: 0.88;
+  transition: opacity 0.3s ease, filter 0.3s ease;
 }
 
 @media (min-width: 480px) {
   .partner-logo-item img {
-    height: 60px;
+    height: 58px;
     max-width: 195px;
   }
 }
 
 @media (min-width: 640px) {
+  .partner-logo-item {
+    padding: 10px 22px;
+    border-radius: 22px;
+  }
   .partner-logo-item img {
-    height: 72px;
-    max-width: 240px;
+    height: 70px;
+    max-width: 235px;
   }
 }
 
 @media (min-width: 1024px) {
   .partner-logo-item img {
-    height: 82px;
-    max-width: 270px;
+    height: 80px;
+    max-width: 265px;
   }
 }
 
 .partner-logo-item:hover img {
   opacity: 1;
-  transform: scale(1.08);
-  filter: drop-shadow(0 0 16px rgba(166, 244, 93, 0.45));
+  filter: brightness(1.08);
 }
 
 @keyframes partners-scroll {

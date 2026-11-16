@@ -249,7 +249,7 @@ function PartnerItem({
       loading="lazy"
       decoding="async"
       draggable={false}
-      className="pointer-events-none"
+      className="pointer-events-none rounded-lg"
       title={partner.name}
     />
   );
@@ -262,7 +262,7 @@ function PartnerItem({
         rel="noopener noreferrer"
         onClick={handleClick}
         aria-label={partner.name}
-        className="inline-flex items-center justify-center transition-transform hover:scale-105"
+        className="inline-flex items-center justify-center"
       >
         {imageElement}
       </a>
