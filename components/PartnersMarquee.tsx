@@ -53,10 +53,15 @@ export default function PartnersMarquee() {
   return (
     <section className="partners-wrap" id="partners" aria-label="شركاء النجاح">
       {/* Category / Section Label */}
-      <p className="partners-label font-[family-name:var(--font-mono)]">
-        <span className="w-1.5 h-1.5 rounded-full bg-[#a6f45d] animate-pulse" />
-        <span>CLIENTS IN THE DIGITAL WORLD // شركاء وثقوا بنا</span>
-      </p>
+      <div className="partners-label">
+        <span className="w-2.5 h-2.5 rounded-full bg-[#a6f45d] animate-pulse shrink-0 shadow-[0_0_10px_#a6f45d]" />
+        <span className="text-base sm:text-lg md:text-xl font-black text-white tracking-wide">
+          شركاء وثقوا بنا
+        </span>
+        <span className="text-[11px] sm:text-xs font-mono font-bold text-[#a6f45d]/80 tracking-widest hidden sm:inline" dir="ltr">
+          {"// CLIENTS & PARTNERS"}
+        </span>
+      </div>
 
       {/* Marquee Outer Frame with Navigation Arrows */}
       <div className="marquee-outer">
@@ -112,8 +117,8 @@ function PartnerItem({ partner }: { partner: Partner }) {
     <Image
       src={partner.logoUrl}
       alt={partner.name}
-      width={180}
-      height={60}
+      width={240}
+      height={85}
       loading="lazy"
       decoding="async"
       className="cursor-pointer"
