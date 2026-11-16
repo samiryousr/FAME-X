@@ -7655,12 +7655,12 @@ body.scroll-reveal-ready .services__card.scroll-revealed {
   display: flex;
   width: max-content;
   user-select: none;
-  animation: partners-scroll 30s linear infinite;
+  cursor: grab;
   will-change: transform;
 }
 
-.marquee-overflow:hover .marquee-track {
-  animation-play-state: paused;
+.marquee-track.is-grabbing {
+  cursor: grabbing;
 }
 
 .marquee-set {
