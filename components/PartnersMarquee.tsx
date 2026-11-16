@@ -249,7 +249,7 @@ function PartnerItem({
       loading="lazy"
       decoding="async"
       draggable={false}
-      className="pointer-events-none rounded-lg"
+      className="pointer-events-none"
       title={partner.name}
     />
   );
