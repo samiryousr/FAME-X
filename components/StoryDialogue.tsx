@@ -584,15 +584,15 @@ export default function StoryDialogue() {
                     />
                   </div>
 
-                  {/* Center: محمد */}
+                  {/* Center: إياد */}
                   <div
-                    onClick={() => jumpToScene(2)}
+                    onClick={() => jumpToScene(1)}
                     className="relative -mx-3 z-20 w-28 xs:w-32 h-[170px] xs:h-[180px] shrink-0 flex items-end justify-center cursor-pointer transition-transform active:scale-95"
-                    title="محمد - UI/UX Designer"
+                    title="إياد - Mobile Dev"
                   >
                     <Image
-                      src="/characters/designer_v4.png"
-                      alt="محمد"
+                      src="/characters/developer_v4.png"
+                      alt="إياد"
                       width={135}
                       height={180}
                       priority
@@ -600,15 +600,15 @@ export default function StoryDialogue() {
                     />
                   </div>
 
-                  {/* Right: إياد */}
+                  {/* Right: محمد */}
                   <div
-                    onClick={() => jumpToScene(1)}
+                    onClick={() => jumpToScene(2)}
                     className="relative -mr-1 -mb-0.5 w-24 xs:w-28 h-[150px] xs:h-[160px] shrink-0 opacity-95 z-10 flex items-end justify-center cursor-pointer transition-transform active:scale-95"
-                    title="إياد - Mobile Dev"
+                    title="محمد - UI/UX Designer"
                   >
                     <Image
-                      src="/characters/developer_v4.png"
-                      alt="إياد"
+                      src="/characters/designer_v4.png"
+                      alt="محمد"
                       width={120}
                       height={160}
                       priority
@@ -624,80 +624,7 @@ export default function StoryDialogue() {
           {/* 💻 DESKTOP VIEW: 3-Way Comic Action Panels Grid (sm and up) */}
           <div className="hidden sm:grid sm:grid-cols-3 relative z-10 w-full max-w-md sm:max-w-xl mx-auto gap-4 items-end justify-items-center px-1">
             
-            {/* 💻 Comic Panel 1: إياد - المطوّر (Developer) */}
-            <div
-              onClick={() => jumpToScene(1)}
-              className={`group relative w-full flex flex-col items-center cursor-pointer transition-all duration-500 ${
-                currentScene.activeCharacter === "developer"
-                  ? "scale-105 z-20 -translate-y-1"
-                  : currentScene.activeCharacter === "all"
-                  ? "scale-100 z-10"
-                  : "scale-95 z-0 opacity-40 hover:opacity-75 grayscale-[20%]"
-              }`}
-            >
-              {/* Comic Frame Card */}
-              <div
-                className={`relative w-full rounded-2xl border-2 transition-all duration-500 overflow-hidden flex flex-col justify-between p-1.5 sm:p-2.5 h-[160px] sm:h-[185px] md:h-[195px] ${
-                  currentScene.activeCharacter === "developer" || currentScene.activeCharacter === "all"
-                    ? "border-[#a6f45d] bg-gradient-to-b from-[#0c2413] via-[#09170e] to-[#040905] shadow-md"
-                    : "border-[#1b3420] bg-[#071009] shadow-none"
-                }`}
-              >
-                {/* Halftone / Matrix Pattern */}
-                <div
-                  className="absolute inset-0 opacity-20 pointer-events-none"
-                  style={{
-                    backgroundImage: "radial-gradient(#a6f45d 1px, transparent 1px)",
-                    backgroundSize: "12px 12px",
-                  }}
-                />
-
-                {/* Floating Code Ambience */}
-                <div className="hidden sm:block absolute top-7 left-1.5 font-mono text-[10px] text-[#a6f45d]/40 font-bold select-none">
-                  {"<App />"}
-                </div>
-                <div className="hidden sm:block absolute bottom-10 right-1.5 font-mono text-[10px] text-[#a6f45d]/30 font-bold select-none">
-                  {"{ iOS }"}
-                </div>
-
-                {/* Comic Header Ribbon */}
-                <div className="relative z-10 flex items-center justify-between w-full border-b border-[#a6f45d]/20 pb-0.5 sm:pb-1">
-                  <span className="text-[7.5px] sm:text-[9px] font-mono font-black tracking-wider text-[#a6f45d] flex items-center gap-0.5 sm:gap-1">
-                    <PixelTerminal size={9} />
-                    <span>DEV</span>
-                  </span>
-                  {currentScene.activeCharacter === "developer" && (
-                    <span className="px-1 sm:px-1.5 py-0.2 rounded-full bg-[#a6f45d] text-black font-mono font-black text-[6px] sm:text-[7.5px] animate-pulse">
-                      TALKING
-                    </span>
-                  )}
-                </div>
-
-                {/* In-Frame Solid Nameplate Base */}
-                <div className="relative z-30 w-full mt-auto py-1 border-t border-[#a6f45d]/25 bg-black/75 backdrop-blur-xs text-center rounded-b-xl">
-                  <p className="text-[9px] sm:text-[11px] font-black text-white font-mono leading-tight">
-                    إياد
-                  </p>
-                  <p className="text-[6.5px] sm:text-[7.5px] text-[#a6f45d] font-mono font-bold tracking-tight">
-                    MOBILE DEV
-                  </p>
-                </div>
-              </div>
-
-              {/* 💥 3D Pop-Out Character Sprite (Grounded on pedestal, bursting through top frame!) */}
-              <div className="absolute bottom-5 sm:bottom-6 z-20 w-24 sm:w-32 md:w-36 h-[160px] sm:h-[195px] md:h-[210px] flex items-end justify-center pointer-events-none transition-transform duration-500 group-hover:scale-105">
-                <Image
-                  src="/characters/developer_v4.png"
-                  alt="إياد - المطوّر"
-                  width={140}
-                  height={180}
-                  priority
-                  className="object-contain max-h-full drop-shadow-[0_12px_24px_rgba(0,0,0,0.95)] [image-rendering:pixelated]"
-                />
-              </div>
-            </div>
-
-            {/* 🎨 Comic Panel 2: محمد - المصمّم (Designer) */}
+            {/* 🎨 Comic Panel 1 (Right): محمد - المصمّم (Designer) */}
             <div
               onClick={() => jumpToScene(2)}
               className={`group relative w-full flex flex-col items-center cursor-pointer transition-all duration-500 ${
@@ -758,11 +685,84 @@ export default function StoryDialogue() {
                 </div>
               </div>
 
-              {/* 💥 3D Pop-Out Character Sprite (Grounded on pedestal, bursting through top frame!) */}
+              {/* 💥 3D Pop-Out Character Sprite */}
               <div className="absolute bottom-5 sm:bottom-6 z-20 w-24 sm:w-32 md:w-36 h-[160px] sm:h-[195px] md:h-[210px] flex items-end justify-center pointer-events-none transition-transform duration-500 group-hover:scale-105">
                 <Image
                   src="/characters/designer_v4.png"
                   alt="محمد - المصمّم"
+                  width={140}
+                  height={180}
+                  priority
+                  className="object-contain max-h-full drop-shadow-[0_12px_24px_rgba(0,0,0,0.95)] [image-rendering:pixelated]"
+                />
+              </div>
+            </div>
+
+            {/* 💻 Comic Panel 2 (Center): إياد - المطوّر (Developer) */}
+            <div
+              onClick={() => jumpToScene(1)}
+              className={`group relative w-full flex flex-col items-center cursor-pointer transition-all duration-500 ${
+                currentScene.activeCharacter === "developer"
+                  ? "scale-105 z-20 -translate-y-1"
+                  : currentScene.activeCharacter === "all"
+                  ? "scale-100 z-10"
+                  : "scale-95 z-0 opacity-40 hover:opacity-75 grayscale-[20%]"
+              }`}
+            >
+              {/* Comic Frame Card */}
+              <div
+                className={`relative w-full rounded-2xl border-2 transition-all duration-500 overflow-hidden flex flex-col justify-between p-1.5 sm:p-2.5 h-[160px] sm:h-[185px] md:h-[195px] ${
+                  currentScene.activeCharacter === "developer" || currentScene.activeCharacter === "all"
+                    ? "border-[#a6f45d] bg-gradient-to-b from-[#0c2413] via-[#09170e] to-[#040905] shadow-md"
+                    : "border-[#1b3420] bg-[#071009] shadow-none"
+                }`}
+              >
+                {/* Halftone / Matrix Pattern */}
+                <div
+                  className="absolute inset-0 opacity-20 pointer-events-none"
+                  style={{
+                    backgroundImage: "radial-gradient(#a6f45d 1px, transparent 1px)",
+                    backgroundSize: "12px 12px",
+                  }}
+                />
+
+                {/* Floating Code Ambience */}
+                <div className="hidden sm:block absolute top-7 left-1.5 font-mono text-[10px] text-[#a6f45d]/40 font-bold select-none">
+                  {"<App />"}
+                </div>
+                <div className="hidden sm:block absolute bottom-10 right-1.5 font-mono text-[10px] text-[#a6f45d]/30 font-bold select-none">
+                  {"{ iOS }"}
+                </div>
+
+                {/* Comic Header Ribbon */}
+                <div className="relative z-10 flex items-center justify-between w-full border-b border-[#a6f45d]/20 pb-0.5 sm:pb-1">
+                  <span className="text-[7.5px] sm:text-[9px] font-mono font-black tracking-wider text-[#a6f45d] flex items-center gap-0.5 sm:gap-1">
+                    <PixelTerminal size={9} />
+                    <span>DEV</span>
+                  </span>
+                  {currentScene.activeCharacter === "developer" && (
+                    <span className="px-1 sm:px-1.5 py-0.2 rounded-full bg-[#a6f45d] text-black font-mono font-black text-[6px] sm:text-[7.5px] animate-pulse">
+                      TALKING
+                    </span>
+                  )}
+                </div>
+
+                {/* In-Frame Solid Nameplate Base */}
+                <div className="relative z-30 w-full mt-auto py-1 border-t border-[#a6f45d]/25 bg-black/75 backdrop-blur-xs text-center rounded-b-xl">
+                  <p className="text-[9px] sm:text-[11px] font-black text-white font-mono leading-tight">
+                    إياد
+                  </p>
+                  <p className="text-[6.5px] sm:text-[7.5px] text-[#a6f45d] font-mono font-bold tracking-tight">
+                    MOBILE DEV
+                  </p>
+                </div>
+              </div>
+
+              {/* 💥 3D Pop-Out Character Sprite */}
+              <div className="absolute bottom-5 sm:bottom-6 z-20 w-24 sm:w-32 md:w-36 h-[160px] sm:h-[195px] md:h-[210px] flex items-end justify-center pointer-events-none transition-transform duration-500 group-hover:scale-105">
+                <Image
+                  src="/characters/developer_v4.png"
+                  alt="إياد - المطوّر"
                   width={140}
                   height={180}
                   priority
