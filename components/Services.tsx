@@ -1,6 +1,6 @@
 "use client";
 
-import { Camera, Code2, Smartphone, Sparkles } from "lucide-react";
+import { Camera, Code2, Smartphone, Palette } from "lucide-react";
 import { useEffect, useRef } from "react";
 
 type WirePoint = { x: number; y: number };
@@ -8,22 +8,22 @@ type WirePoint = { x: number; y: number };
 const services = [
   {
     title: "أبلكيشن موبايل طلقة",
-    description: "تطبيق سريع وخفيف على iOS وAndroid، عميلك هيفتحه كل يوم ويفضل معاه.. مريح ومفهوش تعقيد.",
+    description: "تطبيقات Native سريعة وخفيفة على iOS وAndroid، عميلك هيفتحها كل يوم وتفضل معاه.. مريحة وبدون أي تعقيد.",
     Icon: Smartphone,
   },
   {
     title: "مواقع تفتح النفس وتبيع",
-    description: "موقعك هو واجهتك الأولى.. بنبنيه سريع زي الصاروخ، يشرفك قدام زباينك ويحوّل الزائر لمشتري فوري.",
+    description: "موقعك وواجهتك الأولى.. بنبنيه سريع زي الصاروخ، يشرفك قدام زباينك ويحوّل الزائر لعميل ومشترٍ فوري.",
     Icon: Code2,
   },
   {
-    title: "هوية كاملة تثبت في الدماغ",
-    description: "لوجو وديزاين كامل بيخلّي براندك ليه هيبة وشخصية تفرّقك عن أي منافس.. العميل يشوفه يعلّم معاه على طول.",
-    Icon: Sparkles,
+    title: "هوية وتصميم UI/UX يعلّم",
+    description: "لوجو وديزاين كامل وواجهات تخطف العين.. سيكولوجية تجربة مريحة تخلي العميل يرتاح نفسياً وميستغناش عنك.",
+    Icon: Palette,
   },
   {
     title: "محتوى يخطف الانتباه",
-    description: "تصوير وموشن جرافيك يبرز جمال منتجك ويحكي قصتك بأسلوب يخلي العميل يوقف سكرول ويطلب فوراً.",
+    description: "تصوير سينمائي وموشن جرافيك يبرز جمال منتجك، ويحكي قصتك بأسلوب يخلي العميل يوقف سكرول ويطلب فوراً.",
     Icon: Camera,
   },
 ];
