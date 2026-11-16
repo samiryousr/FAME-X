@@ -54,41 +54,41 @@ const STORY_SCENES: StoryScene[] = [
   {
     id: "scene-developer",
     badge: "02 // MOBILE APP DEVELOPER",
-    speaker: "أحمد // MOBILE APP DEVELOPER",
+    speaker: "إياد // MOBILE APP DEVELOPER",
     roleTitle: "IOS & ANDROID SPECIALIST",
     avatar: "/characters/avatars/developer_face.png",
     accentColor: "#a6f45d",
     glowColor: "rgba(166, 244, 93, 0.3)",
     activeCharacter: "developer",
     dialogue:
-      "أنا أحمد.. غاوي برمجة وتطوير تطبيقات موبايل من سنين. دوري في مشروعك إني أبنيلك أبلكيشن سريع طلقة وسلس على آيفون وأندرويد، خفيف ومبيقعش تحت أي ضغط مستخدمين.",
-    highlightWords: ["أنا أحمد", "تطبيقات موبايل من سنين", "أبلكيشن سريع طلقة", "آيفون وأندرويد", "مبيقعش تحت أي ضغط"],
+      "أنا إياد.. غاوي برمجة وتطوير تطبيقات موبايل من سنين. دوري في مشروعك إني أبنيلك أبلكيشن سريع طلقة وسلس على آيفون وأندرويد، خفيف ومبيقعش تحت أي ضغط مستخدمين.",
+    highlightWords: ["أنا إياد", "تطبيقات موبايل من سنين", "أبلكيشن سريع طلقة", "آيفون وأندرويد", "مبيقعش تحت أي ضغط"],
   },
   {
     id: "scene-designer",
     badge: "03 // UI/UX DESIGNER",
-    speaker: "عمر // UI/UX DESIGNER",
+    speaker: "محمد // UI/UX DESIGNER",
     roleTitle: "PRODUCT & INTERACTION DESIGN",
     avatar: "/characters/avatars/designer_face.png",
     accentColor: "#52c974",
     glowColor: "rgba(82, 201, 116, 0.3)",
     activeCharacter: "designer",
     dialogue:
-      "وأنا عمر.. مهووس بتفاصيل التصميم وسيكولوجية تجربة المستخدم. وظيفتي أصنع لبيزنسك واجهات وتطبيقات تخطف العين، وتجربة سهلة تخلي العميل يرتاح نفسياً وميستغناش عن الأبلكيشن بتاعك.",
-    highlightWords: ["وأنا عمر", "سيكولوجية تجربة المستخدم", "واجهات وتطبيقات تخطف العين", "تجربة سهلة", "وميستغناش عن الأبلكيشن"],
+      "وأنا محمد.. مهووس بتفاصيل التصميم وسيكولوجية تجربة المستخدم. وظيفتي أصنع لبيزنسك واجهات وتطبيقات تخطف العين، وتجربة سهلة تخلي العميل يرتاح نفسياً وميستغناش عن الأبلكيشن بتاعك.",
+    highlightWords: ["وأنا محمد", "سيكولوجية تجربة المستخدم", "واجهات وتطبيقات تخطف العين", "تجربة سهلة", "وميستغناش عن الأبلكيشن"],
   },
   {
     id: "scene-photographer",
     badge: "04 // CREATIVE DIRECTOR",
-    speaker: "كريم // CREATIVE DIRECTOR",
+    speaker: "جلال // CREATIVE DIRECTOR",
     roleTitle: "MEDIA & CINEMATIC",
     avatar: "/characters/avatars/photographer_face.png",
     accentColor: "#38bdf8",
     glowColor: "rgba(56, 189, 248, 0.3)",
     activeCharacter: "photographer",
     dialogue:
-      "أما أنا كريم.. عيني التالتة هي الكاميرا. مسؤوليتي أطلع مشروعك ومنتجاتك بكادرات وإضاءة سينمائية فخمة، تفرّقك عن كل منافسيك وتعمل لعلامتك التجارية هيبة حقيقية.",
-    highlightWords: ["أما أنا كريم", "عيني التالتة هي الكاميرا", "إضاءة سينمائية فخمة", "تفرّقك عن كل منافسيك", "هيبة حقيقية"],
+      "أما أنا جلال.. عيني التالتة هي الكاميرا. مسؤوليتي أطلع مشروعك ومنتجاتك بكادرات وإضاءة سينمائية فخمة، تفرّقك عن كل منافسيك وتعمل لعلامتك التجارية هيبة حقيقية.",
+    highlightWords: ["أما أنا جلال", "عيني التالتة هي الكاميرا", "إضاءة سينمائية فخمة", "تفرّقك عن كل منافسيك", "هيبة حقيقية"],
   },
   {
     id: "scene-trio",
@@ -422,7 +422,7 @@ export default function StoryDialogue() {
             {/* 🌟 Open Character Stage (Zero-Lag Pre-Mounted Cross-Fade) */}
             <div className="relative w-full max-w-[340px] h-[215px] xs:h-[230px] flex items-end justify-center">
 
-              {/* 💻 Hero 1: أحمد - المطوّر */}
+              {/* 💻 Hero 1: إياد - المطوّر */}
               <div
                 className={`absolute inset-0 flex flex-col items-center justify-end pb-1 transition-all duration-300 ease-out ${
                   currentScene.activeCharacter === "developer"
@@ -433,7 +433,7 @@ export default function StoryDialogue() {
                 {/* Floating Character Badge */}
                 <div className="mb-auto mt-0.5 flex items-center gap-1.5 px-3 py-1 rounded-full bg-black/85 border border-[#a6f45d]/40 backdrop-blur-md shadow-sm">
                   <span className="w-1.5 h-1.5 rounded-full bg-[#a6f45d] animate-pulse" />
-                  <span className="text-[10px] font-black text-white font-mono">أحمد</span>
+                  <span className="text-[10px] font-black text-white font-mono">إياد</span>
                   <span className="text-[8px] text-[#a6f45d] font-mono font-bold tracking-wider">{"// MOBILE APP ARCHITECT"}</span>
                 </div>
 
@@ -453,7 +453,7 @@ export default function StoryDialogue() {
                 >
                   <Image
                     src="/characters/developer_v4.png"
-                    alt="أحمد - المطوّر"
+                    alt="إياد - المطوّر"
                     width={155}
                     height={185}
                     priority
@@ -462,7 +462,7 @@ export default function StoryDialogue() {
                 </div>
               </div>
 
-              {/* 🎨 Hero 2: عمر - المصمّم */}
+              {/* 🎨 Hero 2: محمد - المصمّم */}
               <div
                 className={`absolute inset-0 flex flex-col items-center justify-end pb-1 transition-all duration-300 ease-out ${
                   currentScene.activeCharacter === "designer"
@@ -473,7 +473,7 @@ export default function StoryDialogue() {
                 {/* Floating Character Badge */}
                 <div className="mb-auto mt-0.5 flex items-center gap-1.5 px-3 py-1 rounded-full bg-black/85 border border-[#52c974]/40 backdrop-blur-md shadow-sm">
                   <span className="w-1.5 h-1.5 rounded-full bg-[#52c974] animate-pulse" />
-                  <span className="text-[10px] font-black text-white font-mono">عمر</span>
+                  <span className="text-[10px] font-black text-white font-mono">محمد</span>
                   <span className="text-[8px] text-[#52c974] font-mono font-bold tracking-wider">{"// UI/UX PRODUCT DESIGNER"}</span>
                 </div>
 
@@ -493,7 +493,7 @@ export default function StoryDialogue() {
                 >
                   <Image
                     src="/characters/designer_v4.png"
-                    alt="عمر - المصمّم"
+                    alt="محمد - المصمّم"
                     width={155}
                     height={185}
                     priority
@@ -502,7 +502,7 @@ export default function StoryDialogue() {
                 </div>
               </div>
 
-              {/* 📸 Hero 3: كريم - الكرييتف */}
+              {/* 📸 Hero 3: جلال - الكرييتف */}
               <div
                 className={`absolute inset-0 flex flex-col items-center justify-end pb-1 transition-all duration-300 ease-out ${
                   currentScene.activeCharacter === "photographer"
@@ -513,7 +513,7 @@ export default function StoryDialogue() {
                 {/* Floating Character Badge */}
                 <div className="mb-auto mt-0.5 flex items-center gap-1.5 px-3 py-1 rounded-full bg-black/85 border border-[#38bdf8]/40 backdrop-blur-md shadow-sm">
                   <span className="w-1.5 h-1.5 rounded-full bg-[#38bdf8] animate-pulse" />
-                  <span className="text-[10px] font-black text-white font-mono">كريم</span>
+                  <span className="text-[10px] font-black text-white font-mono">جلال</span>
                   <span className="text-[8px] text-[#38bdf8] font-mono font-bold tracking-wider">{"// CREATIVE MEDIA DIRECTOR"}</span>
                 </div>
 
@@ -533,7 +533,7 @@ export default function StoryDialogue() {
                 >
                   <Image
                     src="/characters/photographer_v4.png"
-                    alt="كريم - الكرييتف"
+                    alt="جلال - الكرييتف"
                     width={155}
                     height={185}
                     priority
@@ -568,15 +568,15 @@ export default function StoryDialogue() {
 
                 {/* 💥 Trio Open Formation (Full Shoes & Full Bodies Visible, Fully Interactive) */}
                 <div className="relative z-10 w-full flex items-end justify-center px-1">
-                  {/* Left: كريم */}
+                  {/* Left: جلال */}
                   <div
                     onClick={() => jumpToScene(3)}
                     className="relative -ml-1 -mb-0.5 w-24 xs:w-28 h-[150px] xs:h-[160px] shrink-0 opacity-95 z-10 flex items-end justify-center cursor-pointer transition-transform active:scale-95"
-                    title="كريم - Creative Media"
+                    title="جلال - Creative Media"
                   >
                     <Image
                       src="/characters/photographer_v4.png"
-                      alt="كريم"
+                      alt="جلال"
                       width={120}
                       height={160}
                       priority
@@ -584,15 +584,15 @@ export default function StoryDialogue() {
                     />
                   </div>
 
-                  {/* Center: عمر */}
+                  {/* Center: محمد */}
                   <div
                     onClick={() => jumpToScene(2)}
                     className="relative -mx-3 z-20 w-28 xs:w-32 h-[170px] xs:h-[180px] shrink-0 flex items-end justify-center cursor-pointer transition-transform active:scale-95"
-                    title="عمر - UI/UX Designer"
+                    title="محمد - UI/UX Designer"
                   >
                     <Image
                       src="/characters/designer_v4.png"
-                      alt="عمر"
+                      alt="محمد"
                       width={135}
                       height={180}
                       priority
@@ -600,15 +600,15 @@ export default function StoryDialogue() {
                     />
                   </div>
 
-                  {/* Right: أحمد */}
+                  {/* Right: إياد */}
                   <div
                     onClick={() => jumpToScene(1)}
                     className="relative -mr-1 -mb-0.5 w-24 xs:w-28 h-[150px] xs:h-[160px] shrink-0 opacity-95 z-10 flex items-end justify-center cursor-pointer transition-transform active:scale-95"
-                    title="أحمد - Mobile Dev"
+                    title="إياد - Mobile Dev"
                   >
                     <Image
                       src="/characters/developer_v4.png"
-                      alt="أحمد"
+                      alt="إياد"
                       width={120}
                       height={160}
                       priority
@@ -624,7 +624,7 @@ export default function StoryDialogue() {
           {/* 💻 DESKTOP VIEW: 3-Way Comic Action Panels Grid (sm and up) */}
           <div className="hidden sm:grid sm:grid-cols-3 relative z-10 w-full max-w-md sm:max-w-xl mx-auto gap-4 items-end justify-items-center px-1">
             
-            {/* 💻 Comic Panel 1: أحمد - المطوّر (Developer) */}
+            {/* 💻 Comic Panel 1: إياد - المطوّر (Developer) */}
             <div
               onClick={() => jumpToScene(1)}
               className={`group relative w-full flex flex-col items-center cursor-pointer transition-all duration-500 ${
@@ -676,7 +676,7 @@ export default function StoryDialogue() {
                 {/* In-Frame Solid Nameplate Base */}
                 <div className="relative z-30 w-full mt-auto py-1 border-t border-[#a6f45d]/25 bg-black/75 backdrop-blur-xs text-center rounded-b-xl">
                   <p className="text-[9px] sm:text-[11px] font-black text-white font-mono leading-tight">
-                    أحمد
+                    إياد
                   </p>
                   <p className="text-[6.5px] sm:text-[7.5px] text-[#a6f45d] font-mono font-bold tracking-tight">
                     MOBILE DEV
@@ -688,7 +688,7 @@ export default function StoryDialogue() {
               <div className="absolute bottom-5 sm:bottom-6 z-20 w-24 sm:w-32 md:w-36 h-[160px] sm:h-[195px] md:h-[210px] flex items-end justify-center pointer-events-none transition-transform duration-500 group-hover:scale-105">
                 <Image
                   src="/characters/developer_v4.png"
-                  alt="أحمد - المطوّر"
+                  alt="إياد - المطوّر"
                   width={140}
                   height={180}
                   priority
@@ -697,7 +697,7 @@ export default function StoryDialogue() {
               </div>
             </div>
 
-            {/* 🎨 Comic Panel 2: عمر - المصمّم (Designer) */}
+            {/* 🎨 Comic Panel 2: محمد - المصمّم (Designer) */}
             <div
               onClick={() => jumpToScene(2)}
               className={`group relative w-full flex flex-col items-center cursor-pointer transition-all duration-500 ${
@@ -750,7 +750,7 @@ export default function StoryDialogue() {
                 {/* In-Frame Solid Nameplate Base */}
                 <div className="relative z-30 w-full mt-auto py-1 border-t border-[#52c974]/25 bg-black/75 backdrop-blur-xs text-center rounded-b-xl">
                   <p className="text-[9px] sm:text-[11px] font-black text-white font-mono leading-tight">
-                    عمر
+                    محمد
                   </p>
                   <p className="text-[6.5px] sm:text-[7.5px] text-[#52c974] font-mono font-bold tracking-tight">
                     UI/UX DESIGNER
@@ -762,7 +762,7 @@ export default function StoryDialogue() {
               <div className="absolute bottom-5 sm:bottom-6 z-20 w-24 sm:w-32 md:w-36 h-[160px] sm:h-[195px] md:h-[210px] flex items-end justify-center pointer-events-none transition-transform duration-500 group-hover:scale-105">
                 <Image
                   src="/characters/designer_v4.png"
-                  alt="عمر - المصمّم"
+                  alt="محمد - المصمّم"
                   width={140}
                   height={180}
                   priority
@@ -771,7 +771,7 @@ export default function StoryDialogue() {
               </div>
             </div>
 
-            {/* 📸 Comic Panel 3: كريم - الكرييتف (Photographer / Creative) */}
+            {/* 📸 Comic Panel 3: جلال - الكرييتف (Photographer / Creative) */}
             <div
               onClick={() => jumpToScene(3)}
               className={`group relative w-full flex flex-col items-center cursor-pointer transition-all duration-500 ${
@@ -829,7 +829,7 @@ export default function StoryDialogue() {
                 {/* In-Frame Solid Nameplate Base */}
                 <div className="relative z-30 w-full mt-auto py-1 border-t border-[#38bdf8]/25 bg-black/75 backdrop-blur-xs text-center rounded-b-xl">
                   <p className="text-[9px] sm:text-[11px] font-black text-white font-mono leading-tight">
-                    كريم
+                    جلال
                   </p>
                   <p className="text-[6.5px] sm:text-[7.5px] text-[#38bdf8] font-mono font-bold tracking-tight">
                     CREATIVE
@@ -841,7 +841,7 @@ export default function StoryDialogue() {
               <div className="absolute bottom-5 sm:bottom-6 z-20 w-24 sm:w-32 md:w-36 h-[160px] sm:h-[195px] md:h-[210px] flex items-end justify-center pointer-events-none transition-transform duration-500 group-hover:scale-105">
                 <Image
                   src="/characters/photographer_v4.png"
-                  alt="كريم - الكرييتف"
+                  alt="جلال - الكرييتف"
                   width={140}
                   height={180}
                   priority
