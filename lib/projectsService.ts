@@ -9,6 +9,7 @@ import {
   query,
   orderBy,
   serverTimestamp,
+  onSnapshot,
   type DocumentData,
 } from "firebase/firestore";
 import { getFirebaseDb } from "@/lib/firebase";
@@ -34,7 +35,7 @@ export const DEFAULT_PROJECTS: ProjectItem[] = [];
 const COLLECTION_NAME = "projects";
 const LOCAL_STORAGE_KEY = "famex_saved_projects";
 
-function getLocalProjects(): ProjectItem[] | null {
+export function getLocalProjects(): ProjectItem[] | null {
   if (typeof window === "undefined") return null;
   try {
     const raw = localStorage.getItem(LOCAL_STORAGE_KEY);
@@ -51,22 +52,18 @@ function getLocalProjects(): ProjectItem[] | null {
         p.id !== "platform"
     );
 
-    if (cleaned.length !== parsed.length) {
-      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(cleaned));
-      window.dispatchEvent(new CustomEvent("famex_projects_updated", { detail: cleaned }));
-    }
-
-    return cleaned.length > 0 ? cleaned : null;
+    return cleaned;
   } catch {
     return null;
   }
 }
 
-function setLocalProjects(projects: ProjectItem[]): void {
+export function setLocalProjects(projects: ProjectItem[]): void {
   if (typeof window === "undefined") return;
   try {
     localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(projects));
     window.dispatchEvent(new CustomEvent("famex_projects_updated", { detail: projects }));
+    window.dispatchEvent(new StorageEvent("storage", { key: LOCAL_STORAGE_KEY }));
   } catch {
     // Ignore localStorage write error
   }
@@ -74,47 +71,120 @@ function setLocalProjects(projects: ProjectItem[]): void {
 
 /**
  * Fetch all projects from Firestore with localStorage fallback and caching.
- * If collection is empty, returns DEFAULT_PROJECTS.
  */
 export async function getAllProjects(): Promise<ProjectItem[]> {
   try {
-    const q = query(collection(getFirebaseDb(), COLLECTION_NAME), orderBy("order", "asc"));
-    const snapshot = await getDocs(q);
-
-    if (!snapshot.empty) {
-      const projects: ProjectItem[] = [];
-      snapshot.forEach((docSnap) => {
-        const data = docSnap.data() as DocumentData;
-        projects.push({
-          id: docSnap.id,
-          title: data.title || "",
-          label: data.label || "",
-          description: data.description || "",
-          previewImage: data.previewImage || (data.images && data.images[0]) || "",
-          images: Array.isArray(data.images) ? data.images : [],
-          url: data.url || "",
-          showOnHome: data.showOnHome !== false,
-          order: typeof data.order === "number" ? data.order : 99,
-          demoScreen: data.demoScreen,
-          imageFit: (data.imageFit as "smart" | "cover" | "contain") || "smart",
-          createdAt: data.createdAt?.toMillis ? data.createdAt.toMillis() : Date.now(),
-        });
-      });
-
-      setLocalProjects(projects);
-      return projects;
+    let snapshot;
+    try {
+      const q = query(collection(getFirebaseDb(), COLLECTION_NAME), orderBy("order", "asc"));
+      snapshot = await getDocs(q);
+    } catch {
+      // Fallback query without orderBy in case field/index issues
+      snapshot = await getDocs(collection(getFirebaseDb(), COLLECTION_NAME));
     }
-  } catch (error) {
-    console.warn("Could not fetch projects from Firestore, falling back to local storage / defaults:", error);
-  }
 
-  // Check local storage fallback
+    const projects: ProjectItem[] = [];
+    snapshot.forEach((docSnap) => {
+      const data = docSnap.data() as DocumentData;
+      projects.push({
+        id: docSnap.id,
+        title: data.title || "",
+        label: data.label || "",
+        description: data.description || "",
+        previewImage: data.previewImage || (data.images && data.images[0]) || "",
+        images: Array.isArray(data.images) ? data.images : [],
+        url: data.url || "",
+        showOnHome: data.showOnHome !== false,
+        order: typeof data.order === "number" ? data.order : 99,
+        demoScreen: data.demoScreen,
+        imageFit: (data.imageFit as "smart" | "cover" | "contain") || "smart",
+        iconName: data.iconName || "",
+        createdAt: data.createdAt?.toMillis ? data.createdAt.toMillis() : Date.now(),
+      });
+    });
+
+    projects.sort((a, b) => a.order - b.order);
+    setLocalProjects(projects);
+    return projects;
+  } catch (error) {
+    console.warn("Could not fetch projects from Firestore, falling back to local storage:", error);
+    const local = getLocalProjects();
+    return local ?? [];
+  }
+}
+
+/**
+ * Real-time subscription to projects from Firestore.
+ * Updates local cache and immediately triggers callback on every database mutation.
+ */
+export function subscribeToProjects(
+  callback: (projects: ProjectItem[]) => void
+): () => void {
+  // 1. Fast path: Immediately invoke callback with local cached data if available (zero flicker)
   const local = getLocalProjects();
   if (local && local.length > 0) {
-    return local;
+    callback(local);
   }
 
-  return [];
+  // 2. Parallel immediate direct fetch (guarantees fresh data even if WebSockets are slow/blocked)
+  getAllProjects()
+    .then((fresh) => {
+      if (fresh) {
+        callback(fresh);
+      }
+    })
+    .catch((err) => {
+      console.warn("Direct fetch in subscribeToProjects failed:", err);
+    });
+
+  // 3. Setup real-time listener from Firestore
+  try {
+    const q = query(
+      collection(getFirebaseDb(), COLLECTION_NAME),
+      orderBy("order", "asc")
+    );
+
+    const unsubscribe = onSnapshot(
+      q,
+      (snapshot) => {
+        const projects: ProjectItem[] = [];
+        snapshot.forEach((docSnap) => {
+          const data = docSnap.data() as DocumentData;
+          projects.push({
+            id: docSnap.id,
+            title: data.title || "",
+            label: data.label || "",
+            description: data.description || "",
+            previewImage: data.previewImage || (data.images && data.images[0]) || "",
+            images: Array.isArray(data.images) ? data.images : [],
+            url: data.url || "",
+            showOnHome: data.showOnHome !== false,
+            order: typeof data.order === "number" ? data.order : 99,
+            demoScreen: data.demoScreen,
+            imageFit: (data.imageFit as "smart" | "cover" | "contain") || "smart",
+            iconName: data.iconName || "",
+            createdAt: data.createdAt?.toMillis ? data.createdAt.toMillis() : Date.now(),
+          });
+        });
+
+        projects.sort((a, b) => a.order - b.order);
+        setLocalProjects(projects);
+        callback(projects);
+      },
+      (error) => {
+        console.warn("Firestore real-time subscription error, using local data:", error);
+        // Fallback to direct fetch on subscription error
+        getAllProjects().then((items) => {
+          if (items) callback(items);
+        }).catch(() => {});
+      }
+    );
+
+    return unsubscribe;
+  } catch (err) {
+    console.warn("Could not establish Firestore subscription:", err);
+    return () => {};
+  }
 }
 
 /**
@@ -207,17 +277,31 @@ export async function saveProject(
 /**
  * Delete a project.
  */
-export async function deleteProject(id: string): Promise<void> {
-  // Immediate local update
+export async function deleteProject(id: string): Promise<boolean> {
+  // 1. Immediate local update
   const currentList = getLocalProjects() || [];
   const updatedList = currentList.filter((p) => p.id !== id);
   setLocalProjects(updatedList);
 
-  // Firestore delete
+  // 2. Broadcast across tabs immediately
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(new CustomEvent("famex_projects_updated", { detail: updatedList }));
+  }
+
+  // 3. Firestore delete
+  let firestoreSuccess = false;
   try {
     const docRef = doc(getFirebaseDb(), COLLECTION_NAME, id);
     await deleteDoc(docRef);
+    firestoreSuccess = true;
   } catch (err) {
-    console.warn("Could not delete project from Firestore (local delete succeeded):", err);
+    console.error("Could not delete project from Firestore:", err);
   }
+
+  // Force-sync fresh cache if successful
+  if (firestoreSuccess) {
+    getAllProjects().catch(() => {});
+  }
+
+  return firestoreSuccess;
 }

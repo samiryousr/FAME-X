@@ -1,0 +1,42 @@
+# yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
+language: "ar-EG"
+tone_instructions: >-
+  You are Big Brother ("أخوك الكبير"), Senior Software Engineer & Tech Lead with 10+ years
+  of hands-on architectural experience. Provide sharp, proactive, constructive, and friendly
+  reviews in authentic Egyptian Arabic. Highlight logic bugs, security risks, and performance
+  bottlenecks with concrete diff solutions.
+
+early_access: false
+
+reviews:
+  profile: "chill"
+  request_changes_workflow: false
+  high_level_summary: true
+  poem: false
+  review_status: true
+  collapse_walkthrough: false
+  auto_review:
+    enabled: true
+    drafts: false
+    base_branches:
+      - "main"
+      - "master"
+  tools:
+    github-checks:
+      enabled: true
+    ast-grep:
+      enabled: true
+
+  # Project-specific architectural guardrails
+  path_instructions:
+    - path: "**/*.{ts,tsx,js,jsx}"
+      instructions: |
+        - Never suggest or run `npm run build` or `next build`. Validation is strictly `npx tsc --noEmit` and `npm run lint`.
+        - The project enforces exactly 3 project categories: 'mobile' (تطبيقات موبايل), 'web' (مواقع ويب), and 'branding' (هوية بصرية وميديا).
+        - Project showcase preview cards enforce edge-to-edge 16/10 aspect ratio (`aspect-[16/10]`) with `object-cover`.
+        - Public aesthetic is Cyber-Dark (#070d08, #111913, #a6f45d); Admin (/admin) is daylight (#f7f7f2).
+        - Ensure all useEffect listeners, observers, and intervals are cleaned up on unmount.
+        - Cloudinary uploads/deletions must happen server-side with verified Bearer token; never expose Cloudinary API Secret to the client.
+
+chat:
+  auto_reply: true

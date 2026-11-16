@@ -6,20 +6,14 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import {
   Aperture,
-  ArrowLeft,
   ArrowUpLeft,
-  BatteryFull,
   Blocks,
   Flame,
   Orbit,
-  Signal,
-  Wifi,
   Layers,
   Zap,
   TrendingUp,
-  Maximize2,
   Menu,
-  Minimize2,
   ShoppingBag,
   Globe,
   Smartphone,
@@ -33,7 +27,12 @@ import {
   ChevronRight,
   type LucideIcon,
 } from "lucide-react";
-import { getHomeProjects, ProjectItem } from "@/lib/projectsService";
+import {
+  subscribeToProjects,
+  getLocalProjects,
+  ProjectItem,
+} from "@/lib/projectsService";
+import ProjectGalleryModal from "@/components/ProjectGalleryModal";
 
 export type Project = {
   id: string;
@@ -70,22 +69,84 @@ export const defaultProjects: Project[] = [];
 
 export const projects = defaultProjects;
 
+export type ProjectCategoryKey = "mobile" | "web" | "branding";
+
+export interface ProjectCategory {
+  id: ProjectCategoryKey;
+  label: string;
+  subLabel: string;
+  en: string;
+  iconName: string;
+  Icon: LucideIcon;
+  accent: string;
+}
+
+export const PROJECT_CATEGORIES: ProjectCategory[] = [
+  {
+    id: "mobile",
+    label: "تطبيقات موبايل",
+    subLabel: "iOS & Android Apps",
+    en: "MOBILE APPS",
+    iconName: "Smartphone",
+    Icon: Smartphone,
+    accent: "#a6f45d",
+  },
+  {
+    id: "web",
+    label: "مواقع ويب",
+    subLabel: "Websites & Platforms",
+    en: "WEBSITES & APPS",
+    iconName: "Globe",
+    Icon: Globe,
+    accent: "#38bdf8",
+  },
+  {
+    id: "branding",
+    label: "هوية بصرية وميديا",
+    subLabel: "Branding & Media",
+    en: "BRANDING & MEDIA",
+    iconName: "Palette",
+    Icon: Palette,
+    accent: "#52c974",
+  },
+];
+
+export function normalizeProjectCategory(labelOrCategory?: string): ProjectCategoryKey {
+  const text = (labelOrCategory || "").toLowerCase().trim();
+  if (
+    text === "mobile" ||
+    text.includes("تطبيق") ||
+    text.includes("موبايل") ||
+    text.includes("أبلكيشن") ||
+    text.includes("ابلكيشن") ||
+    text.includes("ios") ||
+    text.includes("android") ||
+    text.includes("app")
+  ) {
+    return "mobile";
+  }
+  if (
+    text === "branding" ||
+    text.includes("هوية") ||
+    text.includes("براند") ||
+    text.includes("ديزاين") ||
+    text.includes("تصميم") ||
+    text.includes("ميديا") ||
+    text.includes("تصوير") ||
+    text.includes("لوجو")
+  ) {
+    return "branding";
+  }
+  return "web";
+}
+
 export function mapProjectItemToProject(item: ProjectItem): Project {
-  let icon: LucideIcon = Sparkles;
+  const catKey = normalizeProjectCategory(item.label || item.demoScreen);
+  const cat = PROJECT_CATEGORIES.find((c) => c.id === catKey) || PROJECT_CATEGORIES[1];
+
+  let icon: LucideIcon = cat.Icon;
   if (item.iconName && PROJECT_ICON_MAP[item.iconName]) {
     icon = PROJECT_ICON_MAP[item.iconName];
-  } else if (item.label.includes("متجر") || item.demoScreen === "commerce") {
-    icon = ShoppingBag;
-  } else if (item.label.includes("تطبيق") || item.label.includes("موبايل")) {
-    icon = Smartphone;
-  } else if (item.label.includes("هوية") || item.label.includes("براند") || item.demoScreen === "identity") {
-    icon = Palette;
-  } else if (item.label.includes("داشبورد") || item.demoScreen === "platform") {
-    icon = Layout;
-  } else if (item.label.includes("موقع") || item.label.includes("ويب")) {
-    icon = Globe;
-  } else {
-    icon = Layers;
   }
 
   const allImages = item.images && item.images.length > 0 ? item.images : [];
@@ -94,37 +155,127 @@ export function mapProjectItemToProject(item: ProjectItem): Project {
   return {
     id: item.id,
     title: item.title,
-    label: item.label,
+    label: item.label || cat.label,
     description: item.description,
     Icon: icon,
     demoScreen: item.demoScreen,
     previewImage: primary,
     images: allImages.length > 0 ? allImages : primary ? [primary] : [],
     url: item.url,
-    imageFit: item.imageFit || "smart",
+    imageFit: "cover",
     showOnHome: item.showOnHome,
-    iconName: item.iconName,
+    iconName: item.iconName || cat.iconName,
   };
+}
+
+export function GooglePlayIcon({ className = "w-4 h-4" }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+      <path d="M3.609 1.814L13.792 12 3.61 22.186a2.38 2.38 0 0 1-.61-.968c-.147-.468-.2-.968-.2-1.468V4.25c0-.5.053-1 .2-1.468.125-.398.337-.745.61-.968zm11.242 11.244l2.122 2.123-11.75 6.782 9.628-8.905zm0-2.116L5.221 2.037l11.75 6.782-2.12 2.123zm1.461 1.058l3.666 2.115c.66.381 1.022.955 1.022 1.637 0 .682-.362 1.256-1.022 1.637l-3.666 2.116-2.26-2.26 2.26-2.245z" />
+    </svg>
+  );
+}
+
+export function AppleIcon({ className = "w-4 h-4" }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+      <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M15.97 6.37c.62-.75 1.04-1.8 0.93-2.85-.9.04-1.99.6-2.63 1.35-.57.65-1.07 1.71-.93 2.73 1.01.08 2.02-.51 2.63-1.23z" />
+    </svg>
+  );
+}
+
+export function ProjectActionButton({
+  project,
+  className = "",
+}: {
+  project: Project;
+  className?: string;
+}) {
+  const url = (project.url || "").trim();
+  const lowerUrl = url.toLowerCase();
+  const catKey = normalizeProjectCategory(project.label || project.demoScreen);
+
+  if (url) {
+    let IconComponent: React.ComponentType<{ className?: string }> = Globe;
+    let label = "زيارة الموقع";
+
+    if (
+      lowerUrl.includes("play.google.com") ||
+      lowerUrl.includes("google.com/store")
+    ) {
+      IconComponent = GooglePlayIcon;
+      label = "Google Play";
+    } else if (
+      lowerUrl.includes("apps.apple.com") ||
+      lowerUrl.includes("apple.co")
+    ) {
+      IconComponent = AppleIcon;
+      label = "App Store";
+    } else if (catKey === "mobile") {
+      IconComponent = GooglePlayIcon;
+      label = "معاينة التطبيق";
+    } else if (catKey === "branding") {
+      IconComponent = Palette;
+      label = "استعراض الهوية";
+    } else {
+      IconComponent = Globe;
+      label = "زيارة الموقع";
+    }
+
+    return (
+      <a
+        href={url}
+        target="_blank"
+        rel="noreferrer"
+        className={`group/btn inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-[#a6f45d]/10 hover:bg-[#a6f45d] text-[#a6f45d] hover:text-[#070d08] border border-[#a6f45d]/30 hover:border-[#a6f45d] font-bold text-xs transition-all duration-300 shadow-[0_0_15px_rgba(166,244,93,0.12)] hover:shadow-[0_0_20px_rgba(166,244,93,0.35)] active:scale-95 ${className}`}
+        aria-label={`${label} لمشروع ${project.title}`}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <IconComponent className="w-3.5 h-3.5 shrink-0 transition-transform duration-300 group-hover/btn:scale-110" />
+        <span className="leading-none">{label}</span>
+        <ArrowUpLeft
+          size={13}
+          aria-hidden="true"
+          className="shrink-0 text-[#a6f45d] group-hover/btn:text-[#070d08] group-hover/btn:-translate-x-0.5 group-hover/btn:-translate-y-0.5 transition-transform duration-200"
+        />
+      </a>
+    );
+  }
+
+  let StatusIcon: React.ComponentType<{ className?: string }> = Globe;
+  let statusText = "معاينة وتصميم";
+
+  if (catKey === "mobile") {
+    StatusIcon = Smartphone;
+    statusText = "تطبيق موبايل";
+  } else if (catKey === "branding") {
+    StatusIcon = Palette;
+    statusText = "هوية وتصميم";
+  }
+
+  return (
+    <span
+      className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/[0.04] border border-white/[0.08] text-[#8fa593] text-[11px] font-mono select-none ${className}`}
+    >
+      <StatusIcon className="w-3.5 h-3.5 text-[#a6f45d]/70" />
+      <span>{statusText}</span>
+    </span>
+  );
 }
 
 export function ProjectScreen({
   project,
-  variant = "home",
 }: {
   project: Project;
   variant?: "home" | "gallery";
 }) {
   const [activeImgIndex, setActiveImgIndex] = useState(0);
-  const [fitMode, setFitMode] = useState<"smart" | "cover" | "contain">(
-    project.imageFit || "smart"
-  );
   const [direction, setDirection] = useState(0);
   const isDraggingRef = useRef(false);
 
   useEffect(() => {
     setActiveImgIndex(0);
-    setFitMode(project.imageFit || "smart");
-  }, [project.id, project.imageFit]);
+  }, [project.id]);
 
   const allImages =
     project.images && project.images.length > 0
@@ -148,31 +299,16 @@ export function ProjectScreen({
   const currentImage = allImages[activeImgIndex] || project.previewImage;
 
   if (currentImage) {
-    const isCover = fitMode === "cover";
-
     const previewContent = (
       <div className="group/screen absolute inset-0 overflow-hidden bg-[#0a0d0b] flex items-center justify-center select-none touch-pan-y">
-        {/* Ambient Blur Layer: fills empty spaces with soft matching color aura */}
-        {!isCover && (
-          <div className="absolute inset-0 overflow-hidden pointer-events-none -z-0">
-            <Image
-              src={currentImage}
-              alt=""
-              fill
-              className="object-cover blur-2xl opacity-40 scale-125 transition-all duration-500"
-              aria-hidden="true"
-            />
-          </div>
-        )}
-
-        {/* Foreground Main Image with Swipe / Dragging (Mobile & Computer) */}
+        {/* Foreground Main Image with Swipe / Dragging (Mobile & Computer - RTL) */}
         <AnimatePresence initial={false} custom={direction}>
           <motion.div
             key={activeImgIndex}
             custom={direction}
-            initial={{ opacity: 0, x: direction * 50 }}
+            initial={{ opacity: 0, x: -direction * 50 }}
             animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -direction * 50 }}
+            exit={{ opacity: 0, x: direction * 50 }}
             transition={{ duration: 0.25, ease: "easeOut" }}
             drag={allImages.length > 1 ? "x" : false}
             dragConstraints={{ left: 0, right: 0 }}
@@ -183,82 +319,49 @@ export function ProjectScreen({
             onDragEnd={(_, info) => {
               const swipe = info.offset.x;
               const velocity = info.velocity.x;
-              if (swipe < -35 || velocity < -250) {
-                // سحب لليسار: الصورة التالية
+              if (swipe > 35 || velocity > 250) {
+                // سحب لليمين: الصورة التالية في العربي
                 handleNext();
-              } else if (swipe > 35 || velocity > 250) {
-                // سحب لليمين: الصورة السابقة
+              } else if (swipe < -35 || velocity < -250) {
+                // سحب لليسار: الصورة السابقة
                 handlePrev();
               }
               setTimeout(() => {
                 isDraggingRef.current = false;
               }, 120);
             }}
-            className={`absolute inset-0 flex items-center justify-center ${
-              isCover ? "" : variant === "home" ? "p-1.5 sm:p-2" : "p-2 sm:p-3"
-            } z-10 ${allImages.length > 1 ? "cursor-grab active:cursor-grabbing" : ""}`}
+            className={`absolute inset-0 flex items-center justify-center z-10 ${
+              allImages.length > 1 ? "cursor-grab active:cursor-grabbing" : ""
+            }`}
           >
+            {/* Ambient Blurred Aura (eliminates empty space and creates cyber depth for vertical products) */}
+            <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
+              <Image
+                src={currentImage}
+                alt=""
+                fill
+                aria-hidden="true"
+                className="object-cover blur-2xl opacity-35 scale-125"
+              />
+            </div>
+
+            {/* Sharp Uncropped Foreground Image */}
             <Image
-              className={`transition-all duration-300 pointer-events-none ${
-                isCover
-                  ? "object-cover object-top"
-                  : "object-contain drop-shadow-[0_8px_25px_rgba(0,0,0,0.5)]"
-              }`}
+              className="object-contain p-2 group-hover:scale-105 transition-transform duration-500 pointer-events-none relative z-10 drop-shadow-[0_4px_16px_rgba(0,0,0,0.6)]"
               src={currentImage}
               alt={`معاينة مشروع ${project.title}`}
               fill
-              sizes="(max-width: 640px) 340px, (max-width: 1024px) 450px, 600px"
+              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
               draggable={false}
               priority={activeImgIndex === 0}
             />
           </motion.div>
         </AnimatePresence>
 
-        {/* Home Phone Mode: Toggle Fit Button (Cover vs Contain) */}
-        {variant === "home" && (
-          <button
-            type="button"
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              setFitMode((prev) => (prev === "cover" ? "smart" : "cover"));
-            }}
-            className="absolute top-2.5 left-2.5 z-30 p-1.5 rounded-lg bg-black/65 hover:bg-black/90 text-white/80 hover:text-white border border-white/10 backdrop-blur transition-all text-[10px] flex items-center gap-1 cursor-pointer pointer-events-auto"
-            title={fitMode === "cover" ? "عرض الصورة كاملة بدون قص" : "ملء الشاشة بالكامل"}
-          >
-            {fitMode === "cover" ? (
-              <>
-                <Minimize2 size={12} />
-                <span className="text-[9px] font-sans">احتواء</span>
-              </>
-            ) : (
-              <>
-                <Maximize2 size={12} />
-                <span className="text-[9px] font-sans">ملء</span>
-              </>
-            )}
-          </button>
-        )}
-
-        {/* Multi-image Navigation Arrows (Computer & Mobile) */}
+        {/* Multi-image Navigation Arrows (Computer & Mobile - RTL) */}
         {allImages.length > 1 && (
           <>
-            {/* زر الصورة السابقة (يسار) */}
-            <button
-              type="button"
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                handlePrev();
-              }}
-              className="absolute left-2 top-1/2 -translate-y-1/2 z-30 p-1.5 rounded-full bg-black/65 hover:bg-black/90 text-white/80 hover:text-white border border-white/10 backdrop-blur transition-all opacity-0 group-hover/screen:opacity-100 hidden sm:flex items-center justify-center cursor-pointer shadow-lg hover:scale-110 active:scale-95 pointer-events-auto"
-              aria-label="الصورة السابقة"
-              title="السابق"
-            >
-              <ChevronLeft size={16} />
-            </button>
-
-            {/* زر الصورة التالية (يمين) */}
+            {/* زر الصورة التالية (يسار في العربي) */}
             <button
               type="button"
               onClick={(e) => {
@@ -266,9 +369,24 @@ export function ProjectScreen({
                 e.stopPropagation();
                 handleNext();
               }}
-              className="absolute right-2 top-1/2 -translate-y-1/2 z-30 p-1.5 rounded-full bg-black/65 hover:bg-black/90 text-white/80 hover:text-white border border-white/10 backdrop-blur transition-all opacity-0 group-hover/screen:opacity-100 hidden sm:flex items-center justify-center cursor-pointer shadow-lg hover:scale-110 active:scale-95 pointer-events-auto"
+              className="absolute left-2 top-1/2 -translate-y-1/2 z-30 p-1.5 rounded-full bg-black/65 hover:bg-black/90 text-white/80 hover:text-white border border-white/10 backdrop-blur transition-all opacity-0 group-hover/screen:opacity-100 hidden sm:flex items-center justify-center cursor-pointer shadow-lg hover:scale-110 active:scale-95 pointer-events-auto"
               aria-label="الصورة التالية"
               title="التالي"
+            >
+              <ChevronLeft size={16} />
+            </button>
+
+            {/* زر الصورة السابقة (يمين في العربي) */}
+            <button
+              type="button"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                handlePrev();
+              }}
+              className="absolute right-2 top-1/2 -translate-y-1/2 z-30 p-1.5 rounded-full bg-black/65 hover:bg-black/90 text-white/80 hover:text-white border border-white/10 backdrop-blur transition-all opacity-0 group-hover/screen:opacity-100 hidden sm:flex items-center justify-center cursor-pointer shadow-lg hover:scale-110 active:scale-95 pointer-events-auto"
+              aria-label="الصورة السابقة"
+              title="السابق"
             >
               <ChevronRight size={16} />
             </button>
@@ -301,24 +419,10 @@ export function ProjectScreen({
       </div>
     );
 
-    return project.url ? (
-      <a
-        className="projects__real-preview"
-        href={project.url}
-        target="_blank"
-        rel="noreferrer"
-        onClick={(e) => {
-          if (isDraggingRef.current) {
-            e.preventDefault();
-            e.stopPropagation();
-          }
-        }}
-        aria-label={`افتح مشروع ${project.title} في نافذة جديدة`}
-      >
+    return (
+      <div className="projects__real-preview">
         {previewContent}
-      </a>
-    ) : (
-      <div className="projects__real-preview">{previewContent}</div>
+      </div>
     );
   }
 
@@ -408,37 +512,35 @@ export function ProjectScreen({
 
 export default function Projects() {
   const [projectList, setProjectList] = useState<Project[]>([]);
-  const [activeProject, setActiveProject] = useState<Project | null>(null);
+  const [selectedProject, setSelectedProject] = useState<Project | null>(null);
 
   useEffect(() => {
     let isMounted = true;
 
-    const loadProjects = () => {
-      getHomeProjects()
-        .then((items) => {
-          if (isMounted) {
-            if (items && items.length > 0) {
-              const mapped = items.map(mapProjectItemToProject).slice(0, 3);
-              setProjectList(mapped);
-              setActiveProject((prev) => {
-                const stillExists = mapped.find((p) => p.id === prev?.id);
-                return stillExists || mapped[0];
-              });
-            } else {
-              setProjectList([]);
-              setActiveProject(null);
-            }
-          }
-        })
-        .catch((err) => {
-          console.warn("Could not load dynamic projects:", err);
-        });
+    const syncProjects = (items: ProjectItem[]) => {
+      if (!isMounted) return;
+      const homeOnly = items.filter((p) => p.showOnHome !== false);
+      const mapped = (homeOnly.length > 0 ? homeOnly : items)
+        .map(mapProjectItemToProject)
+        .slice(0, 3);
+      setProjectList(mapped);
     };
 
-    loadProjects();
+    // 1. Initial fast local load (zero flicker)
+    const cached = getLocalProjects();
+    if (cached) {
+      syncProjects(cached);
+    }
 
-    const handleUpdate = () => {
-      loadProjects();
+    // 2. Real-time Firestore sync
+    const unsubscribe = subscribeToProjects(syncProjects);
+
+    // 3. Local custom event sync
+    const handleUpdate = (e: Event) => {
+      const customEvent = e as CustomEvent<ProjectItem[]>;
+      if (customEvent.detail && Array.isArray(customEvent.detail)) {
+        syncProjects(customEvent.detail);
+      }
     };
 
     window.addEventListener("famex_projects_updated", handleUpdate);
@@ -446,6 +548,7 @@ export default function Projects() {
 
     return () => {
       isMounted = false;
+      unsubscribe();
       window.removeEventListener("famex_projects_updated", handleUpdate);
       window.removeEventListener("storage", handleUpdate);
     };
@@ -457,94 +560,83 @@ export default function Projects() {
         <header className="projects__heading">
           <p className="eyebrow">شغلنا بيتكلم عننا</p>
           <h2 className="section__title">أعمال كسّرت الدنيا</h2>
-          <p className="section__intro">جرّب وعاين الشغل بنفسك على الموبايل ده وحس بالفرق في التجربة.</p>
+          <p className="section__intro">
+            نماذج من أحدث مشاريعنا وتطبيقاتنا اللي صممناها ونفذناها بأعلى كفاءة لتخدم بيزنس عملائنا.
+          </p>
         </header>
 
-        {activeProject ? (
-          <div className="projects__showcase">
-          <div className="projects__device-column">
-            <div className="projects__phone" data-project={activeProject.id} aria-label={`معاينة ${activeProject.title}`}>
-              <div className="projects__phone-bezel">
-                <div className="projects__phone-camera" />
-                <div className="projects__phone-screen">
-                  <div className="projects__status-bar">
-                    <span>9:41</span>
-                    <span className="projects__status-icons" aria-label="إشارة وواي فاي وبطارية ممتلئة">
-                      <Signal size={13} strokeWidth={2.4} />
-                      <Wifi size={14} strokeWidth={2.4} />
-                      <BatteryFull size={16} strokeWidth={2.2} />
-                    </span>
-                  </div>
-                  <ProjectScreen project={activeProject} />
-                  <div className="projects__phone-nav"><span /><span /><span /><span /></div>
-                </div>
-              </div>
-            </div>
-            {(activeProject.url || activeProject.previewImage) && (
-              <div className="projects__device-caption">
-                {activeProject.url ? (
-                  <a
-                    className="projects__visit-btn"
-                    href={activeProject.url}
-                    target="_blank"
-                    rel="noreferrer"
-                    aria-label={`زيارة موقع مشروع ${activeProject.title}`}
-                  >
-                    زيارة الموقع <ArrowUpLeft size={15} aria-hidden="true" />
-                  </a>
-                ) : (
-                  <span className="projects__visit-btn projects__visit-btn--badge">
-                    معاينة المشروع
-                  </span>
-                )}
-                <i aria-hidden="true" />
-              </div>
-            )}
-          </div>
+        {projectList.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-7 mt-8 sm:mt-12">
+            {projectList.map((project) => {
+              const ProjectIcon = project.Icon || Layers;
+              return (
+                <article
+                  key={project.id}
+                  className="group relative flex flex-col rounded-2xl border border-[#1b3420] bg-gradient-to-b from-[#0f1d13] via-[#09130d] to-[#040805] hover:border-[#a6f45d]/45 transition-all duration-300 shadow-xl hover:shadow-[0_16px_36px_rgba(0,0,0,0.8),0_0_24px_rgba(166,244,93,0.1)] overflow-hidden cursor-pointer"
+                  onClick={() => setSelectedProject(project)}
+                >
+                  {/* 🖼️ Card Media Preview Area (aspect 16/10, matching admin card exactly) */}
+                  <div className="relative aspect-[16/10] w-full overflow-hidden bg-[#070d08] border-b border-[#1b3420]">
+                    <ProjectScreen project={project} variant="gallery" />
 
-          <div className="projects__selector">
-            <p className="projects__selector-label">استكشف شغلنا <span>({String(projectList.length).padStart(2, "0")})</span></p>
-            <ul className="projects__list">
-              {projectList.map((project) => {
-                const { id, title, label, description, Icon } = project;
-                const isActive = activeProject.id === id;
-                const ProjectIcon = Icon || Layers;
-                return (
-                  <li key={id}>
-                    <button
-                      className={`projects__option${isActive ? " is-active" : ""}`}
-                      type="button"
-                      aria-pressed={isActive}
-                      onClick={() => setActiveProject(project)}
-                    >
-                      <span className="projects__option-icon"><ProjectIcon size={19} strokeWidth={1.6} /></span>
-                      <span className="projects__option-copy">
-                        <span className="projects__option-label">{label}</span>
-                        <span className="projects__option-title">{title}</span>
-                        <span className="projects__option-description">{description}</span>
+                    {/* Floating Badges */}
+                    <div className="absolute top-3 right-3 z-30 flex items-center gap-1.5 pointer-events-none">
+                      <span className="px-2.5 py-1 rounded-full bg-black/80 border border-[#a6f45d]/40 backdrop-blur-md text-[10px] font-mono font-bold text-[#a6f45d] shadow-sm">
+                        {project.label || "مشروع مميز"}
                       </span>
-                      <span className="projects__option-arrow"><ArrowUpLeft size={17} /></span>
-                    </button>
-                  </li>
-                );
-              })}
-            </ul>
-            <p className="projects__selector-hint">
-              <span>دوس على أي مشروع عشان تعاينه فوري</span>
-              <ArrowLeft size={14} aria-hidden="true" />
-            </p>
+                    </div>
+                  </div>
+
+                  {/* 📝 Card Content Body */}
+                  <div className="flex flex-col flex-1 justify-between p-5 gap-4">
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2 text-[#7d9b7f] text-xs font-mono">
+                        <ProjectIcon size={14} className="text-[#a6f45d]" />
+                        <span>{project.label || "FAME-X PROJECT"}</span>
+                      </div>
+
+                      <h3 className="text-lg sm:text-xl font-bold text-white group-hover:text-[#a6f45d] transition-colors leading-snug">
+                        {project.title}
+                      </h3>
+
+                      <p className="text-xs sm:text-sm text-[#a8bda7] leading-relaxed line-clamp-3">
+                        {project.description || "مشروع رقمي متكامل تم تنفيذه بأعلى معايير الجودة والسرعة."}
+                      </p>
+                    </div>
+
+                    {/* 🔗 Card Footer with Action */}
+                    <div className="pt-3.5 border-t border-[#1b3420] flex items-center justify-between">
+                      <ProjectActionButton project={project} />
+
+                      {project.images && project.images.length > 1 && (
+                        <span className="text-[10px] font-mono text-[#7d9b7f] bg-black/40 px-2.5 py-1 rounded-full border border-white/5">
+                          {project.images.length} صور
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </article>
+              );
+            })}
           </div>
-        </div>
         ) : (
-          <div className="py-16 text-center text-[#7d9b7f] font-mono border border-dashed border-[#1f3f26] rounded-2xl bg-black/40">
+          <div className="py-16 text-center text-[#7d9b7f] font-mono border border-dashed border-[#1f3f26] rounded-2xl bg-black/40 mt-8">
             <p>لا توجد مشاريع مضافة حالياً في الرئيسية.</p>
           </div>
         )}
-        <div className="projects__all-projects-wrap">
+
+        <div className="projects__all-projects-wrap mt-10">
           <Link className="projects__all-projects" href="/projects">
             عرض كل المشاريع <ArrowUpLeft size={17} aria-hidden="true" />
           </Link>
         </div>
+
+        {/* Project Details & Gallery Modal */}
+        <ProjectGalleryModal
+          project={selectedProject}
+          isOpen={!!selectedProject}
+          onClose={() => setSelectedProject(null)}
+        />
       </div>
     </section>
   );

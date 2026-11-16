@@ -11,5 +11,9 @@ export default function AdminLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return <AuthProvider>{children}</AuthProvider>;
+  return (
+    <div className="relative z-20 min-h-screen bg-[#f7f7f2]">
+      <AuthProvider>{children}</AuthProvider>
+    </div>
+  );
 }

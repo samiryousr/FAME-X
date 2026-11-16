@@ -8,3 +8,28 @@ coverage
 .env*
 !.env.example
 .playwright-mcp
+
+# Temporary scratch and screenshots
+scratch/
+*_screenshot.png
+after_start_screenshot.png
+hero_screenshot.png
+uniskills_screenshot.png
+
+# Vercel & Deployment
+.vercel
+.turbo
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# OS & Editor
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+

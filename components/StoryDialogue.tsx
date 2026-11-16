@@ -2,1098 +2,1002 @@
 
 import { useState, useRef, useEffect, useCallback } from "react";
 import Image from "next/image";
-import { motion, AnimatePresence, useScroll, useMotionValueEvent } from "motion/react";
+import { motion, useScroll } from "framer-motion";
 import {
-  Terminal,
-  Palette,
-  Camera,
-  Zap,
-  Cpu,
-  ShieldCheck,
-  Layers,
-  Sparkles,
-  Activity,
-  Film,
-  Aperture,
-  Gauge,
-  ChevronDown,
-  Quote,
-  Users2,
   Volume2,
+  VolumeX,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
-import { playSelectSound } from "@/lib/arcadeSound";
+import {
+  PixelGamepad,
+  PixelTerminal,
+  PixelPalette,
+  PixelCamera,
+} from "@/components/PixelIcons";
+import {
+  playSelectSound,
+  playChimeSound,
+  playJumpSound,
+  playDialogueBlipSound,
+  toggleArcadeMute,
+  getArcadeMuteState,
+} from "@/lib/arcadeSound";
 
-export interface StoryChapter {
-  id: "intro" | "developer" | "designer" | "photographer";
-  code: string;
-  tabLabel: string;
+interface StoryScene {
+  id: string;
   badge: string;
-  title: string;
-  discipline: string;
+  speaker: string;
+  roleTitle: string;
   avatar: string;
   accentColor: string;
-  ambientGlow: string;
-  navIcon: typeof Terminal;
-  quote?: string;
-  story: string;
-  impactTag?: string;
-  impactTitle?: string;
-  impactDesc?: string;
-  metrics?: {
-    label: string;
-    value: number;
-    icon: typeof Zap;
-  }[];
+  glowColor: string;
+  activeCharacter: "none" | "developer" | "designer" | "photographer" | "all";
+  dialogue: string;
+  highlightWords: string[];
 }
 
-const CHAPTERS: StoryChapter[] = [
+const STORY_SCENES: StoryScene[] = [
   {
-    id: "intro",
-    code: "00",
-    tabLabel: "حكايتنا",
-    badge: "THE GENESIS // قصة البداية",
-    title: "من سهر الليالي لحلم FAME-X: حكاية 3 شباب جمعهم الشغف",
-    discipline: "TRIO FOUNDERS & SPECIALISTS",
-    avatar: "", // Handled specially in intro lineup
+    id: "scene-origin",
+    badge: "01 // THE GENESIS",
+    speaker: "FAME-X // قصة البداية",
+    roleTitle: "THE GENESIS",
+    avatar: "/characters/avatars/trio_squad_v2.png",
     accentColor: "#a6f45d",
-    ambientGlow: "rgba(166, 244, 93, 0.12)",
-    navIcon: Users2,
-    story:
-      "البداية ما كانتش شركة ومكتب فخم.. البداية كانت 3 أصحاب كل واحد فيهم غرقان في ملعبه: واحد عينه ما بتفارقش شاشات الكود، والتاني بيعيد رسم تفصيلة بكسل 20 مرة عشان تطلع مظبوطة، والتالت شايل كاميرته وبيدور على كادر يحبس الأنفاس. اتجمعنا لما لقينا أصحاب البيزنس دايماً تائهين بين مبرمج مش فاهم ديزاين، وديزاينر مش حاسس بالبيزنس، وميديا شكلها باهت. قررنا ندمج الـ 3 قوى في فريق واحد اسمه FAME-X.. شريك يمسك مشروعك من أول فكرة لحد ما يسبق الكل.",
+    glowColor: "rgba(166, 244, 93, 0.3)",
+    activeCharacter: "all",
+    dialogue:
+      "إحنا 3 صحاب جمعنا الشغف من سنين.. كل واحد فينا كان غرقان في ملعبه وبيطور نفسه ليل نهار، لحد ما قررنا نجمع خبراتنا ونبني كيان رقمي متكامل اسمه FAME-X.",
+    highlightWords: ["3 صحاب جمعنا الشغف", "غرقان في ملعبه", "كيان رقمي متكامل", "FAME-X"],
   },
   {
-    id: "developer",
-    code: "01",
-    tabLabel: "المطوّر",
-    badge: "SOFTWARE ARCHITECTURE // CH. 01",
-    title: "SOFTWARE ARCHITECT",
-    discipline: "FULL-STACK CLOUD ARCHITECT",
-    avatar: "/characters/developer_v3.png",
+    id: "scene-developer",
+    badge: "02 // MOBILE APP DEVELOPER",
+    speaker: "أحمد // MOBILE APP DEVELOPER",
+    roleTitle: "IOS & ANDROID SPECIALIST",
+    avatar: "/characters/avatars/developer_face.png",
     accentColor: "#a6f45d",
-    ambientGlow: "rgba(166, 244, 93, 0.16)",
-    navIcon: Terminal,
-    quote: "الكود مش مجرد أسطر حروف.. الكود هو العمود الفقري اللي بيشيل أحلام بيزنسك وأنت نايم مرتاح.",
-    story:
-      "رحلتي بدأت من سنين طويلة لما كنت بقعد بالساعات أفكك البرامج وأتعلم إزاي السيرفرات بتشيل ملايين الطلبات في جزء من الثانية بدون ما تعطل. كنت دايماً بتضايق لما أشوف مشاريع واعدة بتفشل أو تخسر عملاء عشان موقعها بطيء أو بيهنج مع أول حملة إعلانية، ومن هنا اتولد هوسي بـ 'الكود النظيف والسرعة الصاروخية'. في FAME-X، أنا هنا عشان أضمن إن فكرتك تتحول لمنظومة برمجية فولاذية، سريعة طلقة، ومستقرة تحت أي ضغط زوار عشان بيزنسك يفضل دايماً في الصدارة.",
-    impactTag: "البصمة الاستثنائية",
-    impactTitle: "بنية تحتية فولاذية تتحمل أعتى ضغط زوار بدون أي تهنيج",
-    impactDesc:
-      "بناء منصات متقدمة بأعلى معايير الأمان وسرعة استجابة فائقة تنعكس مباشرة على ثقة العميل وتصدرك لمحركات البحث.",
-    metrics: [
-      { label: "سرعة المعالجة والتحميل الفوري", value: 99, icon: Zap },
-      { label: "استقرار المنظومة وتحمل الضغط", value: 100, icon: Cpu },
-      { label: "نقاء البنية البرمجية والأمان", value: 98, icon: ShieldCheck },
-    ],
+    glowColor: "rgba(166, 244, 93, 0.3)",
+    activeCharacter: "developer",
+    dialogue:
+      "أنا أحمد.. غاوي برمجة وتطوير تطبيقات موبايل من سنين. دوري في مشروعك إني أبنيلك أبلكيشن سريع طلقة وسلس على آيفون وأندرويد، خفيف ومبيقعش تحت أي ضغط مستخدمين.",
+    highlightWords: ["أنا أحمد", "تطبيقات موبايل من سنين", "أبلكيشن سريع طلقة", "آيفون وأندرويد", "مبيقعش تحت أي ضغط"],
   },
   {
-    id: "designer",
-    code: "02",
-    tabLabel: "المصمّم",
-    badge: "UI/UX & INTERACTION // CH. 02",
-    title: "UI/UX DESIGNER",
-    discipline: "UI/UX & INTERACTION DIRECTOR",
-    avatar: "/characters/designer_v3.png",
+    id: "scene-designer",
+    badge: "03 // UI/UX DESIGNER",
+    speaker: "عمر // UI/UX DESIGNER",
+    roleTitle: "PRODUCT & INTERACTION DESIGN",
+    avatar: "/characters/avatars/designer_face.png",
     accentColor: "#52c974",
-    ambientGlow: "rgba(82, 201, 116, 0.16)",
-    navIcon: Palette,
-    quote: "التصميم الصح مش مجرد ألوان حلوة.. هو الكيمياء اللي بتخلي العميل يثق فيك ويشتري من أول لمسة.",
-    story:
-      "أول ما مسكت تابلت الرسم، فهمت إن عيون الناس بتفكر وتحس قبل عقولها. شوفت براندات كتيرة ومواقع بتموت في مهدها مش لأن فكرتها وحشة، بل لأن واجهتها باردة والعميل بيتوه فيها وبيقفل الصفحة في ثواني. قعدت أدرس سيكولوجية المستخدم وتأثير كل حركة وزرار ولون. دوري في مشروعك إني أخلق هوية وتجربة مستخدم تخطف العين من أول لمسة، وتخلي كل خطوة في موقعك بديهية ومريحة لدرجة إن عميلك يرتاح نفسياً ويتحول من مجرد زائر لمشتري دائم.",
-    impactTag: "البصمة الاستثنائية",
-    impactTitle: "واجهات وتجارب استخدام غامرة تضاعف التحويل والمبيعات",
-    impactDesc:
-      "صياغة هوية بصرية مريحة للعين وتدفق سلس للمعلومات يوجه العميل بسلاسة نحو اتخاذ القرار والشراء بدون أي تشتت.",
-    metrics: [
-      { label: "سلاسة رحلة العميل وسهولة الاستخدام", value: 99, icon: Layers },
-      { label: "قوة الجاذبية البصرية وتميز الهوية", value: 98, icon: Sparkles },
-      { label: "انسيابية الحركة والتفاعل الدقيق", value: 96, icon: Activity },
-    ],
+    glowColor: "rgba(82, 201, 116, 0.3)",
+    activeCharacter: "designer",
+    dialogue:
+      "وأنا عمر.. مهووس بتفاصيل التصميم وسيكولوجية تجربة المستخدم. وظيفتي أصنع لبيزنسك واجهات وتطبيقات تخطف العين، وتجربة سهلة تخلي العميل يرتاح نفسياً وميستغناش عن الأبلكيشن بتاعك.",
+    highlightWords: ["وأنا عمر", "سيكولوجية تجربة المستخدم", "واجهات وتطبيقات تخطف العين", "تجربة سهلة", "وميستغناش عن الأبلكيشن"],
   },
   {
-    id: "photographer",
-    code: "03",
-    tabLabel: "الكرييتف",
-    badge: "CREATIVE & CINEMATIC // CH. 03",
-    title: "CREATIVE DIRECTOR",
-    discipline: "CINEMATIC & ADVERTISING PRODUCER",
-    avatar: "/characters/photographer_v3.png",
+    id: "scene-photographer",
+    badge: "04 // CREATIVE DIRECTOR",
+    speaker: "كريم // CREATIVE DIRECTOR",
+    roleTitle: "MEDIA & CINEMATIC",
+    avatar: "/characters/avatars/photographer_face.png",
     accentColor: "#38bdf8",
-    ambientGlow: "rgba(56, 189, 248, 0.16)",
-    navIcon: Camera,
-    quote: "العالم مليان دوشة إعلانات.. شغلي إني أطلعك بصورة سينمائية توقف الكل وتخلق هيبة حقيقية لبيزنسك.",
-    story:
-      "الكاميرا بالنسبة لي ما كانتش مجرد عدسة.. الكاميرا هي العين التالتة اللي بتشوف القيمة الخفية في كل شيء. كان دايماً بيحز في نفسي لما أشوف أصحاب مشاريع تعبانين في منتجاتهم، بس معروضة بصور ومحتوى باهت ملوش روح يضيع قيمتها في السوق. كرست سنين لفهم سحر الضوء والإخراج السينمائي الإعلاني. أنا هنا عشان أبرز هيبة علامتك التجارية وأحكي قصة منتجك بصورة وفيديوهات سينمائية توقف أي حد بيسكرول على السوشيال ميديا وتخليه يثق في فخامة بيزنسك.",
-    impactTag: "البصمة الاستثنائية",
-    impactTitle: "إنتاج بصري سينمائي يمنح علامتك هيبة وفخامة لا تُنسى",
-    impactDesc:
-      "جلسات تصوير وفيديوهات إعلانية مبتكرة بزوايا وإضاءة سينمائية تركز على قيمة منتجك وتصنع تفاعلاً نارياً على السوشيال ميديا.",
-    metrics: [
-      { label: "دقة وجودة الإخراج السينمائي", value: 100, icon: Film },
-      { label: "قوة التأثير وخطف انتباه الجمهور", value: 98, icon: Aperture },
-      { label: "ابتكار الزوايا والإضاءة الإعلانية", value: 97, icon: Gauge },
-    ],
+    glowColor: "rgba(56, 189, 248, 0.3)",
+    activeCharacter: "photographer",
+    dialogue:
+      "أما أنا كريم.. عيني التالتة هي الكاميرا. مسؤوليتي أطلع مشروعك ومنتجاتك بكادرات وإضاءة سينمائية فخمة، تفرّقك عن كل منافسيك وتعمل لعلامتك التجارية هيبة حقيقية.",
+    highlightWords: ["أما أنا كريم", "عيني التالتة هي الكاميرا", "إضاءة سينمائية فخمة", "تفرّقك عن كل منافسيك", "هيبة حقيقية"],
+  },
+  {
+    id: "scene-trio",
+    badge: "05 // DIGITAL TRIO",
+    speaker: "FAME-X TRIO // DIGITAL SQUAD",
+    roleTitle: "UNBEATABLE ALLIANCE",
+    avatar: "/characters/avatars/trio_squad_v2.png",
+    accentColor: "#a6f45d",
+    glowColor: "rgba(166, 244, 93, 0.4)",
+    activeCharacter: "all",
+    dialogue:
+      "اتجمعنا إحنا التلاتة عشان منسبلكش حيرة.. شريك رقمي واحد ماسك فكرتك من الكود للتصميم للميديا، عشان بيزنسك يسبق الكل. جاهز نبدأ رحلتنا سوا؟",
+    highlightWords: ["اتجمعنا إحنا التلاتة", "شريك رقمي واحد", "من الكود للتصميم للميديا", "يسبق الكل", "جاهز نبدأ رحلتنا سوا؟"],
   },
 ];
 
 export default function StoryDialogue() {
   const containerRef = useRef<HTMLDivElement>(null);
-  const [activeChapterIndex, setActiveChapterIndex] = useState(0);
+  const isProgrammaticScrollRef = useRef(false);
+  const scrollUnlockTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  // 📱 مرجع اللمس للسحب الأفقي على الموبايل
-  const touchStartRef = useRef<{ x: number; y: number } | null>(null);
+  const [activeSceneIndex, setActiveSceneIndex] = useState(0);
+  const [soundEnabled, setSoundEnabled] = useState(true);
+  const [isInView, setIsInView] = useState(false);
 
-  // Track scroll progression through the sticky scrollytelling section (Desktop Only)
+  // Typewriter States
+  const [displayedCharCount, setDisplayedCharCount] = useState(0);
+  const [isTyping, setIsTyping] = useState(false);
+
+  // Sync mute state on mount
+  useEffect(() => {
+    setSoundEnabled(!getArcadeMuteState());
+  }, []);
+
+  // 👁️ Viewport Observer: Only activate story when user actually reaches the section!
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const entry = entries[0];
+        if (entry) {
+          setIsInView(entry.isIntersecting);
+          // If user scrolled back above the section, reset to scene 0
+          if (!entry.isIntersecting && entry.boundingClientRect.top > 0) {
+            setActiveSceneIndex(0);
+          }
+        }
+      },
+      {
+        threshold: 0.05,
+      }
+    );
+
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
+  const handleToggleSound = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    const muted = toggleArcadeMute();
+    setSoundEnabled(!muted);
+    if (!muted) playSelectSound();
+  };
+
+  const currentScene = STORY_SCENES[activeSceneIndex];
+
+  // 🖨️ RPG Dialogue Typewriter Effect (ONLY runs when section is visible in viewport)
+  useEffect(() => {
+    if (!isInView) {
+      setDisplayedCharCount(0);
+      setIsTyping(false);
+      return;
+    }
+
+    setDisplayedCharCount(0);
+    setIsTyping(true);
+
+    const fullText = currentScene.dialogue;
+    let currentIdx = 0;
+
+    const timer = setInterval(() => {
+      currentIdx += 2;
+      if (currentIdx > fullText.length) currentIdx = fullText.length;
+      setDisplayedCharCount(currentIdx);
+
+      // Play soft 8-bit text blip ONLY when in view
+      if (currentIdx % 6 === 0) {
+        playDialogueBlipSound();
+      }
+
+      if (currentIdx >= fullText.length) {
+        clearInterval(timer);
+        setIsTyping(false);
+      }
+    }, 24);
+
+    return () => clearInterval(timer);
+  }, [activeSceneIndex, currentScene.dialogue, isInView]);
+
+  // Scrollytelling Progress Observer
   const { scrollYProgress } = useScroll({
     target: containerRef,
     offset: ["start start", "end end"],
   });
 
-  useMotionValueEvent(scrollYProgress, "change", (latest) => {
-    // 🛑 على الموبايل: الاسكرول الرأسي لا يغير الكروت مطلقاً! (التغيير فقط بالسحب الأفقي يمين/شمال أو الأزرار)
-    if (typeof window !== "undefined" && window.innerWidth < 768) {
-      return;
-    }
+  useEffect(() => {
+    const unsubscribe = scrollYProgress.on("change", (latest) => {
+      // 📱 On mobile: disable scrollytelling completely. Navigation is exclusively via Next/Prev buttons, character clicks, dots, or dialogue clicks.
+      if (typeof window !== "undefined" && window.innerWidth < 640) return;
 
-    let newIndex = 0;
-    if (latest >= 0.75) {
-      newIndex = 3;
-    } else if (latest >= 0.5) {
-      newIndex = 2;
-    } else if (latest >= 0.22) {
-      newIndex = 1;
+      // Don't fight programmatic clicks (Prev, Next, character buttons)
+      if (isProgrammaticScrollRef.current) return;
+
+      // 🛑 Only update scenes from scroll when the section is actually in view!
+      if (!isInView) return;
+
+      const sceneIndex = Math.min(4, Math.max(0, Math.floor(latest * 5)));
+      setActiveSceneIndex((prev) => {
+        if (prev !== sceneIndex) {
+          if (sceneIndex === 4) {
+            playChimeSound();
+          } else {
+            playSelectSound();
+          }
+          return sceneIndex;
+        }
+        return prev;
+      });
+    });
+
+    return () => unsubscribe();
+  }, [scrollYProgress, isInView]);
+
+  // Jump to specific scene smoothly
+  const jumpToScene = useCallback((index: number) => {
+    if (index < 0 || index >= STORY_SCENES.length) return;
+
+    const isMobileView = typeof window !== "undefined" && window.innerWidth < 640;
+
+    // 1. Lock programmatic scroll so the scroll listener doesn't fight this action
+    isProgrammaticScrollRef.current = true;
+    if (scrollUnlockTimeoutRef.current) {
+      clearTimeout(scrollUnlockTimeoutRef.current);
+    }
+    scrollUnlockTimeoutRef.current = setTimeout(() => {
+      isProgrammaticScrollRef.current = false;
+    }, 850);
+
+    // 2. Update state immediately
+    setActiveSceneIndex(index);
+    if (index === 4) {
+      playChimeSound();
     } else {
-      newIndex = 0;
+      playSelectSound();
     }
 
-    if (newIndex !== activeChapterIndex) {
-      setActiveChapterIndex(newIndex);
-    }
-  });
+    // 3. Align page scroll smoothly with target scene ONLY on desktop where scrollytelling track exists
+    if (!isMobileView && containerRef.current) {
+      const rect = containerRef.current.getBoundingClientRect();
+      const scrollTop = window.scrollY || document.documentElement.scrollTop;
+      const containerTop = rect.top + scrollTop;
+      const totalTrackScrollable = rect.height - window.innerHeight;
 
-  const handleSelectChapter = useCallback(
-    (index: number) => {
-      if (index === activeChapterIndex) return;
-      playSelectSound(1.0 + index * 0.1);
-      setActiveChapterIndex(index);
-
-      // السكرول الناعم مقتصر فقط على شاشات الديسكتوب (md وأكبر)
-      if (
-        typeof window !== "undefined" &&
-        window.innerWidth >= 768 &&
-        containerRef.current
-      ) {
-        const rect = containerRef.current.getBoundingClientRect();
-        const containerTop = window.scrollY + rect.top;
-        const containerHeight = containerRef.current.offsetHeight;
-        const scrollableDist = Math.max(containerHeight - window.innerHeight, 1);
-        const targetScroll = containerTop + (index / (CHAPTERS.length - 1)) * scrollableDist;
+      if (totalTrackScrollable > 0) {
+        // Target safely inside each scene's scroll band to avoid border flickering
+        const targetProgress = (index + 0.45) / STORY_SCENES.length;
+        const targetScroll = containerTop + targetProgress * totalTrackScrollable;
         window.scrollTo({ top: targetScroll, behavior: "smooth" });
       }
-    },
-    [activeChapterIndex]
-  );
+    }
+  }, []);
 
-  // 🎮 أزرار التحكم:
-  // التالي (التقدم للأمام في القصة)
-  const handleNext = useCallback(() => {
-    const nextIdx = Math.min(activeChapterIndex + 1, CHAPTERS.length - 1);
-    handleSelectChapter(nextIdx);
-  }, [activeChapterIndex, handleSelectChapter]);
-
-  // السابق (الرجوع للخلف في القصة)
-  const handlePrev = useCallback(() => {
-    const prevIdx = Math.max(activeChapterIndex - 1, 0);
-    handleSelectChapter(prevIdx);
-  }, [activeChapterIndex, handleSelectChapter]);
-
-  // 👆 معالجة السحب الأفقي باللمس (مخصص للموبايل: يمين وشمال فقط بدون التأثير على الاسكرول الرأسي)
-  const handleTouchStart = (e: React.TouchEvent) => {
-    touchStartRef.current = {
-      x: e.touches[0].clientX,
-      y: e.touches[0].clientY,
-    };
-  };
-
-  const handleTouchEnd = (e: React.TouchEvent) => {
-    if (!touchStartRef.current) return;
-    const endX = e.changedTouches[0].clientX;
-    const endY = e.changedTouches[0].clientY;
-
-    const diffX = touchStartRef.current.x - endX;
-    const diffY = touchStartRef.current.y - endY;
-
-    // تفعيل التنقل فقط إذا كانت الحركة الأفقية واضحة وأكبر من الرأسية وتجاوزت عتبة 35 بكسل
-    if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 35) {
-      if (diffX > 0) {
-        // سحب لليسار: رجوع للبطاقة السابقة (معكوس بناءً على رغبة المستخدم)
-        handlePrev();
+  // When clicking on the dialogue box:
+  // If typing -> instantly complete typing!
+  // If finished typing -> advance to next scene!
+  const handleBoxClick = () => {
+    if (isTyping) {
+      setDisplayedCharCount(currentScene.dialogue.length);
+      setIsTyping(false);
+    } else {
+      if (activeSceneIndex < STORY_SCENES.length - 1) {
+        jumpToScene(activeSceneIndex + 1);
       } else {
-        // سحب لليمين: تقدم للبطاقة التالية (معكوس بناءً على رغبة المستخدم)
-        handleNext();
+        const el = document.getElementById("services") || document.getElementById("about");
+        if (el) el.scrollIntoView({ behavior: "smooth" });
       }
     }
-    touchStartRef.current = null;
   };
 
-  // دعم أزرار الكيبورد (الأسهم و A/B)
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (
-        document.activeElement?.tagName === "INPUT" ||
-        document.activeElement?.tagName === "TEXTAREA"
-      ) {
-        return;
-      }
-      // تحت / شمال / B = التقدم للأمام في القصة
-      if (e.key === "ArrowDown" || e.key === "ArrowLeft" || e.key === "b" || e.key === "B") {
-        e.preventDefault();
-        handleNext();
-      }
-      // فوق / يمين / A = الرجوع للخلف في القصة
-      else if (e.key === "ArrowUp" || e.key === "ArrowRight" || e.key === "a" || e.key === "A") {
-        e.preventDefault();
-        handlePrev();
-      }
-    };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [handleNext, handlePrev]);
+  const handleNext = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (activeSceneIndex < STORY_SCENES.length - 1) {
+      jumpToScene(activeSceneIndex + 1);
+    } else {
+      const el = document.getElementById("services") || document.getElementById("about");
+      if (el) el.scrollIntoView({ behavior: "smooth" });
+    }
+  };
 
-  const currentChapter = CHAPTERS[activeChapterIndex];
+  const handlePrev = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (activeSceneIndex > 0) {
+      jumpToScene(activeSceneIndex - 1);
+    }
+  };
+
+  const handleSkipToServices = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    playJumpSound();
+    const el = document.getElementById("services");
+    if (el) el.scrollIntoView({ behavior: "smooth" });
+  };
+
+  // Format highlighted words cleanly without underlines
+  const renderFormattedDialogue = (text: string, highlights: string[], accent: string) => {
+    let result = text;
+    highlights.forEach((word) => {
+      if (result.includes(word)) {
+        result = result.replace(word, `__HL_START__${word}__HL_END__`);
+      }
+    });
+
+    const parts = result.split(/(__HL_START__|__HL_END__)/);
+    let isHighlight = false;
+
+    return parts.map((part, i) => {
+      if (part === "__HL_START__") {
+        isHighlight = true;
+        return null;
+      }
+      if (part === "__HL_END__") {
+        isHighlight = false;
+        return null;
+      }
+      if (isHighlight) {
+        return (
+          <span
+            key={i}
+            className="font-black"
+            style={{ color: accent }}
+          >
+            {part}
+          </span>
+        );
+      }
+      return <span key={i}>{part}</span>;
+    });
+  };
+
+  const visibleDialogue = currentScene.dialogue.slice(0, displayedCharCount);
 
   return (
     <div
       ref={containerRef}
-      className="relative w-full md:min-h-[300vh] py-4 md:py-0 select-none"
-      dir="rtl"
+      className="relative w-full py-2 sm:py-0 sm:min-h-[280vh]"
+      id="story-mode-track"
     >
-      {/* 📌 CINEMATIC VIEWPORT (Sticky على الديسكتوب، Relative طبيعي على الموبايل لمنع احتجاز الاسكرول) */}
-      <div className="relative md:sticky md:top-0 h-auto md:h-screen md:max-h-[780px] w-full flex flex-col justify-center py-2 sm:py-3 px-2 sm:px-3 overflow-hidden">
-        {/* 🧭 Top HUD Header & Chapter Quick Bar */}
-        <div className="relative z-20 w-full max-w-4xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2 pb-2 mb-1 border-b border-white/[0.08]">
-          {/* Live Phase Indicator */}
-          <div className="flex items-center gap-2">
+      {/* 📍 Viewport Window: Clean Flow on Mobile (< sm), Sticky Scrollytelling on Desktop (sm+) */}
+      <div className="relative sm:sticky sm:top-14 md:top-20 w-full sm:h-[calc(100dvh-3.75rem)] sm:max-h-[720px] flex flex-col justify-center sm:justify-between py-1 sm:py-3 px-2 sm:px-4 overflow-hidden select-none gap-2 sm:gap-0">
+        
+        {/* 🎮 Retro Header Bar & Controls */}
+        <div className="relative z-30 w-full max-w-4xl mx-auto flex items-center justify-between gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1.5 rounded-xl bg-[#09150d]/80 border border-[#1b3420] backdrop-blur-md shadow-lg">
+          {/* Live Chapter Indicator */}
+          <div className="flex items-center gap-1.5 sm:gap-2 min-w-0" dir="ltr">
             <span
-              className="w-2 h-2 rounded-full animate-pulse shadow-sm"
-              style={{ backgroundColor: currentChapter.accentColor }}
+              className="w-2 h-2 rounded-full animate-ping shrink-0"
+              style={{ backgroundColor: currentScene.accentColor }}
             />
-            <span className="text-[11px] font-mono font-bold tracking-wider text-[#a8bda7] uppercase">
-              {currentChapter.badge}
+            <span className="text-[9.5px] sm:text-xs font-mono font-bold tracking-wider text-[#a8bda7] truncate">
+              <span className="hidden sm:inline">FAME-X RPG STORY // </span>{currentScene.badge}
             </span>
           </div>
 
-          {/* Quick Chapter Selector Pills */}
-          <div className="flex items-center p-0.5 rounded-xl bg-black/60 border border-white/[0.08] backdrop-blur-md">
-            {CHAPTERS.map((chap, idx) => {
-              const isSelected = idx === activeChapterIndex;
-              const Icon = chap.navIcon;
-
-              return (
+          {/* Quick Scene Dots + Sound + Skip Button */}
+          <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
+            {/* Step Dots */}
+            <div className="flex items-center gap-1 sm:gap-1.5">
+              {STORY_SCENES.map((scene, idx) => (
                 <button
-                  key={chap.id}
-                  onClick={() => handleSelectChapter(idx)}
-                  className={`relative flex items-center gap-1.5 px-2.5 sm:px-3 py-1 rounded-lg text-xs font-bold transition-colors ${
-                    isSelected ? "text-white" : "text-[#7f9980] hover:text-white"
+                  key={scene.id}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    jumpToScene(idx);
+                  }}
+                  aria-label={`Jump to scene ${idx + 1}`}
+                  className={`h-1.5 sm:h-2 rounded-full transition-all duration-300 ${
+                    idx === activeSceneIndex
+                      ? "w-4 sm:w-6 shadow-[0_0_8px_currentColor]"
+                      : "w-1.5 sm:w-2 bg-white/20 hover:bg-white/40"
                   }`}
-                >
-                  {isSelected && (
-                    <motion.div
-                      layoutId="activeStoryPill"
-                      className="absolute inset-0 rounded-lg bg-white/[0.1] border border-white/[0.14] shadow-sm"
-                      transition={{ type: "spring", stiffness: 350, damping: 30 }}
-                    />
-                  )}
-                  <span className="relative z-10 flex items-center gap-1">
-                    <Icon className="w-3 h-3" style={{ color: chap.accentColor }} />
-                    <span className="hidden sm:inline">{chap.tabLabel}</span>
-                    <span className="text-[9px] font-mono opacity-60">{chap.code}</span>
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* 📱 MOBILE CHASSIS: FAME-X POCKET (يظهر فقط على شاشات الموبايل: جهاز مخصص بأبعاد رأسية + اتجاهات يمين وشمال فقط + سحب أفقي) */}
-        <div className="block md:hidden relative z-10 w-full max-w-md mx-auto p-1">
-          <div className="relative rounded-[28px] bg-gradient-to-b from-[#14281a] via-[#0d1a11] to-[#070e0a] border-2 border-[#1f3f26] shadow-[0_16px_40px_rgba(0,0,0,0.9),inset_0_1px_2px_rgba(255,255,255,0.14)] p-3 transition-all duration-700">
-            {/* Ambient Background Glow */}
-            <div
-              className="absolute inset-0 rounded-[28px] blur-2xl opacity-20 pointer-events-none transition-colors duration-700"
-              style={{ backgroundColor: currentChapter.accentColor }}
-            />
-
-            {/* Handheld Top Edge Status Bar */}
-            <div className="flex items-center justify-between px-2 pb-2 mb-2 border-b border-[#1b3420] text-[9px] text-[#7d9b7f] font-mono">
-              <div className="flex items-center gap-1.5">
-                <span
-                  className="w-2 h-2 rounded-full animate-pulse shadow-sm"
-                  style={{ backgroundColor: currentChapter.accentColor }}
-                />
-                <span className="font-bold text-white tracking-wider">FAME-X POCKET DECK</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="px-1.5 py-0.5 rounded bg-white/[0.06] text-[#a6f45d] font-bold">
-                  CH. {currentChapter.code}
-                </span>
-                <span className="flex items-center gap-0.5 text-[#7d9b7f]">
-                  <Volume2 className="w-2.5 h-2.5" />
-                  <span>SFX</span>
-                </span>
-              </div>
-            </div>
-
-            {/* 📺 The Mobile Screen: Swipeable Horizontally Only (touch-pan-y allows normal page scroll) */}
-            <div
-              onTouchStart={handleTouchStart}
-              onTouchEnd={handleTouchEnd}
-              className="relative rounded-xl bg-[#060c07] border-2 border-[#162a1a] p-3 overflow-hidden shadow-[inset_0_2px_12px_rgba(0,0,0,0.95)] touch-pan-y"
-            >
-              {/* CRT Scanline & Glass Glare Overlay */}
-              <div
-                className="absolute inset-0 opacity-[0.03] pointer-events-none z-20"
-                style={{
-                  backgroundImage: "linear-gradient(rgba(255,255,255,0.15) 1px, transparent 1px)",
-                  backgroundSize: "100% 3px",
-                }}
-              />
-              <div className="absolute top-0 right-0 w-full h-full bg-gradient-to-tr from-transparent via-white/[0.02] to-transparent pointer-events-none z-20" />
-
-              {/* Dynamic Screen Ambient Glow */}
-              <div
-                className="absolute -top-12 -right-12 w-48 h-48 rounded-full blur-[70px] pointer-events-none transition-colors duration-700 opacity-25"
-                style={{ backgroundColor: currentChapter.accentColor }}
-              />
-
-              <AnimatePresence mode="wait">
-                {/* ════════════ SCENE 00: THE SQUAD LINEUP (مشهد البداية على الموبايل) ════════════ */}
-                {activeChapterIndex === 0 && (
-                  <motion.div
-                    key="mobile-intro-scene"
-                    initial={{ opacity: 0, x: 20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: -20 }}
-                    transition={{ duration: 0.3 }}
-                    className="flex flex-col items-center text-center space-y-2 py-1"
-                  >
-                    <div className="space-y-1">
-                      <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-white/[0.04] border border-white/[0.08] text-[9px] font-bold text-[#a6f45d] font-mono">
-                        <Sparkles className="w-2.5 h-2.5 text-[#a6f45d]" />
-                        <span>فريق FAME-X {"//"} الترويكا الرقمية</span>
-                      </div>
-                      <h3 className="text-base font-black text-white leading-snug">
-                        {CHAPTERS[0].title}
-                      </h3>
-                      <p className="text-[10px] text-[#b8ccb5] leading-relaxed line-clamp-3 font-[family-name:var(--font-digital)]">
-                        {CHAPTERS[0].story}
-                      </p>
-                    </div>
-
-                    {/* 👥 The 3 Heroes Standing Together */}
-                    <div className="grid grid-cols-3 gap-1.5 items-end justify-center w-full pt-1">
-                      {/* Hero 1: Developer */}
-                      <div
-                        className="flex flex-col items-center cursor-pointer group"
-                        onClick={() => handleSelectChapter(1)}
-                      >
-                        <div className="relative w-16 h-22 flex items-end justify-center transition-transform duration-200 group-hover:scale-105">
-                          <Image
-                            src="/characters/developer_v3.png"
-                            alt="SOFTWARE ARCHITECT"
-                            width={75}
-                            height={100}
-                            priority
-                            className="object-contain max-h-full drop-shadow-[0_4px_8px_rgba(0,0,0,0.85)] [image-rendering:pixelated]"
-                          />
-                          <div className="absolute -bottom-1 w-12 h-2 bg-[#a6f45d]/20 rounded-full blur-sm" />
-                        </div>
-                        <div className="mt-1 px-1 py-0.5 rounded bg-white/[0.04] border border-white/[0.08] text-center w-full">
-                          <p className="text-[7.5px] font-black text-white font-mono leading-tight truncate">
-                            SOFTWARE ARCHITECT
-                          </p>
-                          <p className="text-[6.5px] text-[#a6f45d] font-mono uppercase font-bold">
-                            LEAD DEV
-                          </p>
-                        </div>
-                      </div>
-
-                      {/* Hero 2: Designer (Center Stage) */}
-                      <div
-                        className="flex flex-col items-center cursor-pointer group -translate-y-1"
-                        onClick={() => handleSelectChapter(2)}
-                      >
-                        <div className="relative w-18 h-24 flex items-end justify-center transition-transform duration-200 group-hover:scale-105">
-                          <Image
-                            src="/characters/designer_v3.png"
-                            alt="UI/UX DESIGNER"
-                            width={80}
-                            height={110}
-                            priority
-                            className="object-contain max-h-full drop-shadow-[0_6px_10px_rgba(0,0,0,0.85)] [image-rendering:pixelated]"
-                          />
-                          <div className="absolute -bottom-1 w-14 h-2.5 bg-[#52c974]/25 rounded-full blur-sm" />
-                        </div>
-                        <div className="mt-1 px-1 py-0.5 rounded bg-[#52c974]/15 border border-[#52c974]/30 text-center w-full">
-                          <p className="text-[7.5px] font-black text-white font-mono leading-tight truncate">
-                            UI/UX DESIGNER
-                          </p>
-                          <p className="text-[6.5px] text-[#52c974] font-mono uppercase font-bold">
-                            PRODUCT
-                          </p>
-                        </div>
-                      </div>
-
-                      {/* Hero 3: Photographer */}
-                      <div
-                        className="flex flex-col items-center cursor-pointer group"
-                        onClick={() => handleSelectChapter(3)}
-                      >
-                        <div className="relative w-16 h-22 flex items-end justify-center transition-transform duration-200 group-hover:scale-105">
-                          <Image
-                            src="/characters/photographer_v3.png"
-                            alt="CREATIVE DIRECTOR"
-                            width={75}
-                            height={100}
-                            priority
-                            className="object-contain max-h-full drop-shadow-[0_4px_8px_rgba(0,0,0,0.85)] [image-rendering:pixelated]"
-                          />
-                          <div className="absolute -bottom-1 w-12 h-2 bg-[#38bdf8]/20 rounded-full blur-sm" />
-                        </div>
-                        <div className="mt-1 px-1 py-0.5 rounded bg-white/[0.04] border border-white/[0.08] text-center w-full">
-                          <p className="text-[7.5px] font-black text-white font-mono leading-tight truncate">
-                            CREATIVE DIRECTOR
-                          </p>
-                          <p className="text-[6.5px] text-[#38bdf8] font-mono uppercase font-bold">
-                            PRODUCER
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Micro Hint for Mobile */}
-                    <div className="pt-1 flex items-center justify-center gap-1.5 text-[9px] text-[#7d9b7f] font-mono">
-                      <span className="text-[#a6f45d]">◄</span>
-                      <span>اسحب أفقياً أو استخدم الأزرار بالأسفل</span>
-                      <span className="text-[#a6f45d]">►</span>
-                    </div>
-                  </motion.div>
-                )}
-
-                {/* ════════════ SCENES 01, 02, 03: INDIVIDUAL HERO CHAPTERS (على الموبايل) ════════════ */}
-                {activeChapterIndex > 0 && (
-                  <motion.div
-                    key={`mobile-${currentChapter.id}`}
-                    initial={{ opacity: 0, x: 20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: -20 }}
-                    transition={{ duration: 0.3 }}
-                    className="flex flex-col items-center text-center space-y-2 py-0.5"
-                  >
-                    {/* Quote Bubble */}
-                    {currentChapter.quote && (
-                      <div className="relative px-2.5 py-1 rounded-lg bg-white/[0.04] border border-white/[0.1] text-center max-w-xs shadow-sm">
-                        <p className="text-[10px] font-semibold text-white leading-relaxed">
-                          &ldquo;{currentChapter.quote}&rdquo;
-                        </p>
-                      </div>
-                    )}
-
-                    {/* Character Mascot & Light Pedestal */}
-                    <div className="relative w-28 h-36 flex items-end justify-center my-0.5">
-                      <Image
-                        src={currentChapter.avatar}
-                        alt={currentChapter.title}
-                        width={130}
-                        height={160}
-                        priority
-                        className="object-contain max-h-full drop-shadow-[0_8px_16px_rgba(0,0,0,0.85)] [image-rendering:pixelated] z-10"
-                      />
-                      <div
-                        className="absolute -bottom-1 w-24 h-4 rounded-full blur-[2px] opacity-80"
-                        style={{
-                          background: `radial-gradient(ellipse at center, ${currentChapter.accentColor}70, transparent 70%)`,
-                          boxShadow: `0 0 14px ${currentChapter.accentColor}50`,
-                        }}
-                      />
-                    </div>
-
-                    {/* Title & Technical Discipline */}
-                    <div>
-                      <h3 className="text-sm font-black text-white tracking-tight">
-                        {currentChapter.title}
-                      </h3>
-                      <div className="inline-flex items-center gap-1 mt-0.5 px-2 py-0.5 rounded-full bg-white/[0.05] border border-white/[0.08]">
-                        <span
-                          className="w-1.5 h-1.5 rounded-full"
-                          style={{ backgroundColor: currentChapter.accentColor }}
-                        />
-                        <span className="text-[8px] font-mono tracking-wider text-[#a8bda7] uppercase font-bold">
-                          {currentChapter.discipline}
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Story Narrative */}
-                    <p className="text-[10px] text-[#c8dcc4] leading-relaxed text-right font-[family-name:var(--font-digital)] bg-white/[0.02] p-2 rounded-lg border border-white/[0.06] w-full">
-                      {currentChapter.story}
-                    </p>
-
-                    {/* Performance Metrics */}
-                    {currentChapter.metrics && (
-                      <div className="w-full space-y-1.5 pt-0.5 text-right">
-                        {currentChapter.metrics.map((metric) => {
-                          const Icon = metric.icon;
-                          return (
-                            <div key={metric.label} className="space-y-0.5">
-                              <div className="flex items-center justify-between text-[9px]">
-                                <span className="text-[#d8ebd5] font-medium flex items-center gap-1">
-                                  <Icon
-                                    className="w-2.5 h-2.5"
-                                    style={{ color: currentChapter.accentColor }}
-                                  />
-                                  <span>{metric.label}</span>
-                                </span>
-                                <span className="font-mono text-[9px] font-bold text-white">
-                                  {metric.value}%
-                                </span>
-                              </div>
-                              <div className="h-1 w-full bg-white/[0.05] rounded-full overflow-hidden border border-white/[0.06]">
-                                <motion.div
-                                  className="h-full rounded-full"
-                                  initial={{ width: 0 }}
-                                  animate={{ width: `${metric.value}%` }}
-                                  transition={{ duration: 0.8 }}
-                                  style={{
-                                    backgroundColor: currentChapter.accentColor,
-                                    boxShadow: `0 0 6px ${currentChapter.accentColor}60`,
-                                  }}
-                                />
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    )}
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
-
-            {/* 🕹️ The Mobile Controls Deck: اتجاهات يمين وشمال فقط */}
-            <div className="mt-3 pt-2.5 border-t border-[#1a3520] flex flex-col items-center gap-2.5">
-              {/* Directional Two-Way Bar: اتجاهات يمين وشمال فقط */}
-              <div className="w-full flex items-center justify-between px-1">
-                {/* زر اليمين: السابق (Previous) */}
-                <button
-                  onClick={handlePrev}
-                  disabled={activeChapterIndex === 0}
-                  aria-label="Previous Chapter"
-                  className={`relative flex items-center gap-1.5 px-3.5 py-2 rounded-xl border font-mono text-xs font-bold transition-all duration-200 active:scale-95 ${
-                    activeChapterIndex === 0
-                      ? "border-[#142817] bg-[#08120a] text-[#344b36] cursor-not-allowed opacity-40"
-                      : "border-[#254b2b] bg-gradient-to-r from-[#142918] to-[#0c1a10] text-white hover:border-[#a6f45d] shadow-[0_4px_12px_rgba(0,0,0,0.6)] cursor-pointer"
-                  }`}
-                >
-                  <span className="text-sm font-black text-[#a6f45d]">▶</span>
-                  <span>السابق</span>
-                </button>
-
-                {/* مؤشر رقم الفصل الديجيتال بالمنتصف */}
-                <div className="flex flex-col items-center px-3 py-1 rounded-lg bg-[#070e09] border border-[#1b3420] shadow-inner">
-                  <span className="text-[7.5px] font-mono text-[#6c876e] uppercase">CHAPTER</span>
-                  <span
-                    className="text-xs font-mono font-black"
-                    style={{ color: currentChapter.accentColor }}
-                  >
-                    {currentChapter.code} / 03
-                  </span>
-                </div>
-
-                {/* زر الشمال: التالي (Next) */}
-                <button
-                  onClick={handleNext}
-                  disabled={activeChapterIndex === CHAPTERS.length - 1}
-                  aria-label="Next Chapter"
-                  className={`relative flex items-center gap-1.5 px-3.5 py-2 rounded-xl border font-mono text-xs font-bold transition-all duration-200 active:scale-95 ${
-                    activeChapterIndex === CHAPTERS.length - 1
-                      ? "border-[#142817] bg-[#08120a] text-[#344b36] cursor-not-allowed opacity-40"
-                      : "border-[#254b2b] bg-gradient-to-l from-[#142918] to-[#0c1a10] text-white hover:border-[#a6f45d] shadow-[0_4px_12px_rgba(0,0,0,0.6)] cursor-pointer"
-                  }`}
-                >
-                  <span>التالي</span>
-                  <span className="text-sm font-black text-[#a6f45d]">◀</span>
-                </button>
-              </div>
-
-              {/* Direct Chapter Selection Dots */}
-              <div className="flex items-center gap-2 pt-0.5">
-                {CHAPTERS.map((chap, i) => (
-                  <button
-                    key={chap.id}
-                    onClick={() => handleSelectChapter(i)}
-                    aria-label={`Jump to chapter ${chap.code}`}
-                    className={`h-1.5 rounded-full transition-all duration-300 ${
-                      i === activeChapterIndex
-                        ? "w-6 shadow-sm"
-                        : "w-2 bg-white/20 hover:bg-white/40"
-                    }`}
-                    style={{
-                      backgroundColor: i === activeChapterIndex ? currentChapter.accentColor : undefined,
-                    }}
-                  />
-                ))}
-              </div>
-
-              {/* Bottom Console Badge & Retro Speaker Vents */}
-              <div className="w-full flex items-center justify-between pt-1 border-t border-[#132717] text-[8px] font-mono text-[#526f54]">
-                <span>FAME-X POCKET // D-PAD 2-WAY</span>
-                <div className="flex items-center gap-1">
-                  <div className="w-3.5 h-0.5 bg-[#254429] rounded-full" />
-                  <div className="w-3.5 h-0.5 bg-[#254429] rounded-full" />
-                  <div className="w-3.5 h-0.5 bg-[#254429] rounded-full" />
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* 💻 DESKTOP CHASSIS: THE FAME-X CYBER DECK (يظهر فقط على الشاشات المتوسطة والكبيرة md+) */}
-        <div className="hidden md:block relative z-10 w-full max-w-4xl mx-auto p-1">
-          {/* Handheld Device Chassis (هيكل مدمج وخفيف) */}
-          <div className="relative rounded-[24px] sm:rounded-[36px] bg-gradient-to-b from-[#112316] via-[#0b170e] to-[#070e09] border-2 border-[#1d3822] shadow-[0_16px_40px_rgba(0,0,0,0.85),inset_0_1px_2px_rgba(255,255,255,0.12)] p-2.5 sm:p-4 transition-all duration-700">
-            {/* Ambient Back Glow */}
-            <div
-              className="absolute inset-0 rounded-[36px] blur-3xl opacity-20 pointer-events-none transition-colors duration-700"
-              style={{ backgroundColor: currentChapter.accentColor }}
-            />
-
-            {/* Handheld Top Edge Status Bar */}
-            <div className="flex items-center justify-between px-2 sm:px-3 pb-2 border-b border-[#1b3420] text-[9px] sm:text-[10px] text-[#7d9b7f] font-mono">
-              <div className="flex items-center gap-1.5">
-                <span
-                  className="w-1.5 h-1.5 rounded-full animate-ping"
-                  style={{ backgroundColor: currentChapter.accentColor }}
-                />
-                <span className="font-bold text-white tracking-wider">FAME-X DECK {"//"} STORY MODE</span>
-              </div>
-              <div className="flex items-center gap-3">
-                <span className="hidden sm:inline">CH. {currentChapter.code} {"//"} REEL ACTIVE</span>
-                <span className="flex items-center gap-1 text-[#a6f45d]">
-                  <Volume2 className="w-3 h-3" />
-                  <span>STEREO</span>
-                </span>
-              </div>
-            </div>
-
-            {/* Main Handheld Body: Split into [D-PAD Controls] + [Screen Display] + [Action Buttons] */}
-            <div className="relative mt-2 grid grid-cols-1 md:grid-cols-12 gap-2 sm:gap-3 items-center">
-              {/* 🕹️ Left Controls Deck (D-Pad & Stereo Grills) */}
-              <div className="hidden md:flex md:col-span-1 flex-col items-center justify-center space-y-4">
-                {/* Directional Pad (D-Pad) */}
-                <div className="relative w-11 h-11 rounded-lg bg-[#09140c] border border-[#203c26] p-1 shadow-inner flex flex-col justify-between items-center">
-                  {/* سهم لفوق: رجوع للخلف */}
-                  <button
-                    onClick={handlePrev}
-                    aria-label="Up - Prev Chapter"
-                    className="w-3.5 h-3 bg-[#172e1c] hover:bg-[#a6f45d] hover:text-black rounded-t text-[7px] flex items-center justify-center transition-colors text-white font-bold"
-                  >
-                    ▲
-                  </button>
-                  <div className="w-full flex justify-between">
-                    {/* سهم شمال: تقدم للأمام */}
-                    <button
-                      onClick={handleNext}
-                      aria-label="Left - Next Chapter"
-                      className="w-3 h-3.5 bg-[#172e1c] hover:bg-[#a6f45d] hover:text-black rounded-l text-[7px] flex items-center justify-center transition-colors text-white font-bold"
-                    >
-                      ◀
-                    </button>
-                    <div className="w-2.5 h-2.5 bg-[#0d1e11] rounded-full" />
-                    {/* سهم يمين: رجوع للخلف */}
-                    <button
-                      onClick={handlePrev}
-                      aria-label="Right - Prev Chapter"
-                      className="w-3 h-3.5 bg-[#172e1c] hover:bg-[#a6f45d] hover:text-black rounded-r text-[7px] flex items-center justify-center transition-colors text-white font-bold"
-                    >
-                      ▶
-                    </button>
-                  </div>
-                  {/* سهم تحت: تقدم للأمام */}
-                  <button
-                    onClick={handleNext}
-                    aria-label="Down - Next Chapter"
-                    className="w-3.5 h-3 bg-[#172e1c] hover:bg-[#a6f45d] hover:text-black rounded-b text-[7px] flex items-center justify-center transition-colors text-white font-bold"
-                  >
-                    ▼
-                  </button>
-                </div>
-
-                {/* Speaker Grill Slits */}
-                <div className="space-y-1 opacity-40">
-                  <div className="w-5 h-0.5 bg-[#7d9b7f] rounded-full" />
-                  <div className="w-5 h-0.5 bg-[#7d9b7f] rounded-full" />
-                  <div className="w-5 h-0.5 bg-[#7d9b7f] rounded-full" />
-                </div>
-              </div>
-
-              {/* 📺 The Handheld Screen Bezel & Display (شاشة الكونسول المدمجة) */}
-              <div className="md:col-span-10 relative rounded-xl sm:rounded-2xl bg-[#060c07] border-2 border-[#162a1a] p-3 sm:p-5 overflow-hidden shadow-[inset_0_2px_12px_rgba(0,0,0,0.95)]">
-                {/* CRT Scanline & Glass Glare Overlay */}
-                <div
-                  className="absolute inset-0 opacity-[0.03] pointer-events-none z-20"
                   style={{
-                    backgroundImage: "linear-gradient(rgba(255,255,255,0.15) 1px, transparent 1px)",
+                    backgroundColor: idx === activeSceneIndex ? currentScene.accentColor : undefined,
+                    color: currentScene.accentColor,
+                  }}
+                />
+              ))}
+            </div>
+
+            {/* Mute/Unmute */}
+            <button
+              onClick={handleToggleSound}
+              aria-label="Toggle retro arcade sounds"
+              className="p-1 rounded-lg bg-black/40 hover:bg-black/60 text-[#a8bda7] hover:text-white transition-colors"
+            >
+              {soundEnabled ? (
+                <Volume2 className="w-3.5 h-3.5 text-[#a6f45d]" />
+              ) : (
+                <VolumeX className="w-3.5 h-3.5 opacity-60" />
+              )}
+            </button>
+
+            {/* Skip to Services Button */}
+            <button
+              onClick={handleSkipToServices}
+              className="hidden sm:inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg bg-white/[0.05] hover:bg-white/[0.1] border border-white/10 text-[10px] font-bold text-[#b5ceb2] transition-colors"
+            >
+              <span>تخطي للخدمات</span>
+              <span className="text-xs">⏭</span>
+            </button>
+          </div>
+        </div>
+
+        {/* 📖 The Arcade Comic Panels Stage (بانيلز الكوميكس التفاعلية ثلاثية الأبعاد) */}
+        <div className="relative z-20 w-full max-w-4xl mx-auto flex flex-col justify-center items-center py-1 sm:py-3 select-none sm:flex-1 sm:my-auto">
+
+          {/* 📱 MOBILE VIEW: Open Cinematic Character Stage (< sm) */}
+          <div className="sm:hidden relative z-10 w-full flex flex-col items-center justify-center px-2">
+            
+            {/* 🌟 Open Character Stage (Zero-Lag Pre-Mounted Cross-Fade) */}
+            <div className="relative w-full max-w-[340px] h-[215px] xs:h-[230px] flex items-end justify-center">
+
+              {/* 💻 Hero 1: أحمد - المطوّر */}
+              <div
+                className={`absolute inset-0 flex flex-col items-center justify-end pb-1 transition-all duration-300 ease-out ${
+                  currentScene.activeCharacter === "developer"
+                    ? "opacity-100 scale-100 pointer-events-auto z-10"
+                    : "opacity-0 scale-95 pointer-events-none z-0"
+                }`}
+              >
+                {/* Floating Character Badge */}
+                <div className="mb-auto mt-0.5 flex items-center gap-1.5 px-3 py-1 rounded-full bg-black/85 border border-[#a6f45d]/40 backdrop-blur-md shadow-sm">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#a6f45d] animate-pulse" />
+                  <span className="text-[10px] font-black text-white font-mono">أحمد</span>
+                  <span className="text-[8px] text-[#a6f45d] font-mono font-bold tracking-wider">{"// MOBILE APP ARCHITECT"}</span>
+                </div>
+
+                {/* Ground Radial Halo & Floor Shadow */}
+                <div className="absolute bottom-1 w-36 h-5 rounded-[100%] bg-black/80 blur-[3px] pointer-events-none" />
+                <div
+                  className="absolute bottom-0 w-44 h-7 rounded-[100%] opacity-20 pointer-events-none"
+                  style={{
+                    background: "radial-gradient(ellipse at center, #a6f45d 0%, transparent 70%)",
+                  }}
+                />
+
+                {/* Full-Body Hero Sprite (Unbounded, No Slicing, Full Shoes Visible) */}
+                <div
+                  onClick={() => jumpToScene(2)}
+                  className="relative z-10 w-36 xs:w-40 h-[175px] xs:h-[185px] flex items-end justify-center cursor-pointer transition-transform active:scale-95"
+                >
+                  <Image
+                    src="/characters/developer_v4.png"
+                    alt="أحمد - المطوّر"
+                    width={155}
+                    height={185}
+                    priority
+                    className="object-contain max-h-full drop-shadow-[0_12px_24px_rgba(0,0,0,0.95)] [image-rendering:pixelated]"
+                  />
+                </div>
+              </div>
+
+              {/* 🎨 Hero 2: عمر - المصمّم */}
+              <div
+                className={`absolute inset-0 flex flex-col items-center justify-end pb-1 transition-all duration-300 ease-out ${
+                  currentScene.activeCharacter === "designer"
+                    ? "opacity-100 scale-100 pointer-events-auto z-10"
+                    : "opacity-0 scale-95 pointer-events-none z-0"
+                }`}
+              >
+                {/* Floating Character Badge */}
+                <div className="mb-auto mt-0.5 flex items-center gap-1.5 px-3 py-1 rounded-full bg-black/85 border border-[#52c974]/40 backdrop-blur-md shadow-sm">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#52c974] animate-pulse" />
+                  <span className="text-[10px] font-black text-white font-mono">عمر</span>
+                  <span className="text-[8px] text-[#52c974] font-mono font-bold tracking-wider">{"// UI/UX PRODUCT DESIGNER"}</span>
+                </div>
+
+                {/* Ground Radial Halo & Floor Shadow */}
+                <div className="absolute bottom-1 w-36 h-5 rounded-[100%] bg-black/80 blur-[3px] pointer-events-none" />
+                <div
+                  className="absolute bottom-0 w-44 h-7 rounded-[100%] opacity-20 pointer-events-none"
+                  style={{
+                    background: "radial-gradient(ellipse at center, #52c974 0%, transparent 70%)",
+                  }}
+                />
+
+                {/* Full-Body Hero Sprite (Unbounded, No Slicing, Full Shoes Visible) */}
+                <div
+                  onClick={() => jumpToScene(3)}
+                  className="relative z-10 w-36 xs:w-40 h-[175px] xs:h-[185px] flex items-end justify-center cursor-pointer transition-transform active:scale-95"
+                >
+                  <Image
+                    src="/characters/designer_v4.png"
+                    alt="عمر - المصمّم"
+                    width={155}
+                    height={185}
+                    priority
+                    className="object-contain max-h-full drop-shadow-[0_12px_24px_rgba(0,0,0,0.95)] [image-rendering:pixelated]"
+                  />
+                </div>
+              </div>
+
+              {/* 📸 Hero 3: كريم - الكرييتف */}
+              <div
+                className={`absolute inset-0 flex flex-col items-center justify-end pb-1 transition-all duration-300 ease-out ${
+                  currentScene.activeCharacter === "photographer"
+                    ? "opacity-100 scale-100 pointer-events-auto z-10"
+                    : "opacity-0 scale-95 pointer-events-none z-0"
+                }`}
+              >
+                {/* Floating Character Badge */}
+                <div className="mb-auto mt-0.5 flex items-center gap-1.5 px-3 py-1 rounded-full bg-black/85 border border-[#38bdf8]/40 backdrop-blur-md shadow-sm">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#38bdf8] animate-pulse" />
+                  <span className="text-[10px] font-black text-white font-mono">كريم</span>
+                  <span className="text-[8px] text-[#38bdf8] font-mono font-bold tracking-wider">{"// CREATIVE MEDIA DIRECTOR"}</span>
+                </div>
+
+                {/* Ground Radial Halo & Floor Shadow */}
+                <div className="absolute bottom-1 w-36 h-5 rounded-[100%] bg-black/80 blur-[3px] pointer-events-none" />
+                <div
+                  className="absolute bottom-0 w-44 h-7 rounded-[100%] opacity-20 pointer-events-none"
+                  style={{
+                    background: "radial-gradient(ellipse at center, #38bdf8 0%, transparent 70%)",
+                  }}
+                />
+
+                {/* Full-Body Hero Sprite (Unbounded, No Slicing, Full Shoes Visible) */}
+                <div
+                  onClick={() => jumpToScene(4)}
+                  className="relative z-10 w-36 xs:w-40 h-[175px] xs:h-[185px] flex items-end justify-center cursor-pointer transition-transform active:scale-95"
+                >
+                  <Image
+                    src="/characters/photographer_v4.png"
+                    alt="كريم - الكرييتف"
+                    width={155}
+                    height={185}
+                    priority
+                    className="object-contain max-h-full drop-shadow-[0_12px_24px_rgba(0,0,0,0.95)] [image-rendering:pixelated]"
+                  />
+                </div>
+              </div>
+
+              {/* 👥 Hero 4: الفريق المتكامل (Trio Squad Open Formation) */}
+              <div
+                className={`absolute inset-0 flex flex-col items-center justify-end pb-1 transition-all duration-300 ease-out ${
+                  currentScene.activeCharacter === "all"
+                    ? "opacity-100 scale-100 pointer-events-auto z-10"
+                    : "opacity-0 scale-95 pointer-events-none z-0"
+                }`}
+              >
+                {/* Floating Character Badge */}
+                <div className="mb-auto mt-0.5 flex items-center gap-1.5 px-3 py-1 rounded-full bg-black/85 border border-[#a6f45d]/40 backdrop-blur-md shadow-sm">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#a6f45d] animate-pulse" />
+                  <span className="text-[10px] font-black text-white font-mono">فريق FAME-X</span>
+                  <span className="text-[8px] text-[#a6f45d] font-mono font-bold tracking-wider">{"// 3 EXPERTS • ONE ALLIANCE"}</span>
+                </div>
+
+                {/* Ground Radial Halo & Floor Shadows */}
+                <div className="absolute bottom-1 w-60 h-5 rounded-[100%] bg-black/85 blur-[3px] pointer-events-none" />
+                <div
+                  className="absolute bottom-0 w-64 h-7 rounded-[100%] opacity-20 pointer-events-none"
+                  style={{
+                    background: "radial-gradient(ellipse at center, #a6f45d 0%, transparent 70%)",
+                  }}
+                />
+
+                {/* 💥 Trio Open Formation (Full Shoes & Full Bodies Visible, Fully Interactive) */}
+                <div className="relative z-10 w-full flex items-end justify-center px-1">
+                  {/* Left: كريم */}
+                  <div
+                    onClick={() => jumpToScene(3)}
+                    className="relative -ml-1 -mb-0.5 w-24 xs:w-28 h-[150px] xs:h-[160px] shrink-0 opacity-95 z-10 flex items-end justify-center cursor-pointer transition-transform active:scale-95"
+                    title="كريم - Creative Media"
+                  >
+                    <Image
+                      src="/characters/photographer_v4.png"
+                      alt="كريم"
+                      width={120}
+                      height={160}
+                      priority
+                      className="object-contain max-h-full drop-shadow-[0_10px_18px_rgba(0,0,0,0.9)] [image-rendering:pixelated]"
+                    />
+                  </div>
+
+                  {/* Center: عمر */}
+                  <div
+                    onClick={() => jumpToScene(2)}
+                    className="relative -mx-3 z-20 w-28 xs:w-32 h-[170px] xs:h-[180px] shrink-0 flex items-end justify-center cursor-pointer transition-transform active:scale-95"
+                    title="عمر - UI/UX Designer"
+                  >
+                    <Image
+                      src="/characters/designer_v4.png"
+                      alt="عمر"
+                      width={135}
+                      height={180}
+                      priority
+                      className="object-contain max-h-full drop-shadow-[0_14px_24px_rgba(0,0,0,0.95)] [image-rendering:pixelated]"
+                    />
+                  </div>
+
+                  {/* Right: أحمد */}
+                  <div
+                    onClick={() => jumpToScene(1)}
+                    className="relative -mr-1 -mb-0.5 w-24 xs:w-28 h-[150px] xs:h-[160px] shrink-0 opacity-95 z-10 flex items-end justify-center cursor-pointer transition-transform active:scale-95"
+                    title="أحمد - Mobile Dev"
+                  >
+                    <Image
+                      src="/characters/developer_v4.png"
+                      alt="أحمد"
+                      width={120}
+                      height={160}
+                      priority
+                      className="object-contain max-h-full drop-shadow-[0_10px_18px_rgba(0,0,0,0.9)] [image-rendering:pixelated]"
+                    />
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          {/* 💻 DESKTOP VIEW: 3-Way Comic Action Panels Grid (sm and up) */}
+          <div className="hidden sm:grid sm:grid-cols-3 relative z-10 w-full max-w-md sm:max-w-xl mx-auto gap-4 items-end justify-items-center px-1">
+            
+            {/* 💻 Comic Panel 1: أحمد - المطوّر (Developer) */}
+            <div
+              onClick={() => jumpToScene(1)}
+              className={`group relative w-full flex flex-col items-center cursor-pointer transition-all duration-500 ${
+                currentScene.activeCharacter === "developer"
+                  ? "scale-105 z-20 -translate-y-1"
+                  : currentScene.activeCharacter === "all"
+                  ? "scale-100 z-10"
+                  : "scale-95 z-0 opacity-40 hover:opacity-75 grayscale-[20%]"
+              }`}
+            >
+              {/* Comic Frame Card */}
+              <div
+                className={`relative w-full rounded-2xl border-2 transition-all duration-500 overflow-hidden flex flex-col justify-between p-1.5 sm:p-2.5 h-[160px] sm:h-[185px] md:h-[195px] ${
+                  currentScene.activeCharacter === "developer" || currentScene.activeCharacter === "all"
+                    ? "border-[#a6f45d] bg-gradient-to-b from-[#0c2413] via-[#09170e] to-[#040905] shadow-md"
+                    : "border-[#1b3420] bg-[#071009] shadow-none"
+                }`}
+              >
+                {/* Halftone / Matrix Pattern */}
+                <div
+                  className="absolute inset-0 opacity-20 pointer-events-none"
+                  style={{
+                    backgroundImage: "radial-gradient(#a6f45d 1px, transparent 1px)",
+                    backgroundSize: "12px 12px",
+                  }}
+                />
+
+                {/* Floating Code Ambience */}
+                <div className="hidden sm:block absolute top-7 left-1.5 font-mono text-[10px] text-[#a6f45d]/40 font-bold select-none">
+                  {"<App />"}
+                </div>
+                <div className="hidden sm:block absolute bottom-10 right-1.5 font-mono text-[10px] text-[#a6f45d]/30 font-bold select-none">
+                  {"{ iOS }"}
+                </div>
+
+                {/* Comic Header Ribbon */}
+                <div className="relative z-10 flex items-center justify-between w-full border-b border-[#a6f45d]/20 pb-0.5 sm:pb-1">
+                  <span className="text-[7.5px] sm:text-[9px] font-mono font-black tracking-wider text-[#a6f45d] flex items-center gap-0.5 sm:gap-1">
+                    <PixelTerminal size={9} />
+                    <span>DEV</span>
+                  </span>
+                  {currentScene.activeCharacter === "developer" && (
+                    <span className="px-1 sm:px-1.5 py-0.2 rounded-full bg-[#a6f45d] text-black font-mono font-black text-[6px] sm:text-[7.5px] animate-pulse">
+                      TALKING
+                    </span>
+                  )}
+                </div>
+
+                {/* In-Frame Solid Nameplate Base */}
+                <div className="relative z-30 w-full mt-auto py-1 border-t border-[#a6f45d]/25 bg-black/75 backdrop-blur-xs text-center rounded-b-xl">
+                  <p className="text-[9px] sm:text-[11px] font-black text-white font-mono leading-tight">
+                    أحمد
+                  </p>
+                  <p className="text-[6.5px] sm:text-[7.5px] text-[#a6f45d] font-mono font-bold tracking-tight">
+                    MOBILE DEV
+                  </p>
+                </div>
+              </div>
+
+              {/* 💥 3D Pop-Out Character Sprite (Grounded on pedestal, bursting through top frame!) */}
+              <div className="absolute bottom-5 sm:bottom-6 z-20 w-24 sm:w-32 md:w-36 h-[160px] sm:h-[195px] md:h-[210px] flex items-end justify-center pointer-events-none transition-transform duration-500 group-hover:scale-105">
+                <Image
+                  src="/characters/developer_v4.png"
+                  alt="أحمد - المطوّر"
+                  width={140}
+                  height={180}
+                  priority
+                  className="object-contain max-h-full drop-shadow-[0_12px_24px_rgba(0,0,0,0.95)] [image-rendering:pixelated]"
+                />
+              </div>
+            </div>
+
+            {/* 🎨 Comic Panel 2: عمر - المصمّم (Designer) */}
+            <div
+              onClick={() => jumpToScene(2)}
+              className={`group relative w-full flex flex-col items-center cursor-pointer transition-all duration-500 ${
+                currentScene.activeCharacter === "designer"
+                  ? "scale-105 z-20 -translate-y-1"
+                  : currentScene.activeCharacter === "all"
+                  ? "scale-100 z-10"
+                  : "scale-95 z-0 opacity-40 hover:opacity-75 grayscale-[20%]"
+              }`}
+            >
+              {/* Comic Frame Card */}
+              <div
+                className={`relative w-full rounded-2xl border-2 transition-all duration-500 overflow-hidden flex flex-col justify-between p-1.5 sm:p-2.5 h-[160px] sm:h-[185px] md:h-[195px] ${
+                  currentScene.activeCharacter === "designer" || currentScene.activeCharacter === "all"
+                    ? "border-[#52c974] bg-gradient-to-b from-[#0c2617] via-[#09170e] to-[#040905] shadow-md"
+                    : "border-[#1b3420] bg-[#071009] shadow-none"
+                }`}
+              >
+                {/* Blueprint Wireframe Grid Background */}
+                <div
+                  className="absolute inset-0 opacity-20 pointer-events-none"
+                  style={{
+                    backgroundImage:
+                      "linear-gradient(to right, rgba(82,201,116,0.18) 1px, transparent 1px), linear-gradient(to bottom, rgba(82,201,116,0.18) 1px, transparent 1px)",
+                    backgroundSize: "14px 14px",
+                  }}
+                />
+
+                {/* Floating Design Ambience */}
+                <div className="hidden sm:block absolute top-7 left-1.5 font-mono text-[10px] text-[#52c974]/40 font-bold select-none">
+                  {"UI // UX"}
+                </div>
+                <div className="hidden sm:block absolute bottom-10 right-1.5 font-mono text-[10px] text-[#52c974]/30 font-bold select-none">
+                  {"FIGMA ❖"}
+                </div>
+
+                {/* Comic Header Ribbon */}
+                <div className="relative z-10 flex items-center justify-between w-full border-b border-[#52c974]/20 pb-0.5 sm:pb-1">
+                  <span className="text-[7.5px] sm:text-[9px] font-mono font-black tracking-wider text-[#52c974] flex items-center gap-0.5 sm:gap-1">
+                    <PixelPalette size={9} />
+                    <span>UI/UX</span>
+                  </span>
+                  {currentScene.activeCharacter === "designer" && (
+                    <span className="px-1 sm:px-1.5 py-0.2 rounded-full bg-[#52c974] text-black font-mono font-black text-[6px] sm:text-[7.5px] animate-pulse">
+                      TALKING
+                    </span>
+                  )}
+                </div>
+
+                {/* In-Frame Solid Nameplate Base */}
+                <div className="relative z-30 w-full mt-auto py-1 border-t border-[#52c974]/25 bg-black/75 backdrop-blur-xs text-center rounded-b-xl">
+                  <p className="text-[9px] sm:text-[11px] font-black text-white font-mono leading-tight">
+                    عمر
+                  </p>
+                  <p className="text-[6.5px] sm:text-[7.5px] text-[#52c974] font-mono font-bold tracking-tight">
+                    UI/UX DESIGNER
+                  </p>
+                </div>
+              </div>
+
+              {/* 💥 3D Pop-Out Character Sprite (Grounded on pedestal, bursting through top frame!) */}
+              <div className="absolute bottom-5 sm:bottom-6 z-20 w-24 sm:w-32 md:w-36 h-[160px] sm:h-[195px] md:h-[210px] flex items-end justify-center pointer-events-none transition-transform duration-500 group-hover:scale-105">
+                <Image
+                  src="/characters/designer_v4.png"
+                  alt="عمر - المصمّم"
+                  width={140}
+                  height={180}
+                  priority
+                  className="object-contain max-h-full drop-shadow-[0_12px_24px_rgba(0,0,0,0.95)] [image-rendering:pixelated]"
+                />
+              </div>
+            </div>
+
+            {/* 📸 Comic Panel 3: كريم - الكرييتف (Photographer / Creative) */}
+            <div
+              onClick={() => jumpToScene(3)}
+              className={`group relative w-full flex flex-col items-center cursor-pointer transition-all duration-500 ${
+                currentScene.activeCharacter === "photographer"
+                  ? "scale-105 z-20 -translate-y-1"
+                  : currentScene.activeCharacter === "all"
+                  ? "scale-100 z-10"
+                  : "scale-95 z-0 opacity-40 hover:opacity-75 grayscale-[20%]"
+              }`}
+            >
+              {/* Comic Frame Card */}
+              <div
+                className={`relative w-full rounded-2xl border-2 transition-all duration-500 overflow-hidden flex flex-col justify-between p-1.5 sm:p-2.5 h-[160px] sm:h-[185px] md:h-[195px] ${
+                  currentScene.activeCharacter === "photographer" || currentScene.activeCharacter === "all"
+                    ? "border-[#38bdf8] bg-gradient-to-b from-[#0c222b] via-[#08151b] to-[#040905] shadow-md"
+                    : "border-[#1b3420] bg-[#071009] shadow-none"
+                }`}
+              >
+                {/* Cinematic Viewfinder / Corner Marks Background */}
+                <div className="absolute inset-0 p-2 opacity-25 pointer-events-none flex flex-col justify-between">
+                  <div className="flex justify-between text-[#38bdf8] text-[9px] font-mono font-bold">
+                    <span>⌜</span>
+                    <span>⌝</span>
+                  </div>
+                  <div className="text-center font-mono text-[9px] text-[#38bdf8]/40">
+                    +
+                  </div>
+                  <div className="flex justify-between text-[#38bdf8] text-[9px] font-mono font-bold">
+                    <span>⌞</span>
+                    <span>⌟</span>
+                  </div>
+                </div>
+
+                {/* Floating Cinematic Ambience */}
+                <div className="hidden sm:block absolute top-7 left-1.5 font-mono text-[10px] text-[#38bdf8]/40 font-bold select-none">
+                  {"4K // REC"}
+                </div>
+                <div className="hidden sm:block absolute bottom-10 right-1.5 font-mono text-[10px] text-[#38bdf8]/30 font-bold select-none">
+                  {"60 FPS"}
+                </div>
+
+                {/* Comic Header Ribbon */}
+                <div className="relative z-10 flex items-center justify-between w-full border-b border-[#38bdf8]/20 pb-0.5 sm:pb-1">
+                  <span className="text-[7.5px] sm:text-[9px] font-mono font-black tracking-wider text-[#38bdf8] flex items-center gap-0.5 sm:gap-1">
+                    <PixelCamera size={9} />
+                    <span>MEDIA</span>
+                  </span>
+                  {currentScene.activeCharacter === "photographer" && (
+                    <span className="px-1 sm:px-1.5 py-0.2 rounded-full bg-[#38bdf8] text-black font-mono font-black text-[6px] sm:text-[7.5px] animate-pulse">
+                      TALKING
+                    </span>
+                  )}
+                </div>
+
+                {/* In-Frame Solid Nameplate Base */}
+                <div className="relative z-30 w-full mt-auto py-1 border-t border-[#38bdf8]/25 bg-black/75 backdrop-blur-xs text-center rounded-b-xl">
+                  <p className="text-[9px] sm:text-[11px] font-black text-white font-mono leading-tight">
+                    كريم
+                  </p>
+                  <p className="text-[6.5px] sm:text-[7.5px] text-[#38bdf8] font-mono font-bold tracking-tight">
+                    CREATIVE
+                  </p>
+                </div>
+              </div>
+
+              {/* 💥 3D Pop-Out Character Sprite (Grounded on pedestal, bursting through top frame!) */}
+              <div className="absolute bottom-5 sm:bottom-6 z-20 w-24 sm:w-32 md:w-36 h-[160px] sm:h-[195px] md:h-[210px] flex items-end justify-center pointer-events-none transition-transform duration-500 group-hover:scale-105">
+                <Image
+                  src="/characters/photographer_v4.png"
+                  alt="كريم - الكرييتف"
+                  width={140}
+                  height={180}
+                  priority
+                  className="object-contain max-h-full drop-shadow-[0_12px_24px_rgba(0,0,0,0.95)] [image-rendering:pixelated]"
+                />
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        {/* 💬 THE CLASSIC RPG DIALOGUE BOX (Mega Man GBA Style With Typewriter) */}
+        <div className="relative z-30 w-full max-w-4xl mx-auto mt-1 sm:mt-0">
+          <div
+            onClick={handleBoxClick}
+            className="group relative rounded-xl sm:rounded-2xl bg-[#09150d]/95 border-2 sm:border-[3px] border-[#224429] hover:border-[#a6f45d]/60 shadow-[0_16px_40px_rgba(0,0,0,0.9),inset_0_1px_2px_rgba(255,255,255,0.12)] p-2.5 sm:p-4 cursor-pointer transition-all duration-300 min-h-[130px] sm:min-h-[155px] flex flex-col justify-between"
+            style={{
+              boxShadow: "0 16px 40px rgba(0,0,0,0.95)",
+            }}
+          >
+            {/* Top Corner Speaker Badge Tag */}
+            <div className="flex items-center justify-between pb-1.5 sm:pb-2 mb-1.5 sm:mb-2 border-b border-[#1b3420] gap-2">
+              <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
+                <span
+                  className="w-2 h-2 rounded-full animate-pulse shrink-0"
+                  style={{ backgroundColor: currentScene.accentColor }}
+                />
+                <span
+                  className="text-[11px] sm:text-sm font-black font-mono tracking-wide truncate"
+                  style={{ color: currentScene.accentColor }}
+                >
+                  {currentScene.speaker}
+                </span>
+                <span className="hidden sm:inline text-[10px] text-[#7d9b7f] font-mono opacity-80 shrink-0">
+                  <bdi dir="ltr">{"//"} {currentScene.roleTitle}</bdi>
+                </span>
+              </div>
+
+              {/* Scene Counter Tag */}
+              <div className="flex items-center gap-2 shrink-0">
+                <span
+                  dir="ltr"
+                  className="px-1.5 sm:px-2 py-0.5 rounded bg-black/60 border border-white/10 text-[8.5px] sm:text-[10px] font-mono font-bold text-white tracking-widest"
+                >
+                  <bdi dir="ltr">0{activeSceneIndex + 1} / 05</bdi>
+                </span>
+              </div>
+            </div>
+
+            {/* Dialogue Body: Face Portrait Box + Live Typewritten Dialogue */}
+            <div className="flex items-start gap-2.5 sm:gap-4 flex-1">
+              
+              {/* 🖼️ Retro Pixel Face Portrait (GBA Dialogue Portrait Box) */}
+              <div
+                className="relative w-14 h-14 sm:w-22 sm:h-22 md:w-28 md:h-28 shrink-0 rounded-xl sm:rounded-2xl bg-black/90 border-2 sm:border-[2.5px] overflow-hidden shadow-inner flex items-center justify-center transition-all duration-300 group-hover:scale-105"
+                style={{ borderColor: currentScene.accentColor }}
+              >
+                <Image
+                  src={currentScene.avatar}
+                  alt={currentScene.speaker}
+                  width={112}
+                  height={112}
+                  priority
+                  className="object-contain w-full h-full [image-rendering:pixelated]"
+                />
+                {/* CRT Scanline over the portrait */}
+                <div
+                  className="absolute inset-0 opacity-15 pointer-events-none"
+                  style={{
+                    backgroundImage: "linear-gradient(rgba(255,255,255,0.3) 1px, transparent 1px)",
                     backgroundSize: "100% 3px",
                   }}
                 />
-                <div className="absolute top-0 right-0 w-full h-full bg-gradient-to-tr from-transparent via-white/[0.02] to-transparent pointer-events-none z-20" />
-
-                {/* Dynamic Screen Ambient Glow */}
-                <div
-                  className="absolute -top-20 -right-20 w-64 h-64 rounded-full blur-[90px] pointer-events-none transition-colors duration-700 opacity-30"
-                  style={{ backgroundColor: currentChapter.accentColor }}
-                />
-
-                <AnimatePresence mode="wait">
-                  {/* ════════════ SCENE 00: THE SQUAD LINEUP (المشهد الترحيبي الأول) ════════════ */}
-                  {activeChapterIndex === 0 && (
-                    <motion.div
-                      key="intro-scene"
-                      initial={{ opacity: 0, y: 12 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -12 }}
-                      transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
-                      className="flex flex-col items-center text-center space-y-3 sm:space-y-4 py-1"
-                    >
-                      <div className="max-w-xl mx-auto space-y-1.5">
-                        <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-white/[0.04] border border-white/[0.08] text-[10px] font-bold text-[#a6f45d] font-mono">
-                          <Sparkles className="w-2.5 h-2.5 text-[#a6f45d]" />
-                          <span>فريق FAME-X {"//"} الترويكا الرقمية</span>
-                        </div>
-                        <h3 className="text-lg sm:text-2xl font-black text-white tracking-tight leading-snug">
-                          {CHAPTERS[0].title}
-                        </h3>
-                        <p className="text-[11px] sm:text-xs text-[#b8ccb5] leading-relaxed font-[family-name:var(--font-digital)]">
-                          {CHAPTERS[0].story}
-                        </p>
-                      </div>
-
-                      {/* 👥 The 3 Heroes Standing Together */}
-                      <div className="grid grid-cols-3 gap-2 sm:gap-4 items-end justify-center w-full max-w-md mx-auto pt-1">
-                        {/* Hero 1: Developer */}
-                        <div
-                          className="flex flex-col items-center group cursor-pointer"
-                          onClick={() => handleSelectChapter(1)}
-                        >
-                          <div className="relative w-20 sm:w-26 h-28 sm:h-38 flex items-end justify-center transition-transform duration-300 group-hover:scale-105">
-                            <Image
-                              src="/characters/developer_v3.png"
-                              alt="SOFTWARE ARCHITECT"
-                              width={110}
-                              height={150}
-                              priority
-                              className="object-contain max-h-full drop-shadow-[0_8px_14px_rgba(0,0,0,0.85)] [image-rendering:pixelated]"
-                            />
-                            <div className="absolute -bottom-1 w-16 h-2.5 bg-[#a6f45d]/20 rounded-full blur-sm" />
-                          </div>
-                          <div className="mt-1.5 px-2 py-0.5 rounded bg-white/[0.04] border border-white/[0.08] text-center">
-                            <p className="text-[8.5px] sm:text-[10px] font-black text-white font-mono tracking-tight sm:tracking-wider whitespace-nowrap">
-                              SOFTWARE ARCHITECT
-                            </p>
-                            <p className="text-[7.5px] sm:text-[8.5px] text-[#a6f45d] font-mono uppercase tracking-widest font-bold">
-                              LEAD DEVELOPER
-                            </p>
-                          </div>
-                        </div>
-
-                        {/* Hero 2: Designer (Center Stage) */}
-                        <div
-                          className="flex flex-col items-center group cursor-pointer -translate-y-1"
-                          onClick={() => handleSelectChapter(2)}
-                        >
-                          <div className="relative w-22 sm:w-28 h-30 sm:h-42 flex items-end justify-center transition-transform duration-300 group-hover:scale-105">
-                            <Image
-                              src="/characters/designer_v3.png"
-                              alt="UI/UX DESIGNER"
-                              width={120}
-                              height={160}
-                              priority
-                              className="object-contain max-h-full drop-shadow-[0_10px_16px_rgba(0,0,0,0.85)] [image-rendering:pixelated]"
-                            />
-                            <div className="absolute -bottom-1 w-20 h-3 bg-[#52c974]/25 rounded-full blur-sm" />
-                          </div>
-                          <div className="mt-1.5 px-2.5 py-0.5 rounded bg-[#52c974]/10 border border-[#52c974]/30 text-center shadow-sm">
-                            <p className="text-[8.5px] sm:text-[10px] font-black text-white font-mono tracking-tight sm:tracking-wider whitespace-nowrap">
-                              UI/UX DESIGNER
-                            </p>
-                            <p className="text-[7.5px] sm:text-[8.5px] text-[#52c974] font-mono uppercase tracking-widest font-bold">
-                              PRODUCT DESIGN
-                            </p>
-                          </div>
-                        </div>
-
-                        {/* Hero 3: Photographer */}
-                        <div
-                          className="flex flex-col items-center group cursor-pointer"
-                          onClick={() => handleSelectChapter(3)}
-                        >
-                          <div className="relative w-20 sm:w-26 h-28 sm:h-38 flex items-end justify-center transition-transform duration-300 group-hover:scale-105">
-                            <Image
-                              src="/characters/photographer_v3.png"
-                              alt="CREATIVE DIRECTOR"
-                              width={110}
-                              height={150}
-                              priority
-                              className="object-contain max-h-full drop-shadow-[0_8px_14px_rgba(0,0,0,0.85)] [image-rendering:pixelated]"
-                            />
-                            <div className="absolute -bottom-1 w-16 h-2.5 bg-[#38bdf8]/20 rounded-full blur-sm" />
-                          </div>
-                          <div className="mt-1.5 px-2 py-0.5 rounded bg-white/[0.04] border border-white/[0.08] text-center">
-                            <p className="text-[8.5px] sm:text-[10px] font-black text-white font-mono tracking-tight sm:tracking-wider whitespace-nowrap">
-                              CREATIVE DIRECTOR
-                            </p>
-                            <p className="text-[7.5px] sm:text-[8.5px] text-[#38bdf8] font-mono uppercase tracking-widest font-bold">
-                              MEDIA PRODUCER
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Micro Scroll Hint */}
-                      <div className="pt-0.5 flex items-center justify-center gap-1.5 text-[11px] font-medium text-[#7d9b7f] animate-bounce">
-                        <span>اسكرول أو استخدم أزرار الجهاز لتشغيل القصة</span>
-                        <ChevronDown className="w-3 h-3 text-[#a6f45d]" />
-                      </div>
-                    </motion.div>
-                  )}
-
-                  {/* ════════════ SCENES 01, 02, 03: INDIVIDUAL HERO CHAPTERS ════════════ */}
-                  {activeChapterIndex > 0 && (
-                    <motion.div
-                      key={currentChapter.id}
-                      initial={{ opacity: 0, y: 12 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -12 }}
-                      transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-                      className="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-6 items-center"
-                    >
-                      {/* Character Mascot & Light Stage (5 cols) */}
-                      <div className="lg:col-span-5 flex flex-col items-center justify-center">
-                        {currentChapter.quote && (
-                          <div className="relative mb-2 max-w-xs w-full">
-                            <div className="relative z-10 px-3 py-1.5 rounded-lg bg-white/[0.04] border border-white/[0.1] backdrop-blur-md shadow-md text-center">
-                              <Quote
-                                className="w-2.5 h-2.5 mb-0.5 opacity-60 mx-auto"
-                                style={{ color: currentChapter.accentColor }}
-                              />
-                              <p className="text-[11px] sm:text-xs font-semibold text-white leading-relaxed">
-                                {currentChapter.quote}
-                              </p>
-                            </div>
-                            <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 rotate-45 bg-[#0e1710] border-r border-b border-white/[0.1] z-0" />
-                          </div>
-                        )}
-
-                        <motion.div
-                          animate={{ y: [0, -4, 0] }}
-                          transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut" }}
-                          className="relative w-32 h-44 sm:w-44 sm:h-56 flex items-end justify-center"
-                        >
-                          <Image
-                            src={currentChapter.avatar}
-                            alt={currentChapter.title}
-                            width={180}
-                            height={220}
-                            priority
-                            className="object-contain max-h-full drop-shadow-[0_12px_24px_rgba(0,0,0,0.85)] [image-rendering:pixelated] z-10"
-                          />
-
-                          <div
-                            className="absolute -bottom-2 w-32 sm:w-40 h-6 rounded-full blur-[2px] border border-white/20 -z-0 opacity-80"
-                            style={{
-                              background: `radial-gradient(ellipse at center, ${currentChapter.accentColor}50, transparent 70%)`,
-                              boxShadow: `0 0 20px ${currentChapter.accentColor}40`,
-                            }}
-                          />
-                        </motion.div>
-
-                        <div className="mt-2 inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-white/[0.04] border border-white/[0.08]">
-                          <span
-                            className="w-1.5 h-1.5 rounded-full"
-                            style={{ backgroundColor: currentChapter.accentColor }}
-                          />
-                          <span className="text-[9px] sm:text-[10px] font-mono tracking-wider text-[#a8bda7] uppercase font-bold">
-                            {currentChapter.discipline}
-                          </span>
-                        </div>
-                      </div>
-
-                      {/* Story Narrative & Performance Readout (7 cols) */}
-                      <div className="lg:col-span-7 flex flex-col justify-center">
-                        <div className="mb-2">
-                          <div className="flex items-center gap-1.5 mb-0.5">
-                            <span
-                              className="text-[9px] font-bold font-mono px-1.5 py-0.2 rounded bg-white/[0.06] border border-white/[0.08]"
-                              style={{ color: currentChapter.accentColor }}
-                            >
-                              CARTRIDGE {"//"} {currentChapter.code}
-                            </span>
-                            <span className="text-[11px] text-[#8fa88d] font-medium">
-                              {currentChapter.badge.split("//")[0]}
-                            </span>
-                          </div>
-                          <h3 className="text-lg sm:text-xl font-black text-white tracking-tight">
-                            {currentChapter.title}
-                          </h3>
-                        </div>
-
-                        {/* Personal Human Story */}
-                        <p className="text-[11px] sm:text-xs text-[#c8dcc4] leading-relaxed mb-3 font-[family-name:var(--font-digital)] bg-white/[0.02] p-2.5 sm:p-3 rounded-lg border border-white/[0.06]">
-                          {currentChapter.story}
-                        </p>
-
-                        {/* Performance Metrics */}
-                        {currentChapter.metrics && (
-                          <div className="space-y-2 mb-3">
-                            {currentChapter.metrics.map((metric) => {
-                              const Icon = metric.icon;
-
-                              return (
-                                <div key={metric.label} className="space-y-0.5">
-                                  <div className="flex items-center justify-between text-[11px]">
-                                    <span className="text-[#d8ebd5] font-medium flex items-center gap-1.5">
-                                      <span className="w-3.5 h-3.5 rounded bg-white/[0.04] border border-white/[0.08] flex items-center justify-center shrink-0">
-                                        <Icon
-                                          className="w-2 h-2"
-                                          style={{ color: currentChapter.accentColor }}
-                                        />
-                                      </span>
-                                      <span>{metric.label}</span>
-                                    </span>
-                                    <span className="font-mono text-[10px] font-bold text-white">
-                                      {metric.value}%
-                                    </span>
-                                  </div>
-
-                                  <div className="relative h-1.5 w-full bg-white/[0.05] rounded-full overflow-hidden border border-white/[0.06]">
-                                    <motion.div
-                                      className="h-full rounded-full"
-                                      initial={{ width: 0 }}
-                                      animate={{ width: `${metric.value}%` }}
-                                      transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-                                      style={{
-                                        backgroundColor: currentChapter.accentColor,
-                                        boxShadow: `0 0 8px ${currentChapter.accentColor}60`,
-                                      }}
-                                    />
-                                  </div>
-                                </div>
-                              );
-                            })}
-                          </div>
-                        )}
-
-                        {/* Impact Card */}
-                        {currentChapter.impactTitle && (
-                          <div className="p-2 sm:p-2.5 rounded-lg bg-white/[0.03] border border-white/[0.08] relative overflow-hidden backdrop-blur-sm">
-                            <div className="flex items-center gap-1.5 mb-0.5">
-                              <span
-                                className="text-[8px] sm:text-[9px] font-mono font-bold px-1 py-0.2 rounded uppercase"
-                                style={{
-                                  backgroundColor: `${currentChapter.accentColor}20`,
-                                  color: currentChapter.accentColor,
-                                  border: `1px solid ${currentChapter.accentColor}40`,
-                                }}
-                              >
-                                {currentChapter.impactTag}
-                              </span>
-                              <h4 className="text-xs font-bold text-white">
-                                {currentChapter.impactTitle}
-                              </h4>
-                            </div>
-                            <p className="text-[10px] sm:text-[11px] text-[#a3bfa0] leading-relaxed">
-                              {currentChapter.impactDesc}
-                            </p>
-                          </div>
-                        )}
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
               </div>
 
-              {/* 🕹️ Right Controls Deck (Action Buttons A / B & Speaker) */}
-              <div className="hidden md:flex md:col-span-1 flex-col items-center justify-center space-y-4">
-                {/* Tactile Retro Action Buttons */}
-                <div className="flex flex-col items-center space-y-2.5">
+              {/* 📜 The Egyptian Colloquial Dialogue Script (Typewritten!) */}
+              <div className="flex-1 min-w-0 pr-1">
+                <p className="text-[12.5px] sm:text-base md:text-lg font-bold leading-relaxed sm:leading-loose text-[#f0fdf4] font-[family-name:var(--font-digital)]">
+                  &ldquo;
+                  {renderFormattedDialogue(
+                    visibleDialogue,
+                    currentScene.highlightWords,
+                    currentScene.accentColor
+                  )}
+                  {/* Blinking Retro Typewriter Cursor */}
+                  {isTyping && (
+                    <span
+                      className="inline-block w-1.5 sm:w-2.5 h-3.5 sm:h-5 mr-1 align-middle animate-pulse shadow-[0_0_8px_currentColor]"
+                      style={{ backgroundColor: currentScene.accentColor, color: currentScene.accentColor }}
+                    />
+                  )}
+                  &rdquo;
+                </p>
+
+                {/* Scene 5 Call-To-Action (ظهر في آخر مشهد بعد انتهاء الكتابة) */}
+                {activeSceneIndex === 4 && !isTyping && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.15 }}
+                    className="mt-2 sm:mt-3 flex items-center gap-3"
+                  >
+                    <a
+                      href="#contact"
+                      onClick={handleSkipToServices}
+                      className="inline-flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl bg-[#132817] hover:bg-[#1a3821] border border-[#2b5233] hover:border-[#a6f45d] text-[#e8f5e9] hover:text-white font-bold text-[11px] sm:text-sm hover:scale-105 transition-all shadow-md hover:shadow-[0_0_14px_rgba(166,244,93,0.25)]"
+                    >
+                      <PixelGamepad size={14} className="text-[#a6f45d] shrink-0" />
+                      <span>ابدأ مشروعك مع FAME-X دلوقتي</span>
+                    </a>
+                  </motion.div>
+                )}
+              </div>
+
+            </div>
+
+            {/* Bottom Controls Deck: Navigation Arrows & Blinking GBA Arrow */}
+            <div className="flex items-center justify-between pt-1.5 sm:pt-2 mt-1.5 sm:mt-2 border-t border-[#132817] text-[9.5px] sm:text-[10px] text-[#7d9b7f] font-mono">
+              {/* Micro Tip */}
+              <div className="flex items-center gap-1 sm:gap-1.5">
+                <span className="text-[#a6f45d] animate-pulse">▼</span>
+                <span className="hidden sm:inline">
+                  {isTyping ? "اضغط بالماوس لإظهار الكلام فوراً" : "اسكرول لأسفل أو اضغط بالماوس للرد التالي"}
+                </span>
+                <span className="sm:hidden text-[9px]">
+                  {isTyping ? "المس لإظهار النص" : "اضغط التالي أو الصور للتنقل"}
+                </span>
+              </div>
+
+              {/* Prev / Next Buttons */}
+              <div className="flex items-center gap-1.5">
+                {activeSceneIndex > 0 && (
                   <button
                     onClick={handlePrev}
-                    aria-label="Previous Chapter (A)"
-                    className="w-8 h-8 rounded-full border-2 border-[#203c26] bg-gradient-to-b from-[#142817] to-[#0b170e] hover:border-[#7d9b7f] text-[#7d9b7f] font-mono font-black text-[10px] shadow-md active:scale-90 transition-all flex items-center justify-center"
+                    aria-label="Previous Dialogue"
+                    className="flex items-center gap-1 px-2.5 py-1 sm:py-0.5 rounded-lg bg-black/50 hover:bg-black/70 text-[#a8bda7] hover:text-white transition-colors active:scale-95 text-[10px] sm:text-[10px]"
                   >
-                    A
+                    <span>السابق</span>
+                    <ChevronRight className="w-3 h-3" />
                   </button>
-                  <button
-                    onClick={handleNext}
-                    aria-label="Next Chapter (B)"
-                    className="w-8 h-8 rounded-full border-2 border-[#2b5233] bg-gradient-to-b from-[#1b3d23] to-[#0f2414] hover:border-[#a6f45d] text-[#a6f45d] font-mono font-black text-[10px] shadow-md active:scale-90 transition-all flex items-center justify-center"
-                  >
-                    B
-                  </button>
-                </div>
+                )}
 
-                {/* Speaker Grill Slits */}
-                <div className="space-y-1 opacity-40">
-                  <div className="w-5 h-0.5 bg-[#7d9b7f] rounded-full" />
-                  <div className="w-5 h-0.5 bg-[#7d9b7f] rounded-full" />
-                  <div className="w-5 h-0.5 bg-[#7d9b7f] rounded-full" />
-                </div>
+                <button
+                  onClick={handleNext}
+                  aria-label="Next Dialogue"
+                  className="flex items-center gap-1 px-3 py-1 sm:py-0.5 rounded-lg bg-[#172e1c] hover:bg-[#a6f45d] hover:text-black text-white font-bold transition-all active:scale-95 text-[10px] sm:text-[10px]"
+                >
+                  <span>{activeSceneIndex === 4 ? "للخدمات" : "التالي"}</span>
+                  <ChevronLeft className="w-3 h-3 text-[#a6f45d] group-hover:text-black" />
+                </button>
               </div>
             </div>
 
-            {/* Handheld Bottom Bevel with Jack and Serial */}
-            <div className="mt-2 pt-2 border-t border-[#1b3420] flex items-center justify-between text-[8px] sm:text-[9px] text-[#5e7760] font-mono">
-              <span>HEADPHONES {"//"} 3.5MM</span>
-              <div className="flex items-center gap-1">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#a6f45d]/40" />
-                <span>SN: FAME-X-STORY-2026</span>
-              </div>
-            </div>
           </div>
         </div>
 
-        {/* 🧭 Bottom Chapter Progression Dots (يظهر فقط على الديسكتوب) */}
-        <div className="hidden md:flex relative z-20 w-full max-w-4xl mx-auto items-center justify-between pt-1.5 border-t border-white/[0.06] text-[11px] text-[#7d9b7f]">
-          <div className="flex items-center gap-1.5">
-            <span>الفصل:</span>
-            <span className="font-mono font-bold text-white">
-              {currentChapter.code} / 03
-            </span>
-          </div>
-
-          <div className="flex items-center gap-1.5">
-            {CHAPTERS.map((_, i) => (
-              <button
-                key={i}
-                onClick={() => handleSelectChapter(i)}
-                aria-label={`Go to chapter ${i}`}
-                className={`h-1 rounded-full transition-all duration-300 ${
-                  i === activeChapterIndex
-                    ? "w-6 bg-white"
-                    : "w-1.5 bg-white/20 hover:bg-white/40"
-                }`}
-                style={{
-                  backgroundColor: i === activeChapterIndex ? currentChapter.accentColor : undefined,
-                }}
-              />
-            ))}
-          </div>
-
-          <div className="flex items-center gap-1 font-mono text-[10px]">
-            <span>SCROLL OR USE BUTTONS</span>
-            <span className="text-[#a6f45d]">↓</span>
-          </div>
-        </div>
       </div>
     </div>
   );
