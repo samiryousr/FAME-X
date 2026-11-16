@@ -56,7 +56,6 @@ export default function HomePage() {
         <Services />
         <Projects />
         <PartnersMarquee />
-        <Contact />
         <section className="testimonials-section section" id="testimonials">
           <div className="container">
             <div className="section__heading" style={{ marginInline: "auto", textAlign: "center" }}>
@@ -69,6 +68,7 @@ export default function HomePage() {
             <TestimonialsSection />
           </div>
         </section>
+        <Contact />
       </main>
       <Footer />
     </>
