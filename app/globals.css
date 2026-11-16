@@ -7555,43 +7555,139 @@ body.scroll-reveal-ready .services__card.scroll-revealed {
 }
 
 /* ==========================================================================
-   FameX Partners & Clients Infinite Marquee (GPU-Accelerated)
+   FameX Partners & Clients Marquee (Inspired by The Reel Recipe, FameX Theme)
    ========================================================================== */
-.partners-marquee {
+.partners-wrap {
   position: relative;
   width: 100%;
+  border-top: 1px solid rgba(27, 52, 32, 0.7);
+  border-bottom: 1px solid rgba(27, 52, 32, 0.7);
+  background: linear-gradient(180deg, #070d08 0%, #0d1a10 32%, #070d08 100%);
+  padding: 28px 0 32px;
   overflow: hidden;
-  direction: ltr;
-  padding-block: 10px;
-  -webkit-mask-image: linear-gradient(
-    90deg,
-    transparent,
-    #000 6%,
-    #000 94%,
-    transparent
-  );
-  mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent);
 }
 
-.partners-marquee__track {
+.partners-label {
+  text-align: center;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #8fa88c;
+  margin: 0 0 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.marquee-outer {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 0 clamp(16px, 4vw, 48px);
+  max-width: 1440px;
+  margin: 0 auto;
+}
+
+.marquee-btn {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  border: 1px solid #1b3420;
+  background: #09150d;
+  color: #8fa88c;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  z-index: 10;
+}
+
+.marquee-btn:hover {
+  border-color: #a6f45d;
+  color: #a6f45d;
+  background: #0f2415;
+  box-shadow: 0 0 16px rgba(166, 244, 93, 0.25);
+  transform: scale(1.05);
+}
+
+.marquee-overflow {
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+  direction: ltr;
+}
+
+.marquee-overflow::before,
+.marquee-overflow::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: clamp(40px, 8vw, 120px);
+  z-index: 2;
+  pointer-events: none;
+}
+
+.marquee-overflow::before {
+  left: 0;
+  background: linear-gradient(to right, #070d08 20%, transparent);
+}
+
+.marquee-overflow::after {
+  right: 0;
+  background: linear-gradient(to left, #070d08 20%, transparent);
+}
+
+.marquee-track {
   display: flex;
   width: max-content;
-  flex-wrap: nowrap;
-  align-items: center;
-  animation: partners-scroll 35s linear infinite;
+  user-select: none;
+  animation: partners-scroll 32s linear infinite;
   will-change: transform;
 }
 
-.partners-marquee:hover .partners-marquee__track {
+.marquee-overflow:hover .marquee-track {
   animation-play-state: paused;
 }
 
-.partners-marquee__set {
+.marquee-set {
   display: flex;
-  flex: 0 0 auto;
   align-items: center;
-  gap: 20px;
-  padding-inline: 10px;
+  gap: clamp(40px, 5vw, 68px);
+  padding-right: clamp(40px, 5vw, 68px);
+}
+
+.partner-logo-item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.partner-logo-item img {
+  height: 48px;
+  width: auto;
+  max-width: 160px;
+  object-fit: contain;
+  opacity: 0.75;
+  transition: opacity 0.3s ease, transform 0.35s ease, filter 0.3s ease;
+}
+
+@media (min-width: 640px) {
+  .partner-logo-item img {
+    height: 52px;
+    max-width: 180px;
+  }
+}
+
+.partner-logo-item:hover img {
+  opacity: 1;
+  transform: scale(1.08);
+  filter: drop-shadow(0 0 14px rgba(166, 244, 93, 0.35));
 }
 
 @keyframes partners-scroll {
@@ -7604,10 +7700,10 @@ body.scroll-reveal-ready .services__card.scroll-revealed {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .partners-marquee__track {
+  .marquee-track {
     animation: none;
   }
-  .partners-marquee__set[aria-hidden="true"] {
+  .marquee-set[aria-hidden="true"] {
     display: none;
   }
 }

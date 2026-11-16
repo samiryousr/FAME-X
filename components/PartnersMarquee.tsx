@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useRef } from "react";
 import Image from "next/image";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import {
   subscribeToPartners,
   type Partner,
@@ -10,6 +11,8 @@ import {
 export default function PartnersMarquee() {
   const [partners, setPartners] = useState<Partner[]>([]);
   const [loaded, setLoaded] = useState(false);
+  const overflowRef = useRef<HTMLDivElement>(null);
+  const trackRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const unsubscribe = subscribeToPartners((list) => {
@@ -24,8 +27,7 @@ export default function PartnersMarquee() {
   const displayList = useMemo(() => {
     if (partners.length === 0) return [];
     if (partners.length >= 8) return partners;
-    // Repeat items until at least 8-12 items are in a set
-    const repeatCount = Math.ceil(10 / partners.length);
+    const repeatCount = Math.ceil(12 / partners.length);
     const repeated: Partner[] = [];
     for (let i = 0; i < repeatCount; i++) {
       repeated.push(...partners);
@@ -42,58 +44,81 @@ export default function PartnersMarquee() {
     return null;
   }
 
+  const handleScroll = (direction: "left" | "right") => {
+    if (!overflowRef.current) return;
+    const amount = direction === "left" ? -280 : 280;
+    overflowRef.current.scrollBy({ left: amount, behavior: "smooth" });
+  };
+
   return (
-    <section
-      className="partners-section py-10 sm:py-14 relative z-10 overflow-hidden"
-      id="partners"
-      aria-label="شركاء النجاح"
-    >
-      <div className="container mb-6 sm:mb-8 text-center">
-        <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-[#0d1f12]/80 border border-[#203c26] text-[#a6f45d] text-[11px] font-mono tracking-wider mb-2.5 shadow-sm">
-          <span className="w-1.5 h-1.5 rounded-full bg-[#a6f45d] animate-pulse" />
-          <span>{"// TRUSTED BY // شركاء وثقوا بنا"}</span>
-        </div>
-        <p className="text-xs sm:text-sm text-[#7d9b7f] font-medium max-w-md mx-auto">
-          علامات تجارية وكيانات رقمية اختارت FAME-X لتطوير أفكارها ومشاريعها
-        </p>
-      </div>
+    <section className="partners-wrap" id="partners" aria-label="شركاء النجاح">
+      {/* Category / Section Label */}
+      <p className="partners-label font-[family-name:var(--font-mono)]">
+        <span className="w-1.5 h-1.5 rounded-full bg-[#a6f45d] animate-pulse" />
+        <span>CLIENTS IN THE DIGITAL WORLD // شركاء وثقوا بنا</span>
+      </p>
 
-      {/* Infinite Seamless Marquee */}
-      <div className="partners-marquee w-full select-none" dir="ltr">
-        <div className="partners-marquee__track">
-          {/* Set 1 */}
-          <div className="partners-marquee__set">
-            {displayList.map((partner, idx) => (
-              <PartnerCard key={`set1-${partner.id}-${idx}`} partner={partner} />
-            ))}
-          </div>
+      {/* Marquee Outer Frame with Navigation Arrows */}
+      <div className="marquee-outer">
+        {/* Scroll Left Button */}
+        <button
+          type="button"
+          onClick={() => handleScroll("left")}
+          className="marquee-btn marquee-btn--prev"
+          aria-label="التمرير لليسار"
+        >
+          <ChevronLeft className="w-4 h-4" />
+        </button>
 
-          {/* Set 2 (Duplicate for 100% Seamless Loop) */}
-          <div className="partners-marquee__set" aria-hidden="true">
-            {displayList.map((partner, idx) => (
-              <PartnerCard key={`set2-${partner.id}-${idx}`} partner={partner} />
-            ))}
+        {/* Marquee Track Overflow */}
+        <div ref={overflowRef} className="marquee-overflow">
+          <div ref={trackRef} className="marquee-track">
+            {/* Set A */}
+            <div className="marquee-set marquee-set-a">
+              {displayList.map((partner, idx) => (
+                <div key={`set-a-${partner.id}-${idx}`} className="partner-logo-item">
+                  <PartnerItem partner={partner} />
+                </div>
+              ))}
+            </div>
+
+            {/* Set B (Duplicate for 100% Seamless Infinite Loop) */}
+            <div className="marquee-set marquee-set-b" aria-hidden="true">
+              {displayList.map((partner, idx) => (
+                <div key={`set-b-${partner.id}-${idx}`} className="partner-logo-item">
+                  <PartnerItem partner={partner} />
+                </div>
+              ))}
+            </div>
           </div>
         </div>
+
+        {/* Scroll Right Button */}
+        <button
+          type="button"
+          onClick={() => handleScroll("right")}
+          className="marquee-btn marquee-btn--next"
+          aria-label="التمرير لليمين"
+        >
+          <ChevronRight className="w-4 h-4" />
+        </button>
       </div>
     </section>
   );
 }
 
-function PartnerCard({ partner }: { partner: Partner }) {
-  const content = (
-    <div
-      className="relative flex items-center justify-center h-16 sm:h-20 px-6 sm:px-8 py-2.5 rounded-2xl bg-[#09150d]/80 border border-[#1b3420] hover:border-[#a6f45d]/60 hover:bg-[#0f2416] hover:shadow-[0_0_24px_rgba(166,244,93,0.18)] transition-all duration-300 group/partner shrink-0 cursor-pointer backdrop-blur-xs"
+function PartnerItem({ partner }: { partner: Partner }) {
+  const imageElement = (
+    <Image
+      src={partner.logoUrl}
+      alt={partner.name}
+      width={180}
+      height={60}
+      loading="lazy"
+      decoding="async"
+      className="cursor-pointer"
       title={partner.name}
-    >
-      <Image
-        src={partner.logoUrl}
-        alt={partner.name}
-        width={140}
-        height={50}
-        className="max-h-8 sm:max-h-10 max-w-[110px] sm:max-w-[140px] w-auto h-auto object-contain filter grayscale opacity-60 group-hover/partner:grayscale-0 group-hover/partner:opacity-100 group-hover/partner:scale-105 transition-all duration-300 drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)]"
-      />
-    </div>
+    />
   );
 
   if (partner.websiteUrl) {
@@ -102,13 +127,13 @@ function PartnerCard({ partner }: { partner: Partner }) {
         href={partner.websiteUrl}
         target="_blank"
         rel="noopener noreferrer"
-        className="inline-block"
         aria-label={partner.name}
+        className="inline-flex items-center justify-center transition-transform hover:scale-105"
       >
-        {content}
+        {imageElement}
       </a>
     );
   }
 
-  return content;
+  return imageElement;
 }
